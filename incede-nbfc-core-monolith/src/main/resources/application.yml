@@ -1,0 +1,67 @@
+# Common Application Configuration
+# This file contains common configurations shared across all profiles
+# Profile-specific configurations are in application-{profile}.yml files
+
+spring:
+  profiles:
+    active: dev
+  application:
+    name: incede-nbfc-core-monolith
+  
+  # Common JPA Configuration
+  jpa:
+    open-in-view: false # Recommended for performance
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+        batch_versioned_data: true
+
+server:
+  port: 8080
+
+# Jackson Configuration
+jackson:
+  serialization:
+    write-dates-as-timestamps: false
+    fail-on-empty-beans: false
+  deserialization:
+    fail-on-unknown-properties: false
+  default-property-inclusion: non_null
+
+# Common Actuator Configuration
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+  endpoint:
+    health:
+      show-components: always
+      show-details: when-authorized
+
+# Common Logging Configuration
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Common Application Configuration
+app:
+  name: Incede NBFC Core Monolith
+  version: 1.0.0
+  description: Integrated NBFC Core Services
+  database:
+    schemas:
+      - customer_schema
+      - masterdata_schema
+      - product_schema
+      - loan_schema
+      - payment_schema
+      - document_schema
+      - notification_schema
+      - audit_schema
+      - reporting_schema
+      - integration_schema
+      - security_schema 

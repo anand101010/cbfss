@@ -1,0 +1,142 @@
+# Development Profile Configuration
+# This profile is used for development and testing
+
+# PostgreSQL Database Configuration for Development
+spring:
+  datasource:
+    url: jdbc:postgresql://10.199.232.3:5432/testincededb
+    driver-class-name: org.postgresql.Driver
+    username: incedetestuser
+    password: incedetestuser
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  # JPA Configuration for Development
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        default_schema: customer_schema
+
+# Logging Configuration for Development
+logging:
+  level:
+    com.incede.nbfc: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    # Feign Client specific logging
+    com.incede.nbfc.core.monolith.client: DEBUG
+    com.incede.nbfc.core.monolith.fallback: DEBUG
+    com.incede.nbfc.core.monolith.service: DEBUG
+    # Circuit Breaker logging
+    io.github.resilience4j: DEBUG
+    io.github.resilience4j.circuitbreaker: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# OpenAPI Configuration for Development
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true # Enabled for development
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true # Enabled for development
+    operations-sorter: method
+    tags-sorter: alpha
+  packages-to-scan: com.incede.nbfc.core.monolith.controller
+
+# Actuator Configuration for Development
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,env,configprops
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Application Configuration for Development
+app:
+  name: Incede NBFC Core Monolith (Development)
+  version: 1.0.0
+  description: Integrated NBFC Core Services - Development Environment
+  environment: development
+  database:
+    schemas:
+      - customer_schema
+      - masterdata_schema
+      - product_schema
+      - loan_schema
+      - payment_schema
+      - document_schema
+      - notification_schema
+      - audit_schema
+      - reporting_schema
+      - integration_schema
+      - security_schema
+
+# Post API Configuration for Development (Free JSONPlaceholder API)
+post:
+  api:
+    base-url: https://jsonplaceholder.typicode.co
+
+# Feign Client Configuration for Development
+feign:
+  circuitbreaker:
+    enabled: true
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 10000
+        loggerLevel: FULL
+      post-api:
+        connectTimeout: 3000
+        readTimeout: 8000
+        loggerLevel: BASIC
+
+# Circuit Breaker Configuration for Resilience4j (Development)
+resilience4j:
+  circuitbreaker:
+    instances:
+      post-api:
+        slidingWindowSize: 3
+        minimumNumberOfCalls: 1
+        permittedNumberOfCallsInHalfOpenState: 1
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 1s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+        recordExceptions:
+          - java.net.UnknownHostException
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+          - feign.FeignException
+          - feign.RetryableException
+  retry:
+    instances:
+      post-api:
+        maxAttempts: 1
+        waitDuration: 100ms
+        enableExponentialBackoff: false
+  bulkhead:
+    instances:
+      post-api:
+        maxConcurrentCalls: 10
+        maxWaitDuration: 1s
+
