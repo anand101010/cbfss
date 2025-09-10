@@ -26,7 +26,7 @@ public class CustomerEmployment extends CustomerBaseEntity implements Serializab
     @Column(name = "employment_id")
     private Integer employmentId;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE})
     @JoinColumn(name = "customer_id", nullable = false, referencedColumnName = "customer_id")
     @NotNull(message = "Customer reference is required")
     private Customer customer;

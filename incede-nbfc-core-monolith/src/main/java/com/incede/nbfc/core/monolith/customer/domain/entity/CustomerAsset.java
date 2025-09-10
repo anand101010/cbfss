@@ -27,7 +27,7 @@ public class CustomerAsset extends CustomerBaseEntity implements Serializable {
     @Column(name = "asset_id")
     private Integer assetId;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE})
     @JoinColumn(name = "customer_id", nullable = false, referencedColumnName = "customer_id")
     @NotNull(message = "Customer reference is required")
     private Customer customer;

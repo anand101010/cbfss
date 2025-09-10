@@ -25,6 +25,7 @@ public final class CommonConstants {
     public static final String API_TITLE = "Incede NBFC Core API";
     public static final String API_DESCRIPTION = "Core API for Incede NBFC Services";
 
+
     // Pagination Defaults
     public static final int DEFAULT_PAGE_SIZE = 20;
     public static final int MAX_PAGE_SIZE = 100;
@@ -76,10 +77,62 @@ public final class CommonConstants {
     public static final String NOT_FOUND_MESSAGE = "Resource not found";
     public static final String UNAUTHORIZED_MESSAGE = "Authentication required";
     public static final String FORBIDDEN_MESSAGE = "Access denied";
-    public static final String CONFLICT_MESSAGE ="resource already exist";
+
+    public static final String CONFLICT_MESSAGE ="Resource already exist";
     public static final String CONSTRAIN_VIOLATION =" Constrain Violation";
     //customer onboarding
-    public static  String Draft="Draft";
+    public static  String DRAFT="Draft";
+    public static  String IN_PROGRESS="In_progress";
+    public static  String CREATED_BY_REQUIRED="CreatedBy is required";
+    public static  String UPDATED_BY_REQUIRED="UpdatedBy is required";
+    public static final String INVALID_JSON = "Invalid Json format";
+
+
+
+    //Fallback Constants
+    public static final String SERVICE_UNAVAILABLE="Service unavailable. Please try again later.";
+    public static final String FAILURE = "failure";
+
+    //kyc constants
+    public static final String AADHAAR_PURPOSE = "Aadhaar verification";
+    public static final String CONSENT_PURPOSE = "For bank account purpose only";
+    public static final String FACE_MATCH_CONSENT = "Y";
+    public static final boolean CONSENT =true;
+    public static final boolean PDFOUT =true;
+    public static final boolean DETECTIONBASEDMASKING =false;
+    public static final String FAILUREMESSAGE = "FAILURE";
+    public static final String KYCCONSENT="Y";
+    public static final String FALLBACKMESSAGE="Service unavailable. Please try again later.";
+
+    //Error messages
+    public static final String DOB_REQUIRED_FOR_DL = "Date of birth is required for Driving License";
+    public static final String INVALID_ID_TYPE = "Invalid ID type provided";
+    public static final String ACCURACYPERCENTAGE ="100";
+    public static final String PURPOSE_MESSAGE = "This is a penny drop transaction";
+    public static final String PENNYDROP_AMNT = "1";
+
+    /**
+     * Interceptor Constants
+     */
+    public static final String CLIENTID = "client_id";
+    public static final String CLIENTSECREAT = "client_secret";
+    public static final String MODULESECREAT = "module_secret";
+    public static final String PROVIDERSECREAT = "provider_secret";
+    public static final String KEY = "key";
+    public static final String APIV2VALIADTOR = "v2/kyc";
+
+    // Entity Names
+    public static final String ENTITY_CUSTOMER = "Customer";
+    public static final String ENTITY_ADDRESS = "Address";
+
+    // Customer Address Status
+    public static final String CUSTOMER_ADDRESS_STATUS_IN_PROGRESS = "IN_PROGRESS";
+    public static final String CUSTOMER_ADDRESS_STATUS_UPDATED = "UPDATED";
+    public static final String CUSTOMER_ADDRESS_STATUS_SUCCESS = "SUCCESS";
+
+
+
+
 
 
 } 

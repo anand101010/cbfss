@@ -6,9 +6,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test class for ErrorCodes utility class.
- *
+ * 
  * Tests error code categorization, validation, and HTTP status mapping.
- *
+ * 
  * @author Incede NBFC Development Team
  * @version 1.0.0
  */
@@ -73,7 +73,7 @@ class ErrorCodesTest {
         assertNotNull(ErrorCodes.FORBIDDEN);
         assertNotNull(ErrorCodes.NOT_FOUND);
         assertNotNull(ErrorCodes.INTERNAL_SERVER_ERROR);
-
+        
         assertNotNull(ErrorCodes.BUSINESS_RULE_VIOLATION);
         assertNotNull(ErrorCodes.VALIDATION_FAILED);
         assertNotNull(ErrorCodes.INVALID_CREDENTIALS);
@@ -88,11 +88,11 @@ class ErrorCodesTest {
         assertEquals("403", ErrorCodes.FORBIDDEN);
         assertEquals("404", ErrorCodes.NOT_FOUND);
         assertEquals("500", ErrorCodes.INTERNAL_SERVER_ERROR);
-
+        
         assertEquals("BLC-001", ErrorCodes.BUSINESS_RULE_VIOLATION);
         assertEquals("VAL-001", ErrorCodes.VALIDATION_FAILED);
         assertEquals("AUTH-001", ErrorCodes.INVALID_CREDENTIALS);
         assertEquals("RES-001", ErrorCodes.RESOURCE_NOT_FOUND);
         assertEquals("SYS-001", ErrorCodes.DATABASE_ERROR);
     }
-}
+} 

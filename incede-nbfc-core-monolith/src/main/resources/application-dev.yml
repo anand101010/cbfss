@@ -1,6 +1,6 @@
+
 # Development Profile Configuration
 # This profile is used for development and testing
-
 # PostgreSQL Database Configuration for Development
 spring:
   datasource:
@@ -18,14 +18,12 @@ spring:
   # JPA Configuration for Development
   jpa:
     hibernate:
-      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:
         format_sql: true
         use_sql_comments: true
         default_schema: customer_schema
-
 # Logging Configuration for Development
 logging:
   level:
@@ -43,7 +41,6 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-
 # OpenAPI Configuration for Development
 springdoc:
   api-docs:
@@ -55,7 +52,6 @@ springdoc:
     operations-sorter: method
     tags-sorter: alpha
   packages-to-scan: com.incede.nbfc.core.monolith.controller
-
 # Actuator Configuration for Development
 management:
   endpoints:
@@ -69,7 +65,6 @@ management:
     export:
       prometheus:
         enabled: true
-
 # Application Configuration for Development
 app:
   name: Incede NBFC Core Monolith (Development)
@@ -89,12 +84,10 @@ app:
       - reporting_schema
       - integration_schema
       - security_schema
-
 # Post API Configuration for Development (Free JSONPlaceholder API)
 post:
   api:
     base-url: https://jsonplaceholder.typicode.co
-
 # Feign Client Configuration for Development
 feign:
   circuitbreaker:
@@ -109,7 +102,6 @@ feign:
         connectTimeout: 3000
         readTimeout: 8000
         loggerLevel: BASIC
-
 # Circuit Breaker Configuration for Resilience4j (Development)
 resilience4j:
   circuitbreaker:
@@ -139,4 +131,3 @@ resilience4j:
       post-api:
         maxConcurrentCalls: 10
         maxWaitDuration: 1s
-

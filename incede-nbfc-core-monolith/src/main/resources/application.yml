@@ -2,12 +2,56 @@
 # This file contains common configurations shared across all profiles
 # Profile-specific configurations are in application-{profile}.yml files
 
+decentro:
+  api:
+    url: https://in.decentro.tech/
+    aadhaar-otp-path: v2/kyc/aadhaar/otp
+    aadhaar-otp-validation-path: v2/kyc/aadhaar/otp/validate
+    kyc-validate: kyc/public_registry/validate
+    Validate-Bank: core_banking/money_transfer/validate_account
+    face-match: v2/kyc/forensics/face_match
+    name-match: v2/kyc/match/name
+    upiId-validate: /v2/banking/verify_pay
+
+
+  client:
+    id: Indelmoney_prod
+    secret: 9mtvYKIkl5xC0qbNZCjBURAWbGvs8Fnu
+  module:
+    secret: VQQmwOdEsgHOQpv69VrR9qyn8ALWYCMl
+    secretbank: ZUzGK632H0fOYF8b9LtK6shtin3n7sov
+  provider:
+    secret: 15FwwL5wr5orPQNFqvfElOCZTupxQytf
+
+  uat:
+    url: https://in.staging.decentro.tech
+    photo-liveness: v3/kyc/farsight/liveness/passive
+  uiclient:
+    id: indelmoney_staging
+    secret: sec4C1WDV67lwEpQSLXrIVRpU5tb3gTO
+  uatmodule:
+    secret: vbJnBbmoVC2fwhSS2qlJmgBbquhigFxJ
+
+pixl:
+  api:
+    url: https://maskv6.pixl.ai/api/v6/
+    aadhaar-mask: aadharMask
+  key: 74f2e7b49fd309189d7888c6da279f602a17e4099f4d9ddce11e19237c668548
+
+
+finaVault :
+  api:
+    url: http://finvault.indelmoney.com:80/FinaVault
+  security-token: KJDFGIUREHCKVBJHGUIERWIRUHSDFEWINDEL
+
 spring:
   profiles:
     active: dev
   application:
     name: incede-nbfc-core-monolith
-  
+  main:
+    allow-bean-definition-overriding: true
+
   # Common JPA Configuration
   jpa:
     open-in-view: false # Recommended for performance
@@ -55,7 +99,7 @@ app:
   database:
     schemas:
       - customer_schema
-      - masterdata_schema
+      - master_data
       - product_schema
       - loan_schema
       - payment_schema
@@ -64,4 +108,5 @@ app:
       - audit_schema
       - reporting_schema
       - integration_schema
-      - security_schema 
+      - security_schema
+

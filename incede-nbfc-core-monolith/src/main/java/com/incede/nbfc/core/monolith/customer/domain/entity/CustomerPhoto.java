@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.ToString;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -30,20 +31,23 @@ public class CustomerPhoto  extends CustomerBaseEntity implements Serializable {
     @Column(name = "photo_ref_id", nullable = false)
     @NotNull(message = "Photo reference ID is required")
     @Min(value = 1, message = "Photo reference id must be a positive integer")
-    private Integer photoRefId; // FK to photo metadata or storage
+    private Integer photoRefId;
 
     @Column(name = "captured_by")
     @Min(value = 1, message = "Captured by id must be a positive integer")
-    private Integer capturedBy; // FK to user/device
+    private Integer capturedBy;
 
+    @ToString.Exclude
     @Digits(integer = 9, fraction = 6)
     @Column(name = "latitude", precision = 9, scale = 6)
     private BigDecimal latitude;
 
+    @ToString.Exclude
     @Digits(integer = 9, fraction = 6)
     @Column(name = "longitude", precision = 9, scale = 6)
     private BigDecimal longitude;
 
+    @ToString.Exclude
     @Digits(integer = 5, fraction = 2)
     @Column(name = "accuracy", precision = 5, scale = 2)
     private BigDecimal accuracy;
@@ -52,11 +56,14 @@ public class CustomerPhoto  extends CustomerBaseEntity implements Serializable {
     @Size(max = 50, message = "Capture device must not exceed 50 characters")
     private String captureDevice;
 
+    @ToString.Exclude
+
     @Column(name = "location_description", length = 200)
     @Size(max = 200, message = "Location description must not exceed 200 characters")
     private String locationDescription;
 
 
+    @ToString.Exclude
     @Column(name = "file_path", columnDefinition = "TEXT", nullable = false)
     @NotBlank(message = "File path must not be blank")
     private String filePath;

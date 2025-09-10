@@ -267,13 +267,29 @@ public class GlobalExceptionHandler {
                 .errorCode(ErrorCodes.INTERNAL_SERVER_ERROR)
                 .correlationId(generateCorrelationId())
                 .build();
-
-        // Log the full exception for debugging (in production, log without stack trace)
-        System.err.println("Unexpected error: " + ex.getMessage());
         ex.printStackTrace();
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
+
+
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex, HttpServletRequest request) {
+        String correlationId = generateCorrelationId();
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .error("Internal Server Error")
+                .message("An unexpected error occurred")
+                .path(request.getRequestURI())
+                .errorCode(ErrorCodes.INTERNAL_SERVER_ERROR)
+                .correlationId(correlationId)
+                .build();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+
 
     /**
      * Generate a unique correlation ID for tracking errors across systems.

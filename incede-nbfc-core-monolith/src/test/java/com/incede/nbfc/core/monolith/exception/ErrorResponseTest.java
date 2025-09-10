@@ -11,9 +11,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test class for ErrorResponse DTO.
- *
+ * 
  * Tests the builder pattern, field validation, and JSON serialization.
- *
+ * 
  * @author Incede NBFC Development Team
  * @version 1.0.0
  */
@@ -118,7 +118,7 @@ class ErrorResponseTest {
     @Test
     void testErrorResponseWithEmptyDetails() {
         Map<String, String> emptyDetails = new HashMap<>();
-
+        
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(400)
@@ -132,4 +132,4 @@ class ErrorResponseTest {
         assertTrue(errorResponse.getDetails().isEmpty());
     }
 
-}
+} 

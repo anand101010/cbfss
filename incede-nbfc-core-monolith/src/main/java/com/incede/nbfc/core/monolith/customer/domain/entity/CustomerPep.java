@@ -24,10 +24,10 @@ public class CustomerPep extends CustomerBaseEntity implements Serializable {
     @Column(name = "pep_id")
     private Integer pepId;
 
-    @OneToOne(fetch=FetchType.LAZY,cascade = {CascadeType.PERSIST,CascadeType.MERGE})
+    @OneToOne(fetch=FetchType.LAZY,cascade = {CascadeType.MERGE})
     @JoinColumn(name = "customer_id", nullable = false, referencedColumnName = "customer_id")
     @NotNull(message = "Customer reference must not be Null")
-    private Customer customerId;
+    private Customer customer;
 
 
     @Column(name = "status", length = 10, nullable = false)

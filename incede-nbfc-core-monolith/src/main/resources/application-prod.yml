@@ -7,10 +7,10 @@ spring:
   
   # PostgreSQL Database Configuration for Production
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/incede_nbfc_db}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://10.199.232.3:5432/testincededb}
     driver-class-name: org.postgresql.Driver
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:password}
+    username: ${SPRING_DATASOURCE_USERNAME:incedetestuser}
+    password: ${SPRING_DATASOURCE_PASSWORD:incedetestuser}
     hikari:
       maximum-pool-size: 20
       minimum-idle: 10
@@ -85,7 +85,7 @@ app:
   database:
     schemas:
       - customer_schema
-      - masterdata_schema
+      - master_data
       - product_schema
       - loan_schema
       - payment_schema

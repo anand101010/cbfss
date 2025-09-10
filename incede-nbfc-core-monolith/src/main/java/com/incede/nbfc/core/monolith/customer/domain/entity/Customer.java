@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 import jakarta.persistence.*;
+import lombok.ToString;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -20,7 +21,7 @@ import java.util.UUID;
 
 /**
  * Customer entity for the NBFC system.
- * 
+ *
  * @author Incede NBFC Development Team
  * @version 1.0.0
 
@@ -106,10 +107,13 @@ public class Customer extends CustomerBaseEntity implements Serializable{
     @Min(value=1,message = "occupation should be a positive integer")
     private Integer occupation;
 
+    @ToString.Exclude
+
     @Column(name = "employer", length = 100)
     @Size(max = 100, message = "Employer name must not exceed 100 characters")
     private String employer;
 
+    @ToString.Exclude
     @Column(name = "annual_income", precision = 15, scale = 2)
     @Digits(integer = 13, fraction = 2, message = "Annual income must be a valid monetary amount")
     private BigDecimal annualIncome;
@@ -119,6 +123,7 @@ public class Customer extends CustomerBaseEntity implements Serializable{
     @Min(value = 1,message = "CustomerStatus must be a positive Integer")
     private Integer customerStatus = 1;
 
+    @ToString.Exclude
     @Column(name = "crm_reference_id", nullable = false, length = 100)
     @Size(max = 100, message = "CRM reference ID must not exceed 100 characters")
     private String crmReferenceId;
@@ -132,18 +137,23 @@ public class Customer extends CustomerBaseEntity implements Serializable{
     @Column(name = "residential_status_id", nullable = false)
     private Integer residentialStatusId;
 
+
+    @ToString.Exclude
     @Column(name = "onboarding_status", length = 100)
     private String onboardingStatus;
 
-    @NotNull
+    @ToString.Exclude
+    @NotBlank(message="fatherName cannot be Blank")
     @Column(name = "father_name", length = 100)
     private String fatherName;
 
-    @NotNull
+    @ToString.Exclude
+    @NotBlank(message="motherName cannot be Blank")
     @Column(name = "mother_name", length = 100)
     private String motherName;
 
-    @NotNull
+    @ToString.Exclude
+    @NotBlank(message="spouseName cannot be Blank")
     @Column(name = "spouse_name", length = 100)
     private String spouseName;
 
@@ -161,4 +171,4 @@ public class Customer extends CustomerBaseEntity implements Serializable{
 
 
 
-} 
+}

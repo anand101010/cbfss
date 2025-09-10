@@ -6,10 +6,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CustomerAccountMappingRepository extends JpaRepository<CustomerAccountMapping,Integer> {
-
-
-
-
-
-
 }

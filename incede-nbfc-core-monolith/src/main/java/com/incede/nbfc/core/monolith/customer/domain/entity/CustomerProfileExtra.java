@@ -31,7 +31,7 @@ public class CustomerProfileExtra extends CustomerBaseEntity  implements Seriali
     @Column(name = "profile_extra_id")
     private Integer profileExtraId;
 
-    @ManyToOne(fetch= FetchType.LAZY,cascade = {CascadeType.PERSIST,CascadeType.MERGE})
+    @ManyToOne(fetch= FetchType.LAZY,cascade = {CascadeType.MERGE})
     @JoinColumn(name="customer_Id",referencedColumnName = "customer_id")
     @NotNull(message="CustomerId must not be null")
     private Customer customer;

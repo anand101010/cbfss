@@ -45,11 +45,9 @@ public class BasicInformationResponseDto {
         private Integer taxCategory;
 
 
-        private Integer entityTypeId;
 
 
-        private Integer preferredLanguage;
 
-        private Integer residentialStatus;
+
     }
 }

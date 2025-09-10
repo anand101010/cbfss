@@ -45,7 +45,7 @@ class BasicInformationControllerTest {
                         "firstName",
                         "lastName",
                         LocalDate.of(2025, Month.SEPTEMBER, 2),
-                        0, 0, 0, 0, 0, 0
+                        0, 0, 0
                 )
         );
 

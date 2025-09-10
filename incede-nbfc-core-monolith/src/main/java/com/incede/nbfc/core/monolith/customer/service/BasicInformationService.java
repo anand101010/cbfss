@@ -14,6 +14,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -46,24 +47,24 @@ public class BasicInformationService {
             log.warn("Duplicate customer detected: {} {}", dto.getFirstName(), dto.getLastName());
             throw new BusinessException(CommonConstants.CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
         }
-        try {
-        Customer customer = customerMapper.toEntity(dto);
-        customer.setIdentity(UUID.randomUUID());
-        customer.setCustomerCode(generateCustomerCode(dto.getTenantId()));
-        customer.setOnboardingStatus(CommonConstants.Draft);
 
-        if (customer.getDisplayName() == null || customer.getDisplayName().isBlank()) {
-            customer.setDisplayName(dto.getFirstName() + " " + dto.getLastName());
+        if (dto.getCreatedBy() == null) {
+            throw new BusinessException(CommonConstants.CREATED_BY_REQUIRED, ErrorCodes.VALIDATION_FAILED);
         }
-        customer.setCreatedBy(dto.getCreatedBy());
 
+        try {
+            Customer customer = customerMapper.toEntity(dto);
+            customer.setIdentity(UUID.randomUUID());
+            customer.setCustomerCode(generateCustomerCode(dto.getTenantId()));
+            customer.setCreatedBy(dto.getCreatedBy());
+            customer.setOnboardingStatus(CommonConstants.DRAFT);
 
             Customer savedCustomer = customerRepository.save(customer);
             return customerMapper.toResponseDto(savedCustomer);
 
         } catch (DataIntegrityViolationException e) {
             log.error("Constraint violation while saving customer. DTO: {}", dto, e);
-            throw new BusinessException("Constraint violation while saving customer",
+            throw new BusinessException(CommonConstants.CONSTRAIN_VIOLATION,
                     ErrorCodes.CONSTRAINT_VIOLATION, e);
         } catch (IllegalArgumentException e) {
             log.warn("Validation failed for DTO: {} - {}", dto, e.getMessage());
@@ -86,14 +87,16 @@ public class BasicInformationService {
                         CommonConstants.NOT_FOUND_MESSAGE,
                         ErrorCodes.RESOURCE_NOT_FOUND));
 
-        try {
-            customerMapper.updateEntityFromDto(existingCustomer, dto);
-            existingCustomer.setUpdatedBy(dto.getCreatedBy());
-            existingCustomer.setUpdatedAt(java.time.LocalDateTime.now());
+        if (dto.getUpdatedBy() == null) {
+            throw new BusinessException(CommonConstants.UPDATED_BY_REQUIRED, ErrorCodes.VALIDATION_FAILED);
+        }
 
-            if (existingCustomer.getDisplayName() == null || existingCustomer.getDisplayName().isBlank()) {
-                existingCustomer.setDisplayName(dto.getFirstName() + " " + dto.getLastName());
-            }
+        try {
+
+            customerMapper.updateEntityFromDto(existingCustomer, dto);
+            existingCustomer.setUpdatedBy(dto.getUpdatedBy());
+            existingCustomer.setUpdatedAt(LocalDateTime.now());
+
 
             Optional<Customer> duplicate = customerRepository
                     .findByTenantIdAndFirstNameAndLastName(dto.getTenantId(), dto.getFirstName(), dto.getLastName());
@@ -139,6 +142,10 @@ public class BasicInformationService {
      * @return Generated customer code
      */
     public String generateCustomerCode(Integer tenantId) {
+        if (tenantId == null) {
+            throw new IllegalArgumentException("Tenant ID cannot be null");
+        }
         return String.format("%d-%s", tenantId, UUID.randomUUID().toString().substring(0, 6).toUpperCase());
     }
+
 }

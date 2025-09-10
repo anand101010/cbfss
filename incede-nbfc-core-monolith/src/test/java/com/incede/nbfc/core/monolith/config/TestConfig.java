@@ -11,9 +11,9 @@ import org.springframework.test.context.ActiveProfiles;
 
 /**
  * Test configuration class for the Core Monolith service.
- *
+ * 
  * Provides test-specific beans and configurations.
- *
+ * 
  * @author Incede NBFC Development Team
  * @version 1.0.0
  */
@@ -25,7 +25,7 @@ import org.springframework.test.context.ActiveProfiles;
 public class TestConfig {
 
     // Add test-specific beans here as needed
-
+    
     /**
      * Example test bean - replace with actual test requirements
      */
@@ -34,4 +34,4 @@ public class TestConfig {
     public String testBean() {
         return "test-bean";
     }
-}
+} 

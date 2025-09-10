@@ -39,29 +39,29 @@ public class BasicInformationController {
     /**
      * Update basic information for an existing customer.
      *
-     * @param uuid    Customer UUID
+     * @param customerUUID    Customer UUID
      * @param request DTO containing updated basic info
      * @return ResponseEntity with updated customer's basic info
      */
-    @PutMapping("/basic/{uuid}")
+    @PutMapping("/basic/{customerUUID}")
     @Operation(summary = "Update Basic Info", description = "Updates basic info for an existing customer using UUID")
     public ResponseEntity<BasicInformationResponseDto> updateBasicInfo(
-            @PathVariable UUID uuid,
+            @PathVariable UUID customerUUID,
             @Valid @RequestBody BasicInformationRequestDto request) {
-        BasicInformationResponseDto response = customerOnboardingService.updateBasicInformation(uuid, request);
+        BasicInformationResponseDto response = customerOnboardingService.updateBasicInformation(customerUUID, request);
         return ResponseEntity.ok(response);
     }
 
     /**
      * Fetch basic information of a customer by UUID.
      *
-     * @param uuid Customer UUID
+     * @param customerUUID Customer UUID
      * @return ResponseEntity with customer's basic info
      */
-    @GetMapping("/{uuid}/basic")
+    @GetMapping("/basic/{customerUUID}")
     @Operation(summary = "Get Basic Info", description = "Fetches basic info of a customer by UUID")
-    public ResponseEntity<BasicInformationResponseDto> getBasicInfoByUuid(@PathVariable UUID uuid) {
-        BasicInformationResponseDto response = customerOnboardingService.getBasicInformationByUuid(uuid);
+    public ResponseEntity<BasicInformationResponseDto> getBasicInfoByUuid(@PathVariable UUID customerUUID) {
+        BasicInformationResponseDto response = customerOnboardingService.getBasicInformationByUuid(customerUUID);
         return ResponseEntity.ok(response);
     }
 }

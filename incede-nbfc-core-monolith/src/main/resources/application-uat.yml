@@ -1,0 +1,36 @@
+spring:
+  profiles:
+    active: uat
+decentro:
+  api:
+    url: https://in.staging.decentro.tech
+    Aadhaar-OTP-path: v2/kyc/aadhaar/otp
+    Aadhaar-OTP-Validation-path: v2/kyc/aadhaar/otp/validate
+    kyc-validate: kyc/public_registry/validate
+    Validate-Bank: core_banking/money_transfer/validate_account
+    face-match: v2/kyc/forensics/face_match
+    name-match: v2/kyc/match/name
+    UpiId-validate: /v2/banking/verify_pay
+
+  uiclient:
+    id: indelmoney_staging
+    secret: sec4C1WDV67lwEpQSLXrIVRpU5tb3gTO
+  uatmodule:
+    secret: vbJnBbmoVC2fwhSS2qlJmgBbquhigFxJ
+  uat:
+    photo-liveness: v3/kyc/farsight/liveness/passive
+
+pixl:
+  api:
+    url: https://maskv6.pixl.ai/api/v6/
+    aadhaar-mask: aadharMask
+  key: 74f2e7b49fd309189d7888c6da279f602a17e4099f4d9ddce11e19237c668548
+
+finaVault:
+  api:
+    url: http://finvault-uat.indelmoney.com:80/FinaVault
+  security-token: KJDFGIUREHCKVBJHGUIERWIRUHSDFEWINDEL
+
+server:
+  port: 9090
+

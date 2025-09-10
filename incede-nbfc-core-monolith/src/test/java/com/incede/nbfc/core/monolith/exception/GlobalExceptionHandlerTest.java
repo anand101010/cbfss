@@ -17,10 +17,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test class for GlobalExceptionHandler.
- *
+ * 
  * Tests various exception handling scenarios and verifies
  * the correct ErrorResponse structure.
- *
+ * 
  * @author Incede NBFC Development Team
  * @version 1.0.0
  */
@@ -39,9 +39,9 @@ class GlobalExceptionHandlerTest {
     @Test
     void testHandleBusinessException() {
         BusinessException ex = new BusinessException("Test business error", ErrorCodes.BUSINESS_RULE_VIOLATION);
-
+        
         ResponseEntity<ErrorResponse> response = exceptionHandler.handleBusinessException(ex, request);
-
+        
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         ErrorResponse errorResponse = response.getBody();
         assertNotNull(errorResponse);
@@ -55,9 +55,9 @@ class GlobalExceptionHandlerTest {
     @Test
     void testHandleUnauthorizedException() {
         UnauthorizedException ex = new UnauthorizedException("Authentication required");
-
+        
         ResponseEntity<ErrorResponse> response = exceptionHandler.handleUnauthorized(ex, request);
-
+        
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         ErrorResponse errorResponse = response.getBody();
         assertNotNull(errorResponse);
@@ -69,9 +69,9 @@ class GlobalExceptionHandlerTest {
     @Test
     void testHandleForbiddenException() {
         ForbiddenException ex = new ForbiddenException("Access denied", "READ_CUSTOMER");
-
+        
         ResponseEntity<ErrorResponse> response = exceptionHandler.handleForbidden(ex, request);
-
+        
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
         ErrorResponse errorResponse = response.getBody();
         assertNotNull(errorResponse);
@@ -85,9 +85,9 @@ class GlobalExceptionHandlerTest {
     @Test
     void testHandleNoHandlerFoundException() {
         NoHandlerFoundException ex = new NoHandlerFoundException("GET", "/invalid", null);
-
+        
         ResponseEntity<ErrorResponse> response = exceptionHandler.handleNoHandlerFound(ex, request);
-
+        
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         ErrorResponse errorResponse = response.getBody();
         assertNotNull(errorResponse);
@@ -99,9 +99,9 @@ class GlobalExceptionHandlerTest {
     void testHandleMethodArgumentTypeMismatchException() {
         MethodArgumentTypeMismatchException ex = new MethodArgumentTypeMismatchException(
             "42", Integer.class, "number", null, null);
-
+        
         ResponseEntity<ErrorResponse> response = exceptionHandler.handleTypeMismatch(ex, request);
-
+        
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         ErrorResponse errorResponse = response.getBody();
         assertNotNull(errorResponse);
@@ -113,11 +113,11 @@ class GlobalExceptionHandlerTest {
         FieldError fieldError = new FieldError("testObject", "name", "Name is required");
         BindingResult bindingResult = new org.springframework.validation.BeanPropertyBindingResult(new Object(), "testObject");
         bindingResult.addError(fieldError);
-
+        
         MethodArgumentNotValidException ex = new MethodArgumentNotValidException(null, bindingResult);
-
+        
         ResponseEntity<ErrorResponse> response = exceptionHandler.handleValidationExceptions(ex, request);
-
+        
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         ErrorResponse errorResponse = response.getBody();
         assertNotNull(errorResponse);
@@ -126,4 +126,4 @@ class GlobalExceptionHandlerTest {
         assertEquals("Name is required", errorResponse.getDetails().get("name"));
         assertNotNull(errorResponse.getCorrelationId());
     }
-}
+} 

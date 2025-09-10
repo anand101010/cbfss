@@ -23,7 +23,7 @@ public class CustomerReferral extends CustomerBaseEntity implements Serializable
     private Integer referralId;
 
     @NotNull(message = "Customer Id must Not be null")
-    @ManyToOne(fetch= FetchType.LAZY,cascade = {CascadeType.PERSIST,CascadeType.MERGE})
+    @ManyToOne(fetch= FetchType.LAZY,cascade = {CascadeType.MERGE})
     @JoinColumn(name="customer_id",referencedColumnName="customer_id")
     private Customer customer;
 

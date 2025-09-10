@@ -1,16 +1,13 @@
 # Test-specific configuration for Incede NBFC Core Monolith Service
+# DO NOT set spring.profiles.active here
+
 spring:
-  profiles:
-    active: test
-  
-  # Database configuration for testing
   datasource:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
     username: sa
-    password: 
-  
-  # JPA/Hibernate configuration for testing
+    password:
+
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -21,27 +18,23 @@ spring:
         format_sql: true
         use_sql_comments: false
     database-platform: org.hibernate.dialect.H2Dialect
-  
-  # H2 console for testing (if needed)
+
   h2:
     console:
       enabled: true
       path: /h2-console
-  
-  # Security configuration for testing - disable security for tests
+
   security:
     enabled: false
     user:
       name: testuser
       password: testpass
       roles: USER,ADMIN
-  
-  # Disable security auto-configuration for tests
+
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 
-# Logging configuration for testing
 logging:
   level:
     com.incede.nbfc: DEBUG
@@ -52,13 +45,11 @@ logging:
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
-# Server configuration for testing
 server:
-  port: 0  # Random port for testing
+  port: 0
   servlet:
     context-path: /
 
-# Test-specific properties
 test:
   cors:
     allowed-origins:
@@ -72,7 +63,6 @@ test:
     headers:
       enabled: false
 
-# Disable actuator for tests to avoid context loading issues
 management:
   endpoints:
     web:
@@ -80,4 +70,4 @@ management:
         include: health
   endpoint:
     health:
-      show-details: never 
+      show-details: never

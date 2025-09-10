@@ -12,11 +12,12 @@ import java.util.UUID;
 
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer,Integer> {
-    Optional<Customer> findByTenantIdAndFirstNameAndLastName(@NotNull(message = "Tenant ID is required") Integer tenantId, @NotBlank(message = "First name is required") String firstName, @NotBlank(message = "Last name is required") String lastName);
+    Optional<Customer> findByTenantIdAndFirstNameAndLastName( Integer tenantId,  String firstName, String lastName);
 
     Optional<Customer> findByIdentity(UUID identity);
 
-    boolean existsByTenantIdAndFirstNameAndLastName(@NotNull(message = "Tenant ID is required") Integer tenantId, @NotBlank(message = "First name is required") String firstName, @NotBlank(message = "Last name is required") String lastName);
+    boolean existsByTenantIdAndFirstNameAndLastName( Integer tenantId, String firstName, String lastName);
+    Optional<Customer> findByIdentityAndIsDelFalse(UUID identity);
 
 
 }

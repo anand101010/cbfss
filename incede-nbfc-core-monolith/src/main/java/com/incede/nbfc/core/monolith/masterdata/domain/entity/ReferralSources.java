@@ -1,0 +1,31 @@
+package com.incede.nbfc.core.monolith.masterdata.domain.entity;
+
+import jakarta.persistence.*;
+
+import java.io.Serializable;
+import java.util.UUID;
+
+@Entity
+@Table
+public class ReferralSources extends BaseEntity implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "referral_source_id")
+    private Integer referralSourceId;
+
+    @Column(name = "code", nullable = false, unique = true, length = 30)
+    private String code;
+
+    @Column(name = "name", nullable = false, length = 80)
+    private String name;
+
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;
+
+    @Column(name = "identity", nullable = false, unique = true)
+    private UUID identity;
+}
+

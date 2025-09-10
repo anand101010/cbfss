@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import lombok.ToString;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -33,10 +34,10 @@ public class CustomerAddress extends CustomerBaseEntity implements Serializable 
     @NotNull(message = "Customer reference is required")
     private Customer customer;
 
-    @Column(name = "address_type", nullable = false, length = 20)
-    @NotBlank(message = "Address type must not be blank")
-    @Size(max = 20, message = "Address type must not exceed 20 characters")
-    private String addressType;
+    @Column(name = "address_type", nullable = false)
+    @NotNull(message = "Address type must not be null")
+    private Integer addressTypeId;
+
 
     @Column(name = "door_number", length = 50)
     @Size(max = 50, message = "Door number must not exceed 50 characters")
@@ -79,10 +80,6 @@ public class CustomerAddress extends CustomerBaseEntity implements Serializable 
     @Max(value = 999999, message = "Pincode must be at most 6 digits")
     private Integer pincode;
 
-    @Column(name = "identity", nullable = false, unique = true)
-    @NotNull(message = "Identity UUID is required")
-    private UUID identity;
-
     @Column(name = "post_office_id")
     private Integer postOfficeId;
 
@@ -100,6 +97,7 @@ public class CustomerAddress extends CustomerBaseEntity implements Serializable 
 
     @Column(name = "digipin", length = 30, unique = true)
     @Size(max = 30, message = "Digipin must not exceed 30 characters")
+    @ToString.Exclude
     private String digipin;
 
     @Column(name = "address_proof_type")
