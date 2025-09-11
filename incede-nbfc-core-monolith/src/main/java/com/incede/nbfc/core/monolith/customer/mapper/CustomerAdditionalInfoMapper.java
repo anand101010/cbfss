@@ -4,71 +4,94 @@ import com.incede.nbfc.core.monolith.customer.domain.entity.*;
 import com.incede.nbfc.core.monolith.customer.dto.*;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 @Component
 public class CustomerAdditionalInfoMapper {
 
-    // ===================== Create (mapToX) =====================
+
 
     public CustomerAsset mapToAsset(CustomerAssetDto assetDto, Customer customer) {
+        Objects.requireNonNull(assetDto, "CustomerAssetDto must not be null");
+        Objects.requireNonNull(customer, "Customer must not be null");
+
         CustomerAsset asset = new CustomerAsset();
         updateAsset(asset, assetDto, customer);
         return asset;
     }
 
     public CustomerProfileExtra mapToProfileExtra(CustomerProfileExtraDto profileExtraDto, Customer customer) {
+        Objects.requireNonNull(profileExtraDto, "CustomerProfileExtraDto must not be null");
+        Objects.requireNonNull(customer, "Customer must not be null");
+
         CustomerProfileExtra profileExtra = new CustomerProfileExtra();
         updateProfileExtra(profileExtra, profileExtraDto, customer);
         return profileExtra;
     }
 
     public CustomerPep mapToPep(CustomerPepDto pepDto, Customer customer) {
+        Objects.requireNonNull(pepDto, "CustomerPepDto must not be null");
+        Objects.requireNonNull(customer, "Customer must not be null");
+
         CustomerPep pep = new CustomerPep();
         updatePep(pep, pepDto, customer);
         return pep;
     }
 
     public CustomerReferral mapToReferral(CustomerReferralDto referralDto, Customer customer) {
+        Objects.requireNonNull(referralDto, "CustomerReferralDto must not be null");
+        Objects.requireNonNull(customer, "Customer must not be null");
+
         CustomerReferral referral = new CustomerReferral();
         updateReferral(referral, referralDto, customer);
         return referral;
     }
 
     public CustomerEmployment mapToEmployment(CustomerEmploymentDto employmentDto, Customer customer) {
+        Objects.requireNonNull(employmentDto, "CustomerEmploymentDto must not be null");
+        Objects.requireNonNull(customer, "Customer must not be null");
+
         CustomerEmployment employment = new CustomerEmployment();
         updateEmployment(employment, employmentDto, customer);
         return employment;
     }
 
-    // ===================== Update (updateX) =====================
+
 
     public void updateAsset(CustomerAsset asset, CustomerAssetDto assetDto, Customer customer) {
-        if (assetDto == null) return;
+        Objects.requireNonNull(asset, "CustomerAsset must not be null");
+        Objects.requireNonNull(assetDto, "CustomerAssetDto must not be null");
+        Objects.requireNonNull(customer, "Customer must not be null");
+
         asset.setCustomer(customer);
         asset.setAssetId(assetDto.getAssetId());
         asset.setAssetTypeId(assetDto.getAssetTypeId());
         asset.setDescription(assetDto.getDescription());
         asset.setApproxValue(assetDto.getApproxValue());
-        asset.setOwnsAsset(assetDto.getOwnsAsset());
-        asset.setHasHomeLoan(assetDto.getHasHomeLoan());
+        asset.setOwnsAsset(assetDto.getOwnsAsset() != null ? assetDto.getOwnsAsset() : false);
+        asset.setHomeLoanCompany(assetDto.getHomeLoanCompany() != null ? assetDto.getHomeLoanCompany() : "");
+        asset.setHasHomeLoan(assetDto.getHasHomeLoan() != null ? assetDto.getHasHomeLoan() : false);
         asset.setCreatedBy(assetDto.getCreatedBy());
         asset.setUpdatedBy(assetDto.getUpdatedBy());
     }
 
     public void updateProfileExtra(CustomerProfileExtra profileExtra, CustomerProfileExtraDto profileExtraDto, Customer customer) {
-        if (profileExtraDto == null) return;
+        Objects.requireNonNull(profileExtra, "CustomerProfileExtra must not be null");
+        Objects.requireNonNull(profileExtraDto, "CustomerProfileExtraDto must not be null");
+        Objects.requireNonNull(customer, "Customer must not be null");
+
         profileExtra.setCustomer(customer);
         profileExtra.setEducationLevelId(profileExtraDto.getEducationLevelId());
         profileExtra.setPurposeId(profileExtraDto.getPurposeId());
-        profileExtra.setNotes(profileExtraDto.getNotes());
         profileExtra.setCreatedBy(profileExtraDto.getCreatedBy());
         profileExtra.setUpdatedBy(profileExtraDto.getUpdatedBy());
     }
 
     public void updatePep(CustomerPep pep, CustomerPepDto pepDto, Customer customer) {
-        if (pepDto == null) return;
+        Objects.requireNonNull(pep, "CustomerPep must not be null");
+        Objects.requireNonNull(pepDto, "CustomerPepDto must not be null");
+        Objects.requireNonNull(customer, "Customer must not be null");
+
         pep.setCustomer(customer);
         pep.setStatus(pepDto.getStatus());
         pep.setCategoryId(pepDto.getCategoryId());
@@ -79,7 +102,10 @@ public class CustomerAdditionalInfoMapper {
     }
 
     public void updateReferral(CustomerReferral referral, CustomerReferralDto referralDto, Customer customer) {
-        if (referralDto == null) return;
+        Objects.requireNonNull(referral, "CustomerReferral must not be null");
+        Objects.requireNonNull(referralDto, "CustomerReferralDto must not be null");
+        Objects.requireNonNull(customer, "Customer must not be null");
+
         referral.setCustomer(customer);
         referral.setReferralSourceId(referralDto.getReferralSourceId());
         referral.setCanvassedTypeId(referralDto.getCanvassedTypeId());
@@ -89,7 +115,10 @@ public class CustomerAdditionalInfoMapper {
     }
 
     public void updateEmployment(CustomerEmployment employment, CustomerEmploymentDto employmentDto, Customer customer) {
-        if (employmentDto == null) return;
+        Objects.requireNonNull(employment, "CustomerEmployment must not be null");
+        Objects.requireNonNull(employmentDto, "CustomerEmploymentDto must not be null");
+        Objects.requireNonNull(customer, "Customer must not be null");
+
         employment.setCustomer(customer);
         employment.setOccupationId(employmentDto.getOccupationId());
         employment.setDesignationId(employmentDto.getDesignationId());
@@ -101,7 +130,17 @@ public class CustomerAdditionalInfoMapper {
         employment.setUpdatedBy(employmentDto.getUpdatedBy());
     }
 
-    // ===================== Entity -> DTO =====================
+    public Customer updateCustomerFromAdditionalInfo(Customer customer, AdditionalInfoCustomerDto dto) {
+        Objects.requireNonNull(customer, "Customer must not be null");
+        if (dto != null) {
+            customer.setNationality(dto.getNationality());
+            customer.setPreferredLanguageId(dto.getPreferredLanguageId());
+            customer.setResidentialStatusId(dto.getResidentialStatusId());
+        }
+        return customer;
+    }
+
+
 
     public CustomerEmploymentDto mapToEmploymentDto(CustomerEmployment employment) {
         if (employment == null) return null;
@@ -145,7 +184,6 @@ public class CustomerAdditionalInfoMapper {
         return CustomerProfileExtraDto.builder()
                 .educationLevelId(profileExtra.getEducationLevelId())
                 .purposeId(profileExtra.getPurposeId())
-                .notes(profileExtra.getNotes())
                 .createdBy(profileExtra.getCreatedBy())
                 .updatedBy(profileExtra.getUpdatedBy())
                 .build();
@@ -159,13 +197,23 @@ public class CustomerAdditionalInfoMapper {
                 .description(asset.getDescription())
                 .approxValue(asset.getApproxValue())
                 .ownsAsset(asset.getOwnsAsset())
+                .homeLoanCompany(asset.getHomeLoanCompany())
                 .hasHomeLoan(asset.getHasHomeLoan())
                 .createdBy(asset.getCreatedBy())
                 .updatedBy(asset.getUpdatedBy())
                 .build();
     }
 
-    // ===================== Build Response DTO =====================
+    public AdditionalInfoCustomerDto mapToAdditionalInfoCustomerDto(Customer customer) {
+        if (customer == null) return null;
+        return AdditionalInfoCustomerDto.builder()
+                .nationality(customer.getNationality())
+                .preferredLanguageId(customer.getPreferredLanguageId())
+                .residentialStatusId(customer.getResidentialStatusId())
+                .build();
+    }
+
+
 
     public CustomerAdditionalInfoResponseDto buildResponseDto(
             Customer customer,
@@ -175,13 +223,16 @@ public class CustomerAdditionalInfoMapper {
             CustomerProfileExtra profileExtra,
             CustomerAsset assets) {
 
+        Objects.requireNonNull(customer, "Customer must not be null");
+
         CustomerAdditionalInfoResponseDto.AdditionalInfoDto additional =
                 CustomerAdditionalInfoResponseDto.AdditionalInfoDto.builder()
                         .employment(mapToEmploymentDto(employment))
                         .referrals(mapToReferralDto(referral))
                         .pep(mapToPepDto(pep))
                         .profileExtra(mapToProfileExtraDto(profileExtra))
-                        .assets(assets.stream().map(this::mapToAssetDto).collect(Collectors.toList()))
+                        .assets(mapToAssetDto(assets))
+                        .additionalInfoCustomerDto(mapToAdditionalInfoCustomerDto(customer))
                         .build();
 
         return CustomerAdditionalInfoResponseDto.builder()

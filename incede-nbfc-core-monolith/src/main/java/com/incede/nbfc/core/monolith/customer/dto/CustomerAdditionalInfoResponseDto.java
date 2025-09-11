@@ -33,7 +33,9 @@ public class CustomerAdditionalInfoResponseDto {
         private CustomerReferralDto referrals;
         private CustomerPepDto pep;
         private CustomerProfileExtraDto profileExtra;
-        List<CustomerAssetDto> assets;
+        private CustomerAssetDto assets;
+        private AdditionalInfoCustomerDto additionalInfoCustomerDto;
+
 
     }
 

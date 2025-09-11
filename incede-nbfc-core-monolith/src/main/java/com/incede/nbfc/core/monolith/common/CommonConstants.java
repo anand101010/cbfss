@@ -110,6 +110,8 @@ public final class CommonConstants {
     public static final String ACCURACYPERCENTAGE ="100";
     public static final String PURPOSE_MESSAGE = "This is a penny drop transaction";
     public static final String PENNYDROP_AMNT = "1";
+    public static final String CUSTOMER_BANK_ACCOUNT_MISMATCH="Bank account does not match to  the given customer";
+    public static final String CUSTOMER_BANK_ACCOUNT_CONFLICT="Bank account  already exist for this account number ";
 
     /**
      * Interceptor Constants
@@ -124,15 +126,16 @@ public final class CommonConstants {
     // Entity Names
     public static final String ENTITY_CUSTOMER = "Customer";
     public static final String ENTITY_ADDRESS = "Address";
+    public static final String ENTITY_BANK_ACCOUNT = "CustomerBankAccount";
 
     // Customer Address Status
     public static final String CUSTOMER_ADDRESS_STATUS_IN_PROGRESS = "IN_PROGRESS";
     public static final String CUSTOMER_ADDRESS_STATUS_UPDATED = "UPDATED";
     public static final String CUSTOMER_ADDRESS_STATUS_SUCCESS = "SUCCESS";
 
-
-
-
+    //  Customer Bank Account Status
+    public static final String CUSTOMER_STATUS_IN_PROGRESS = "IN_PROGRESS";
+    public static final String CUSTOMER_STATUS_ACTIVE   = "ACTIVE";
 
 
 } 

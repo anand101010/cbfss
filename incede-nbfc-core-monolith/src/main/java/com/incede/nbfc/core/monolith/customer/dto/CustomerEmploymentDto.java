@@ -1,14 +1,14 @@
 package com.incede.nbfc.core.monolith.customer.dto;
 
 import jakarta.validation.constraints.*;
-import lombok.Builder;
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
 
 import java.math.BigDecimal;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CustomerEmploymentDto {
 
     @NotNull(message = "Occupation ID is required")

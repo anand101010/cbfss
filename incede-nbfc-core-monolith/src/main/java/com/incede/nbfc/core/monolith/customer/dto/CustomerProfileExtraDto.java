@@ -21,8 +21,6 @@ public class CustomerProfileExtraDto {
     @Min(value = 1, message = "Purpose ID must be a positive number")
     private Integer purposeId;
 
-    @Size(max = 500, message = "Notes must not exceed 500 characters")
-    private String notes;
 
     @ToString.Exclude
     private Integer createdBy;

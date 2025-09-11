@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.domain.entity;
 
+import com.incede.nbfc.core.monolith.customer.enums.PdStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -56,7 +57,7 @@ public class CustomerBankAccount extends CustomerBaseEntity implements Serializa
     private Integer accountType;
 
     @Column(name = "account_status")
-    @Size(max = 50, message = "Account status must not exceed 50 characters")
+    @NotBlank(message="accountStatus cannot be blank")
     private String accountStatus;
 
     @Column(name = "is_active")
@@ -77,12 +78,12 @@ public class CustomerBankAccount extends CustomerBaseEntity implements Serializa
     private String branchName;
 
     @Column(name = "bank_proof_document_ref_id")
-    @Min(value = 1,message = "Bank Proof id must be a positive Integer")
+    @NotNull(message = "Bank Proof id must not be null")
     private Integer bankProofDocumentRefId;
 
+    @NotBlank(message="pd_status cannot be blank ")
     @Column(name = "pd_status", length = 20)
-    @Size(max = 20, message = "PD status must not exceed 20 characters")
-    private String pdStatus = "PENDING";
+    private String pdStatus ;
 
     @Column(name = "pd_txn_id", length = 64)
     @Size(max = 64, message = "PD transaction ID must not exceed 64 characters")

@@ -13,9 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +29,7 @@ public class CustomerAdditionalInfoService {
     private final CustomerProfileExtraRepository profileExtraRepository;
     private final CustomerAssetRepository assetRepository;
 
+
     /**
      * Saves additional customer information (such as profile extras, referrals, assets, etc.)
      *
@@ -43,6 +42,9 @@ public class CustomerAdditionalInfoService {
         Customer customer = customerRepository.findByIdentity(identity)
                 .orElseThrow(() -> new BusinessException(CommonConstants.NOT_FOUND_MESSAGE,
                         ErrorCodes.RESOURCE_NOT_FOUND));
+
+
+
 
 
         CustomerEmployment employment = employmentRepository.findByCustomer(customer)
@@ -67,13 +69,18 @@ public class CustomerAdditionalInfoService {
         customerAdditionalInfoMapper.updateProfileExtra(profileExtra, dto.getAdditional().getProfileExtra(), customer);
         profileExtraRepository.save(profileExtra);
 
-
         CustomerAsset asset =
-               customerAdditionalInfoMapper.mapToAsset(dto.getAdditional().getCustomerAssetDto(), customer);
+               customerAdditionalInfoMapper.mapToAsset(dto.getAdditional().getCustomerAsset(), customer);
 
         assetRepository.save(asset);
 
+        Customer updatedCustomer=customerAdditionalInfoMapper.updateCustomerFromAdditionalInfo(customer, dto.getAdditional().getCustomer());
+
+        customerRepository.save(updatedCustomer);
+
         return customerAdditionalInfoMapper.buildResponseDto(customer, employment, referral, pep, profileExtra, asset);
+
+
     }
 
     /**
