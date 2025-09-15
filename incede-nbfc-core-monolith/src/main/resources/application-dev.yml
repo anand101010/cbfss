@@ -8,6 +8,7 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: incedetestuser
     password: incedetestuser
+
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5

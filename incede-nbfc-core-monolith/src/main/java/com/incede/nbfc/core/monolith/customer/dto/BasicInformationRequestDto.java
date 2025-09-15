@@ -29,9 +29,9 @@ public class BasicInformationRequestDto {
     @ToString.Exclude
     private String middleName;
 
-    @NotBlank(message = "DisplayName is required")
+    @NotBlank(message = "aadharName is required")
     @ToString.Exclude
-    private String displayName;
+    private String aadharName;
 
     @NotBlank(message = "Last name is required")
     @ToString.Exclude
@@ -71,13 +71,6 @@ public class BasicInformationRequestDto {
     @NotNull(message = "IsFirm cannot be null")
     private Boolean isFirm;
 
-    private Integer createdBy;
-
-    private Integer updatedBy;
-
-
-    @ToString.Exclude
-    private String guardian;
 
     @ToString.Exclude
     private String spouseName;
@@ -93,12 +86,23 @@ public class BasicInformationRequestDto {
     @NotNull(message = "Customer status is required")
     private Integer customerStatus;
 
-    @NotNull(message = "Locality is required")
-    private Integer locality;
+    private Integer visualScore;
 
     @ToString.Exclude
     @NotBlank(message = "Mobile number is required")
     private String mobileNumber;
 
-    private Integer visualScore;
+
+    private Boolean otpVerified;
+
+    private Integer guardianCustomerId;
+
+    private Integer aadharVaultId;
+
+
+    private Integer createdBy;
+
+    private Integer updatedBy;
+
+
 }

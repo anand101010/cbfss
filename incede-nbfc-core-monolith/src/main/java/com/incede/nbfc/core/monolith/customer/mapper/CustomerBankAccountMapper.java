@@ -88,6 +88,7 @@ public class CustomerBankAccountMapper {
                 .upiVerified(account.getUpiVerified())
                 .pdStatus(String.valueOf(account.getPdStatus()))
                 .isActive(account.getIsActive())
+                .bankProofDocumentRefId(account.getBankProofDocumentRefId())
                 .build();
     }
     private String maskAccountNumber(String accountNumber) {

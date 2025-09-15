@@ -35,51 +35,27 @@ class BasicInformationControllerTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-
         identity = new UUID(0L, 0L);
-        responseDto = new BasicInformationResponseDto(
-                identity,
-                "customerCode",
-                "status",
-                new BasicInformationResponseDto.Basic(
-                        "firstName",
-                        "lastName",
-                        LocalDate.of(2025, Month.SEPTEMBER, 2),
-                        0, 0, 0
-                )
+        BasicInformationResponseDto.Basic basic = new BasicInformationResponseDto.Basic(
+                "firstName","lastName","aadharName",
+                LocalDate.of(2025, Month.SEPTEMBER, 2),
+                0,0,0,0,0,"middleName","crmReferenceId",0,
+                "employer",BigDecimal.ZERO,0,true,true,0,
+                "spouseName","fatherName","motherName",false,
+                0,0,"9999999999",0,true
         );
-
+        responseDto = new BasicInformationResponseDto(identity,"customerCode","status",basic);
         requestDto = BasicInformationRequestDto.builder()
-                .tenantId(0)
-                .salutation(0)
-                .branchId(0)
-                .firstName("firstName")
-                .middleName("middleName")
-                .lastName("lastName")
-                .gender(0)
-                .dob(LocalDate.of(2025, Month.SEPTEMBER, 2))
-                .maritalStatus(0)
-                .taxCategory(0)
-                .crmReferenceId("crmReferenceId")
-                .occupation(0)
-                .employer("employer")
-                .annualIncome(BigDecimal.ZERO)
-                .customerListTypeId(0)
-                .isBusiness(true)
-                .isFirm(true)
-                .createdBy(0)
-                .guardian("guardian")
-                .spouseName("spouseName")
-                .fatherName("fatherName")
-                .motherName("motherName")
-                .isMinor(false)   // String, not int
-                .customerStatus(0)
-                .locality(0)
-                .visualScore(0)
-                .build();
-
-
+                .tenantId(0).salutation(0).branchId(0)
+                .firstName("firstName").middleName("middleName").lastName("lastName")
+                .gender(0).dob(LocalDate.of(2025, Month.SEPTEMBER, 2))
+                .maritalStatus(0).taxCategory(0).crmReferenceId("crmReferenceId")
+                .occupation(0).employer("employer").annualIncome(BigDecimal.ZERO)
+                .customerListTypeId(0).isBusiness(true).isFirm(true).createdBy(0)
+                .guardianCustomerId(1).spouseName("spouseName").fatherName("fatherName").motherName("motherName")
+                .isMinor(false).customerStatus(0).build();
     }
+
 
     @Test
     void testCreateBasicInfo() {

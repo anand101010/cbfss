@@ -26,6 +26,7 @@ public class CustomerPhotoResponseDto {
     @AllArgsConstructor
     @Builder
     public static class PhotoDetail{
+        private String firstname;
         private Integer photoId;
         private Integer photoRefId;
         private Integer capturedBy;
@@ -33,5 +34,9 @@ public class CustomerPhotoResponseDto {
         private BigDecimal longitude;
         private LocalDateTime captureTime;
         private PhotoStatus status;
+        private BigDecimal accuracy;
+        private String captureDevice;
+        private String locationDescription;
+        private String filePath;
     }
 }

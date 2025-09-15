@@ -1,5 +1,4 @@
 package com.incede.nbfc.core.monolith.controller;
-
 import com.incede.nbfc.core.monolith.client.dto.FaceMatchingResponseDto;
 import com.incede.nbfc.core.monolith.client.dto.PhotoLivenessCheckResponseDto;
 import com.incede.nbfc.core.monolith.domain.dto.FaceMatchingRequestDto;
@@ -8,7 +7,6 @@ import com.incede.nbfc.core.monolith.service.ForensicValidationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

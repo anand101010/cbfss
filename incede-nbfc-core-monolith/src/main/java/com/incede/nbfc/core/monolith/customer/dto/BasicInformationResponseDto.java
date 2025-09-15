@@ -1,10 +1,10 @@
 package com.incede.nbfc.core.monolith.customer.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 @Data
@@ -35,6 +35,8 @@ public class BasicInformationResponseDto {
 
         private String lastName;
 
+        private String aadharName;
+
         private LocalDate dob;
 
         private Integer gender;
@@ -45,7 +47,46 @@ public class BasicInformationResponseDto {
         private Integer taxCategory;
 
 
+        private Integer salutation;
 
+        private Integer branchId;
+
+        private String middleName;
+
+        private String crmReferenceId;
+
+        private Integer occupation;
+
+        private String employer;
+
+        private BigDecimal annualIncome;
+
+        private Integer customerListTypeId;
+
+        private Boolean isBusiness;
+
+        private Boolean isFirm;
+
+
+        private Integer guardianCustomerId;
+
+        private String spouseName;
+
+        private String fatherName;
+
+        private String motherName;
+
+        private Boolean isMinor;
+
+        private Integer customerStatus;
+
+        private Integer visualScore;
+
+        private String mobileNumber;
+
+        private Integer aadharVaultId;
+
+        private Boolean otpVerified;
 
 
 

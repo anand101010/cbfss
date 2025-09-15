@@ -20,6 +20,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class CustomerBankAccountControllerTest {
@@ -74,6 +75,7 @@ class CustomerBankAccountControllerTest {
     }
 
 
+    MultipartFile mockFile = mock(MultipartFile.class);
 
     @Test
     void createBankAccount_shouldReturn201_whenValid() {
@@ -81,7 +83,7 @@ class CustomerBankAccountControllerTest {
                 .thenReturn(responseDto);
 
         ResponseEntity<CustomerBankAccountResponseDto> result =
-                customerBankAccountController.createBankAccount(customerIdentity, "{}", null);
+                customerBankAccountController.createBankAccount(customerIdentity, "{}", mockFile);
 
         assertEquals(HttpStatus.CREATED, result.getStatusCode());
         assertEquals(responseDto, result.getBody());
@@ -111,14 +113,13 @@ class CustomerBankAccountControllerTest {
         assertEquals(responseDto, result.getBody());
     }
 
-
     @Test
     void createBankAccount_shouldPropagateBusinessException() {
         when(customerBankAccountService.createBankAccount(any(UUID.class), anyString(), any(MultipartFile.class)))
                 .thenThrow(new BusinessException("Failed"));
 
         assertThrows(BusinessException.class, () ->
-                customerBankAccountController.createBankAccount(customerIdentity, "{}", null));
+                customerBankAccountController.createBankAccount(customerIdentity, "{}", mockFile));
     }
 
     @Test

@@ -1,6 +1,4 @@
 package com.incede.nbfc.core.monolith.controller;
-
-
 import com.incede.nbfc.core.monolith.client.dto.FinaVaultResponseDto;
 import com.incede.nbfc.core.monolith.service.VaultService;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
  * a masked UID instead of exposing the actual Aadhaar number.</p>
  *
  */
-
-@RequestMapping("/ext/finVault")
+@RequestMapping("/ext/vault")
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -34,7 +31,7 @@ public class VaultController {
      * @param uid Aadhaar number provided in the request query parameter
      * @return ResponseEntity containing {@link FinaVaultResponseDto} with vault ID and masked UID
      */
-    @GetMapping("maskid")
+    @GetMapping("maskuid")
     public ResponseEntity<FinaVaultResponseDto> generateVaultIdAndMaskAadhaar(@RequestParam String uid){
         log.info("Aadhaar number received");
         FinaVaultResponseDto response =  vaultService.generateVaultIdAndMaskAadhaar(uid);

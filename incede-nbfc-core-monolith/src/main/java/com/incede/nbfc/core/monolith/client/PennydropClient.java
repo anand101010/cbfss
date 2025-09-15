@@ -1,16 +1,12 @@
 package com.incede.nbfc.core.monolith.client;
-
 import com.incede.nbfc.core.monolith.client.dto.BankValidationRequestDto;
 import com.incede.nbfc.core.monolith.client.dto.BankValidationResponseDto;
-import com.incede.nbfc.core.monolith.client.dto.NameMatchResponseDto;
 import com.incede.nbfc.core.monolith.client.fallback.FallBackHelper;
-import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.config.interceptors.DecentroClientInterceptorConfig;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.server.ResponseStatusException;
 
 /**
  * {@code PennydropClient} is a Feign client for communicating with Decentro's

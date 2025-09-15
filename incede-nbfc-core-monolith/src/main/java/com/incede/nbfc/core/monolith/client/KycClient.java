@@ -2,25 +2,23 @@ package com.incede.nbfc.core.monolith.client;
 import com.incede.nbfc.core.monolith.client.dto.AadhaarOtpResponse;
 import com.incede.nbfc.core.monolith.client.dto.AadhaarOtpValidatedResponseDto;
 import com.incede.nbfc.core.monolith.client.dto.KycResponseDto;
+import com.incede.nbfc.core.monolith.client.fallback.CustomErrorDecoder;
 import com.incede.nbfc.core.monolith.client.fallback.FallBackHelper;
-import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.config.interceptors.DecentroClientInterceptorConfig;
 import com.incede.nbfc.core.monolith.domain.dto.*;
 import com.incede.nbfc.core.monolith.client.dto.KycRequestDto;
 import com.incede.nbfc.core.monolith.client.dto.*;
-import com.incede.nbfc.core.monolith.config.CustomErrorDecoder;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 /**
  * these feign interface will handle neccessary kyc validation details under decentro vendor
  */
 
-@FeignClient(name = "Kyc-service", url = "${decentro.api.url}", configuration = DecentroClientInterceptorConfig.class)
+@FeignClient(name = "kycService", url = "${decentro.api.url}", configuration = DecentroClientInterceptorConfig.class)
 public interface KycClient
 {
     /**

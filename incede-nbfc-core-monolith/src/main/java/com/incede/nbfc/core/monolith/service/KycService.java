@@ -36,19 +36,17 @@ public class KycService
      * @paramincludes the Aaadhar details from the frontend
      * @return  AadhaarOtpResponse  The valid response to the request
      */
-    public AadhaarOtpResponse generateOtp(String aadhaarNumber)
+    public AadhaarOtpResponse generateOtp(AadhaarOtpRequestDto aadhaarOtpRequestDto)
     {
         log.info("Fetching Aadhaar No");
         try
         {
-            AadhaarOtpRequestDto AadhaarOtpRequest=new AadhaarOtpRequestDto();
             String referenceId = UUID.randomUUID().toString();
             log.info("Successfully triggered ReferenceId");
-            AadhaarOtpRequest.setAadhaarNumber(aadhaarNumber);
-            AadhaarOtpRequest.setReferenceId(referenceId);
-            AadhaarOtpRequest.setConsent( CommonConstants.CONSENT);
-            AadhaarOtpRequest.setPurpose(CommonConstants.AADHAAR_PURPOSE);
-            AadhaarOtpResponse  response=KycClient.generateAadhaarOtp(AadhaarOtpRequest);
+            aadhaarOtpRequestDto.setReferenceId(referenceId);
+            aadhaarOtpRequestDto.setConsent( CommonConstants.CONSENT);
+            aadhaarOtpRequestDto.setPurpose(CommonConstants.AADHAAR_PURPOSE);
+            AadhaarOtpResponse  response=KycClient.generateAadhaarOtp(aadhaarOtpRequestDto);
             log.info("Successfully triggered OTP: {}", response.getStatus());
             return response;
         }
@@ -66,19 +64,16 @@ public class KycService
      * @return AadhaarOtpValidatedResponseDto entire details of aadhaar
      */
 
-    public AadhaarOtpValidatedResponseDto validateAaadhaarOtp(String initiationTransactionId,String otp)
+    public AadhaarOtpValidatedResponseDto validateAaadhaarOtp(AadhaarOtpValidateRequestDto aadhaarOtpValidateRequestDto)
     {
         log.info("Fetching Aadhaar Otp");
-        AadhaarOtpValidateRequestDto AadhaarOtpValidateRequestDto=new AadhaarOtpValidateRequestDto ();
         try
         {
-            AadhaarOtpValidateRequestDto.setInitiationTransactionId(initiationTransactionId);
-            AadhaarOtpValidateRequestDto.setOtp(otp);
             String referenceId = UUID.randomUUID().toString();
-            AadhaarOtpValidateRequestDto.setConsent(CommonConstants.CONSENT);
-            AadhaarOtpValidateRequestDto.setPurpose(CommonConstants.AADHAAR_PURPOSE);
-            AadhaarOtpValidateRequestDto.setReferenceId(referenceId);
-            AadhaarOtpValidatedResponseDto  response=KycClient.validateAadhaarOtp(AadhaarOtpValidateRequestDto);
+            aadhaarOtpValidateRequestDto.setConsent(CommonConstants.CONSENT);
+            aadhaarOtpValidateRequestDto.setPurpose(CommonConstants.AADHAAR_PURPOSE);
+            aadhaarOtpValidateRequestDto.setReferenceId(referenceId);
+            AadhaarOtpValidatedResponseDto  response=KycClient.validateAadhaarOtp(aadhaarOtpValidateRequestDto);
             log.info("Successfully Validated OTP: {}", response.getStatus());
             return response;
         }
@@ -173,6 +168,7 @@ public class KycService
                     ErrorCodes.MISSING_REQUIRED_FIELD
             );
         }
+
         log.info("Validating KYC for DocType: {}",kycType.name() );
         try {
             KycRequestDto request = new KycRequestDto();
@@ -183,31 +179,33 @@ public class KycService
             request.setConsent_purpose(CommonConstants.CONSENT_PURPOSE);
             request.setDob(dob);
             KycResponseDto response = KycClient.validateKyc(request);
+
             log.info("KYC validation response received for IdNumber");
 
             return response;
         } catch (Exception exception) {
             log.error("Error validating KYC for IdNumber: {}", exception);
-            throw new RuntimeException("Failed to validate KYC", exception);
+
+            throw new RuntimeException("Failed to validating KYC", exception);
         }
     }
 
     /**
      *
-     * @param UPIId will get from the controller
+     * @param upiId will get from the controller
      * @return   consolidated detials of the accountb holder details
      */
 
 
-    public UpiAccountDetailsResponseDto getUpiIdValidationResponse(String UPIId)
+    public UpiAccountDetailsResponseDto getUpiIdValidationResponse(String upiId)
     {
-                log.info("Fetching UpiId matching ");
+        log.info("Fetching UpiId matching ");
         try
         {
             UpiAccountDetailsRequestDto UpiRequestDto=new UpiAccountDetailsRequestDto();
             String referenceId = UUID.randomUUID().toString();
             UpiRequestDto.setReferenceId(referenceId);
-            UpiRequestDto.setUpiVpa(UPIId);
+            UpiRequestDto.setUpiVpa(upiId);
             UpiAccountDetailsResponseDto  response= UpiIdValidationClient.getValidatedUpiIdDetails(UpiRequestDto);
             log.info("UpiId Validation Successfully done");
             return response;

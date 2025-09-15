@@ -2,6 +2,7 @@ package com.incede.nbfc.core.monolith.client.fallback;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.incede.nbfc.core.monolith.client.AadhaarMaskingClient;
 import com.incede.nbfc.core.monolith.client.dto.AadhaarMaskingResponseDto;
+import com.incede.nbfc.core.monolith.common.CommonConstants;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,6 @@ import java.time.format.DateTimeFormatter;
 @RequiredArgsConstructor
 public class AadhaarMaskingClientFallbackFactory  implements FallbackFactory<AadhaarMaskingClient>
 {
-
 
     private final ObjectMapper objectMapper;
 
@@ -34,7 +34,7 @@ public class AadhaarMaskingClientFallbackFactory  implements FallbackFactory<Aad
                 catch (Exception e)
                 {
                     log.error("Failed to parse vendor error response", e);
-                    fallbackResponse.setMessage("FAILURE - Fallback response");
+                    fallbackResponse.setMessage(CommonConstants.FAILURE);
                     fallbackResponse.setImageUuid(null);
                     fallbackResponse.setAadhaarDetected(false);
                     fallbackResponse.setAadhaarMasked(false);

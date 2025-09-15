@@ -1,23 +1,23 @@
 package com.incede.nbfc.core.monolith.customer.dto;
- 
+
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
- 
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CustomerAddressResponseDTO {
- 
+public class CustomerAddressResponseDto {
+
     private UUID identity;
     private String customerCode;
     private String status;
     private List<AddressDetail> addresses;
- 
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

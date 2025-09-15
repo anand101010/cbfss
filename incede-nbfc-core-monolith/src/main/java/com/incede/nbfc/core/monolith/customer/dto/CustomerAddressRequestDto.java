@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CustomerAddressRequestDTO {
+public class CustomerAddressRequestDto {
 
     @NotNull(message = "Address typeId is required")
     private Integer addressTypeId;
@@ -58,7 +58,6 @@ public class CustomerAddressRequestDTO {
     private Integer addressProofType;
 
     private Boolean isActive;
-
 
     private Integer createdBy;
 

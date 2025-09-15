@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.exception;
 
+import feign.FeignException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -249,6 +250,20 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }
+    @ExceptionHandler(FeignException.FeignClientException.class)
+    public ResponseEntity<ErrorResponse> handleFeignException(RuntimeException ex, HttpServletRequest request) {
+        String correlationId = generateCorrelationId();
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.SERVICE_UNAVAILABLE.value())
+                .error("Feign Client Errorr")
+                .message("An unexpected error occurred")
+                .path(request.getRequestURI())
+                .errorCode(ErrorCodes.INTERNAL_SERVER_ERROR)
+                .correlationId(correlationId)
+                .build();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
     /**

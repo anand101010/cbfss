@@ -39,7 +39,6 @@ public class CustomerEmploymentDto {
     @ToString.Exclude
     private BigDecimal annualIncome;
 
-    @NotNull(message = "CreatedBy is required")
     private Integer createdBy;
 
     private Integer updatedBy;

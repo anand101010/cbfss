@@ -30,7 +30,7 @@ public class BasicInformationMapper {
         customer.setFirstName(basicInformationRequestDto.getFirstName());
         customer.setMiddleName(basicInformationRequestDto.getMiddleName());
         customer.setLastName(basicInformationRequestDto.getLastName());
-        customer.setDisplayName(basicInformationRequestDto.getDisplayName());
+        customer.setDisplayName(basicInformationRequestDto.getAadharName());
         customer.setGender(basicInformationRequestDto.getGender());
         customer.setDob(basicInformationRequestDto.getDob());
         customer.setSalutation(basicInformationRequestDto.getSalutation());
@@ -46,7 +46,13 @@ public class BasicInformationMapper {
         customer.setFatherName(basicInformationRequestDto.getFatherName());
         customer.setMotherName(basicInformationRequestDto.getMotherName());
         customer.setSpouseName(basicInformationRequestDto.getSpouseName());
+        customer.setMobileNumber(basicInformationRequestDto.getMobileNumber());
+        customer.setGuardianCustomerId(basicInformationRequestDto.getGuardianCustomerId());
+        customer.setOtpIsVerified(basicInformationRequestDto.getOtpVerified());
+        customer.setAadharVaultId(basicInformationRequestDto.getAadharVaultId());
         customer.setIsMinor(basicInformationRequestDto.getIsMinor());
+        customer.setCreatedBy(basicInformationRequestDto.getCreatedBy());
+
         return customer;
     }
 
@@ -82,8 +88,17 @@ public class BasicInformationMapper {
         customer.setMotherName(basicInformation.getMotherName());
         customer.setSpouseName(basicInformation.getSpouseName() != null ? basicInformation.getSpouseName() : ""); // avoid null
         customer.setIsMinor(basicInformation.getIsMinor() != null ? basicInformation.getIsMinor() : false);
-        customer.setDisplayName(basicInformation.getDisplayName());
+        customer.setDisplayName(basicInformation.getAadharName());
+
+        customer.setMobileNumber(basicInformation.getMobileNumber());
+
+        customer.setGuardianCustomerId(basicInformation.getGuardianCustomerId());
+
+        customer.setOtpIsVerified(basicInformation.getOtpVerified());
+
+        customer.setAadharVaultId(basicInformation.getAadharVaultId());
     }
+
 
     /**
      * Convert a Customer entity to a response DTO.
@@ -99,6 +114,30 @@ public class BasicInformationMapper {
                 .gender(customer.getGender())
                 .maritalStatus(customer.getMaritalStatus())
                 .taxCategory(customer.getTaxCategory())
+                .salutation(customer.getSalutation())
+                .branchId(customer.getBranchId())
+                .middleName(customer.getMiddleName())
+                .crmReferenceId(customer.getCrmReferenceId())
+                .occupation(customer.getOccupation())
+                .employer(customer.getEmployer())
+                .annualIncome(customer.getAnnualIncome())
+                .isBusiness(customer.getIsBusiness())
+                .isFirm(customer.getIsFirm())
+                .mobileNumber(customer.getMobileNumber())
+                .otpVerified(customer.getOtpIsVerified())
+                .spouseName(customer.getSpouseName())
+                .fatherName(customer.getFatherName())
+                .spouseName(customer.getSpouseName())
+                .motherName(customer.getMotherName())
+                .isMinor(customer.getIsMinor())
+                .guardianCustomerId(customer.getGuardianCustomerId())
+                .customerStatus(customer.getCustomerStatus())
+                .mobileNumber(customer.getMobileNumber())
+                .otpVerified(customer.getOtpIsVerified())
+                .aadharVaultId(customer.getAadharVaultId())
+                .aadharName(customer.getDisplayName())
+
+
                 .build();
 
         return BasicInformationResponseDto.builder()
@@ -108,4 +147,5 @@ public class BasicInformationMapper {
                 .basic(basic)
                 .build();
     }
+
 }

@@ -3,8 +3,8 @@ package com.incede.nbfc.core.monolith.customer.service;
 import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerAddress;
-import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressRequestDTO;
-import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressResponseDTO;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressRequestDto;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressResponseDto;
 import com.incede.nbfc.core.monolith.customer.mapper.CustomerAddressMapper;
 import com.incede.nbfc.core.monolith.customer.repository.CustomerAddressRepository;
 import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
@@ -30,34 +30,21 @@ public class CustomerAddressService {
         this.addressMapper = addressMapper;
     }
 
-    /**
-     *
-     * @param identity
-     * @param requestDTO
-     * @return
-     */
     @Transactional
-    public CustomerAddressResponseDTO createAddress(UUID identity, CustomerAddressRequestDTO requestDTO) {
+    public CustomerAddressResponseDto createAddress(UUID identity, CustomerAddressRequestDto requestDto) {
         Customer customer = customerRepository.findByIdentity(identity)
                 .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_CUSTOMER, identity.toString()));
 
-        CustomerAddress address = addressMapper.toEntity(customer, requestDTO);
+        CustomerAddress address = addressMapper.toEntity(customer, requestDto);
         CustomerAddress savedAddress = addressRepository.save(address);
 
-        CustomerAddressResponseDTO.AddressDetail detail = addressMapper.toAddressDetail(savedAddress);
+        CustomerAddressResponseDto.AddressDetail detail = addressMapper.toAddressDetail(savedAddress);
         return addressMapper.toResponse(customer, CommonConstants.CUSTOMER_ADDRESS_STATUS_IN_PROGRESS, List.of(detail));
     }
 
-    /**
-     *
-     * @param customerIdentity
-     * @param addressId
-     * @param requestDTO
-     * @return
-     */
     @Transactional
-    public CustomerAddressResponseDTO updateAddress(UUID customerIdentity, Integer addressId,
-                                                    CustomerAddressRequestDTO requestDTO) {
+    public CustomerAddressResponseDto updateAddress(UUID customerIdentity, Integer addressId,
+                                                    CustomerAddressRequestDto requestDto) {
         Customer customer = customerRepository.findByIdentity(customerIdentity)
                 .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_CUSTOMER, customerIdentity.toString()));
 
@@ -65,18 +52,12 @@ public class CustomerAddressService {
                 .findByAddressIdAndCustomer_CustomerId(addressId, customer.getCustomerId())
                 .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_ADDRESS, addressId.toString()));
 
-        addressMapper.updateEntity(address, requestDTO);
+        addressMapper.updateEntity(address, requestDto);
         CustomerAddress updatedAddress = addressRepository.save(address);
 
-        CustomerAddressResponseDTO.AddressDetail detail = addressMapper.toAddressDetail(updatedAddress);
+        CustomerAddressResponseDto.AddressDetail detail = addressMapper.toAddressDetail(updatedAddress);
         return addressMapper.toResponse(customer, CommonConstants.CUSTOMER_ADDRESS_STATUS_UPDATED, List.of(detail));
     }
-
-    /**
-     *
-     * @param customerIdentity
-     * @param addressId
-     */
 
     @Transactional
     public void deleteAddress(UUID customerIdentity, Integer addressId) {
@@ -92,14 +73,8 @@ public class CustomerAddressService {
         addressRepository.save(address);
     }
 
-    /**
-     *
-     * @param identity
-     * @return
-     */
-
     @Transactional(readOnly = true)
-    public CustomerAddressResponseDTO getActiveAddressesByCustomerIdentity(UUID identity) {
+    public CustomerAddressResponseDto getActiveAddressesByCustomerIdentity(UUID identity) {
         Customer customer = customerRepository.findByIdentityAndIsDelFalse(identity)
                 .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_CUSTOMER, identity.toString()));
 
@@ -110,7 +85,7 @@ public class CustomerAddressService {
                     "No active addresses found for customer identity: " + identity);
         }
 
-        List<CustomerAddressResponseDTO.AddressDetail> addressDetails = addresses.stream()
+        List<CustomerAddressResponseDto.AddressDetail> addressDetails = addresses.stream()
                 .map(addressMapper::toAddressDetail)
                 .toList();
 

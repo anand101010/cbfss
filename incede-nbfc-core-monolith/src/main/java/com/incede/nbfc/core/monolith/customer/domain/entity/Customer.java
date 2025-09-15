@@ -4,14 +4,8 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-
 import jakarta.persistence.*;
 import lombok.ToString;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -31,7 +25,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Customer extends CustomerBaseEntity implements Serializable{
+public class Customer extends CustomerBaseEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -73,12 +67,12 @@ public class Customer extends CustomerBaseEntity implements Serializable{
     private Integer branchId;
 
     @Column(name = "salutation")
-    @Min(value =1,message = "salutation must be a positive integer")
-    @Max(value=5,message = "salutation should not exceed 5")
+    @Min(value = 1, message = "salutation must be a positive integer")
+    @Max(value = 5, message = "salutation should not exceed 5")
     private Integer salutation;
 
     @Column(name = "gender")
-    @Min(value =1,message = "gender must be a positive integer")
+    @Min(value = 1, message = "gender must be a positive integer")
     private Integer gender;
 
     @Column(name = "dob", nullable = false)
@@ -93,18 +87,17 @@ public class Customer extends CustomerBaseEntity implements Serializable{
 
 
     @Column(name = "nationality")
-    @Min(value = 1,message = "Nationality should be a positive integer")
+    @Min(value = 1, message = "Nationality should be a positive integer")
     private Integer nationality = 1;
-
 
 
     @Column(name = "tax_category", nullable = false)
     @NotNull(message = "Tax category is required")
-    @Min(value = 1,message = "Tax Category should be a positive integer")
+    @Min(value = 1, message = "Tax Category should be a positive integer")
     private Integer taxCategory;
 
     @Column(name = "occupation", nullable = false)
-    @Min(value=1,message = "occupation should be a positive integer")
+    @Min(value = 1, message = "occupation should be a positive integer")
     private Integer occupation;
 
     @ToString.Exclude
@@ -120,14 +113,13 @@ public class Customer extends CustomerBaseEntity implements Serializable{
 
     @Column(name = "customer_status", nullable = false)
     @NotNull(message = "Customer status is required")
-    @Min(value = 1,message = "CustomerStatus must be a positive Integer")
+    @Min(value = 1, message = "CustomerStatus must be a positive Integer")
     private Integer customerStatus = 1;
 
     @ToString.Exclude
     @Column(name = "crm_reference_id", nullable = false, length = 100)
     @Size(max = 100, message = "CRM reference ID must not exceed 100 characters")
     private String crmReferenceId;
-
 
 
     @Column(name = "preferred_language_id", nullable = false)
@@ -143,31 +135,45 @@ public class Customer extends CustomerBaseEntity implements Serializable{
     private String onboardingStatus;
 
     @ToString.Exclude
-    @NotBlank(message="fatherName cannot be Blank")
+    @NotBlank(message = "fatherName cannot be Blank")
     @Column(name = "father_name", length = 100)
     private String fatherName;
 
     @ToString.Exclude
-    @NotBlank(message="motherName cannot be Blank")
+    @NotBlank(message = "motherName cannot be Blank")
     @Column(name = "mother_name", length = 100)
     private String motherName;
 
     @ToString.Exclude
-    @NotBlank(message="spouseName cannot be Blank")
+    @NotBlank(message = "spouseName cannot be Blank")
     @Column(name = "spouse_name", length = 100)
     private String spouseName;
 
     @Column(name = "is_firm")
-    @NotNull(message="isFirm should not be Null")
+    @NotNull(message = "isFirm should not be Null")
     private Boolean isFirm;
 
     @Column(name = "is_business")
-    @NotNull(message="isBusiness should not be Null")
+    @NotNull(message = "isBusiness should not be Null")
     private Boolean isBusiness;
 
     @Column(name = "isMinor")
-    @NotNull(message="isMinor should not be Null")
+    @NotNull(message = "isMinor should not be Null")
     private Boolean isMinor;
+
+    @Column(name="guardian_customer_id")
+    private Integer guardianCustomerId;
+
+    @Column(name ="aadhar_vault_id")
+    private Integer aadharVaultId;
+
+    @Column(name="mobile_number")
+    private String mobileNumber;
+
+    @Column(name="otp_is_verified")
+    private Boolean otpIsVerified;
+
+
 
 
 

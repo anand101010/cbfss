@@ -50,18 +50,23 @@ public class CustomerPhotoMapper {
      * @param entity photo entity
      * @return photo detail DTO
      */
-    public CustomerPhotoResponseDto.PhotoDetail toPhotoDetail(CustomerPhoto entity) {
+    public CustomerPhotoResponseDto.PhotoDetail toPhotoDetail(CustomerPhoto entity,Customer customer) {
         if (entity == null) {
             return null;
         }
         return CustomerPhotoResponseDto.PhotoDetail.builder()
                 .photoId(entity.getPhotoId())
+                .firstname(customer.getFirstName())
                 .photoRefId(entity.getPhotoRefId())
                 .status(entity.getStatus())
                 .latitude(entity.getLatitude())
                 .longitude(entity.getLongitude())
                 .capturedBy(entity.getCapturedBy())
                 .captureTime(entity.getCaptureTime())
+                .accuracy(entity.getAccuracy())
+                .captureDevice(entity.getCaptureDevice())
+                .filePath(entity.getFilePath())
+                .locationDescription(entity.getLocationDescription())
                 .build();
     }
 
@@ -71,9 +76,9 @@ public class CustomerPhotoMapper {
      * @param entities list of photo entities
      * @return list of photo detail DTOs
      */
-    public List<CustomerPhotoResponseDto.PhotoDetail> toPhotoDetails(List<CustomerPhoto> entities) {
+    public List<CustomerPhotoResponseDto.PhotoDetail> toPhotoDetails(List<CustomerPhoto> entities,Customer customer) {
         return entities == null ? List.of() :
-                entities.stream().map(this::toPhotoDetail).collect(Collectors.toList());
+                entities.stream().map(photo -> toPhotoDetail(photo, customer)).collect(Collectors.toList());
     }
 
     /**
@@ -90,7 +95,7 @@ public class CustomerPhotoMapper {
 
 
                 .status(customer.getOnboardingStatus() != null ? customer.getOnboardingStatus() : "IN_PROGRESS")
-                .photo(toPhotoDetails(photos))
+                .photo(toPhotoDetails(photos,customer))
 
                 .build();
     }

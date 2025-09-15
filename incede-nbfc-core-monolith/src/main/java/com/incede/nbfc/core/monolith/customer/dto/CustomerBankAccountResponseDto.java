@@ -38,6 +38,7 @@ public class CustomerBankAccountResponseDto {
         private String pdStatus;
         private Boolean upiVerified;
         private Boolean isActive;
+        private Integer bankProofDocumentRefId;
     }
 
 }

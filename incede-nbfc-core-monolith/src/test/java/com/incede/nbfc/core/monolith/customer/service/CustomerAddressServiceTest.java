@@ -3,8 +3,8 @@ package com.incede.nbfc.core.monolith.customer.service;
 import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerAddress;
-import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressRequestDTO;
-import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressResponseDTO;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressRequestDto;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressResponseDto;
 import com.incede.nbfc.core.monolith.customer.mapper.CustomerAddressMapper;
 import com.incede.nbfc.core.monolith.customer.repository.CustomerAddressRepository;
 import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
@@ -37,7 +37,7 @@ class CustomerAddressServiceTest {
     private CustomerAddressService customerAddressService;
 
     private Customer customer;
-    private CustomerAddressRequestDTO requestDTO;
+    private CustomerAddressRequestDto requestDTO;
     private UUID customerIdentity;
     private CustomerAddress address;
 
@@ -51,7 +51,7 @@ class CustomerAddressServiceTest {
         customer.setIdentity(customerIdentity);
         customer.setCustomerCode("CUST001");
 
-        requestDTO = CustomerAddressRequestDTO.builder()
+        requestDTO = CustomerAddressRequestDto.builder()
                 .addressTypeId(1)
                 .doorNumber("123")
                 .addressLine1("Street 1")
@@ -81,17 +81,16 @@ class CustomerAddressServiceTest {
         address.setCustomer(customer);
     }
 
-
     @Test
     void testCreateAddressSuccess() {
         when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
         when(addressMapper.toEntity(customer, requestDTO)).thenReturn(address);
         when(addressRepository.save(address)).thenReturn(address);
-        when(addressMapper.toAddressDetail(address)).thenReturn(CustomerAddressResponseDTO.AddressDetail.builder().build());
+        when(addressMapper.toAddressDetail(address)).thenReturn(CustomerAddressResponseDto.AddressDetail.builder().build());
         when(addressMapper.toResponse(eq(customer), eq(CommonConstants.CUSTOMER_ADDRESS_STATUS_IN_PROGRESS), anyList()))
-                .thenReturn(new CustomerAddressResponseDTO());
+                .thenReturn(new CustomerAddressResponseDto());
 
-        CustomerAddressResponseDTO response = customerAddressService.createAddress(customerIdentity, requestDTO);
+        CustomerAddressResponseDto response = customerAddressService.createAddress(customerIdentity, requestDTO);
 
         assertNotNull(response);
         verify(addressRepository, times(1)).save(address);
@@ -108,17 +107,16 @@ class CustomerAddressServiceTest {
         assertEquals(customerIdentity.toString(), exception.getResourceId());
     }
 
-
     @Test
     void testUpdateAddressSuccess() {
         when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
         when(addressRepository.findByAddressIdAndCustomer_CustomerId(1, customer.getCustomerId())).thenReturn(Optional.of(address));
         when(addressRepository.save(address)).thenReturn(address);
-        when(addressMapper.toAddressDetail(address)).thenReturn(CustomerAddressResponseDTO.AddressDetail.builder().build());
+        when(addressMapper.toAddressDetail(address)).thenReturn(CustomerAddressResponseDto.AddressDetail.builder().build());
         when(addressMapper.toResponse(eq(customer), eq(CommonConstants.CUSTOMER_ADDRESS_STATUS_UPDATED), anyList()))
-                .thenReturn(new CustomerAddressResponseDTO());
+                .thenReturn(new CustomerAddressResponseDto());
 
-        CustomerAddressResponseDTO response = customerAddressService.updateAddress(customerIdentity, 1, requestDTO);
+        CustomerAddressResponseDto response = customerAddressService.updateAddress(customerIdentity, 1, requestDTO);
 
         assertNotNull(response);
         verify(addressRepository, times(1)).save(address);
@@ -147,7 +145,6 @@ class CustomerAddressServiceTest {
         assertEquals(CommonConstants.ENTITY_ADDRESS, exception.getResourceType());
         assertEquals("1", exception.getResourceId());
     }
-
 
     @Test
     void testDeleteAddressSuccess() {
@@ -186,16 +183,15 @@ class CustomerAddressServiceTest {
         assertEquals("1", exception.getResourceId());
     }
 
-
     @Test
     void testGetActiveAddressesByCustomerIdentitySuccess() {
         when(customerRepository.findByIdentityAndIsDelFalse(customerIdentity)).thenReturn(Optional.of(customer));
         when(addressRepository.findByCustomerAndIsDelFalse(customer)).thenReturn(List.of(address));
-        when(addressMapper.toAddressDetail(address)).thenReturn(CustomerAddressResponseDTO.AddressDetail.builder().build());
+        when(addressMapper.toAddressDetail(address)).thenReturn(CustomerAddressResponseDto.AddressDetail.builder().build());
         when(addressMapper.toResponse(eq(customer), eq(CommonConstants.CUSTOMER_ADDRESS_STATUS_SUCCESS), anyList()))
-                .thenReturn(new CustomerAddressResponseDTO());
+                .thenReturn(new CustomerAddressResponseDto());
 
-        CustomerAddressResponseDTO response = customerAddressService.getActiveAddressesByCustomerIdentity(customerIdentity);
+        CustomerAddressResponseDto response = customerAddressService.getActiveAddressesByCustomerIdentity(customerIdentity);
 
         assertNotNull(response);
         verify(addressRepository, times(1)).findByCustomerAndIsDelFalse(customer);
@@ -223,4 +219,3 @@ class CustomerAddressServiceTest {
         assertEquals(CommonConstants.ENTITY_ADDRESS, exception.getResourceType());
     }
 }
- 

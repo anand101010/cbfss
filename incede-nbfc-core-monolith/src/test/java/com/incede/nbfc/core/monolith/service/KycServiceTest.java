@@ -57,6 +57,8 @@ class KycServiceTest {
      */
     @Test
     void testGenerateOtp_thenReturnAadhaarOtpResponse() {
+        AadhaarOtpRequestDto aadhaarOtpRequestDto = new AadhaarOtpRequestDto();
+        aadhaarOtpRequestDto.setAadhaarNumber("123444555");
         AadhaarOtpResponse aadhaarOtpResponse = new AadhaarOtpResponse();
         aadhaarOtpResponse.setDecentroTxnId("42");
         aadhaarOtpResponse.setMessage("Not all who wander are lost");
@@ -66,7 +68,7 @@ class KycServiceTest {
         when(kycClient.generateAadhaarOtp(Mockito.<AadhaarOtpRequestDto>any()))
                 .thenReturn(aadhaarOtpResponse);
         AadhaarOtpResponse actualGenerateOtpResult =
-                kycService.generateOtp("42");
+                kycService.generateOtp(aadhaarOtpRequestDto);
         verify(kycClient).generateAadhaarOtp(isA(AadhaarOtpRequestDto.class));
         assertSame(aadhaarOtpResponse, actualGenerateOtpResult);
     }
@@ -78,14 +80,15 @@ class KycServiceTest {
      */
     @Test
     void testGenerateOtp_thenThrowRuntimeException() {
-
+        AadhaarOtpRequestDto aadhaarOtpRequestDto = new AadhaarOtpRequestDto();
+        aadhaarOtpRequestDto.setAadhaarNumber("123444555");
         when(kycClient.generateAadhaarOtp(Mockito.<AadhaarOtpRequestDto>any()))
                 .thenThrow(new RuntimeException());
         assertThrows(
                 RuntimeException.class,
                 () ->
                         kycService.generateOtp(
-                             "42"));
+                                aadhaarOtpRequestDto));
         verify(kycClient).generateAadhaarOtp(isA(AadhaarOtpRequestDto.class));
     }
 
@@ -96,7 +99,9 @@ class KycServiceTest {
      */
     @Test
     void testValidateAaadhaarOtp_thenReturnAadhaarOtpValidatedResponseDto() {
-      
+        AadhaarOtpValidateRequestDto  aadhaarOtpValidateRequestDto =new AadhaarOtpValidateRequestDto();
+        aadhaarOtpValidateRequestDto.setOtp("12345");
+        aadhaarOtpValidateRequestDto.setReferenceId("12345");
         AadhaarOtpValidatedResponseDto.ProofOfAddressDto proofOfAddress = new AadhaarOtpValidatedResponseDto.ProofOfAddressDto();
         proofOfAddress.setCareOf("Care Of");
         proofOfAddress.setCountry("GB");
@@ -138,7 +143,7 @@ class KycServiceTest {
         AadhaarOtpValidateRequestDto.setPurpose("Purpose");
         AadhaarOtpValidateRequestDto.setReferenceId("Reference id");
         AadhaarOtpValidatedResponseDto actualValidateAaadhaarOtpResult =
-                kycService.validateAaadhaarOtp("12233444444","22222222222");
+                kycService.validateAaadhaarOtp(aadhaarOtpValidateRequestDto);
         verify(kycClient).validateAadhaarOtp(isA(AadhaarOtpValidateRequestDto.class));
         assertSame(aadhaarOtpValidatedResponseDto, actualValidateAaadhaarOtpResult);
     }
@@ -148,7 +153,11 @@ class KycServiceTest {
      *    {@link RuntimeException}.
      */
     @Test
-    void testValidateAaadhaarOtp_thenThrowRuntimeException() {
+    void testValidateAaadhaarOtp_thenThrowRuntimeException()
+    {
+        AadhaarOtpValidateRequestDto  aadhaarOtpValidateRequestDto =new AadhaarOtpValidateRequestDto();
+        aadhaarOtpValidateRequestDto.setOtp("12345");
+        aadhaarOtpValidateRequestDto.setReferenceId("12345");
         when(kycClient.validateAadhaarOtp(Mockito.<AadhaarOtpValidateRequestDto>any()))
                 .thenThrow(new RuntimeException());
         AadhaarOtpValidateRequestDto AadhaarOtpValidateRequestDto = new AadhaarOtpValidateRequestDto();
@@ -158,7 +167,7 @@ class KycServiceTest {
         AadhaarOtpValidateRequestDto.setPurpose("Purpose");
         AadhaarOtpValidateRequestDto.setReferenceId("Reference id");
         assertThrows(
-                RuntimeException.class, () -> kycService.validateAaadhaarOtp("123456789","23456789"));
+                RuntimeException.class, () -> kycService.validateAaadhaarOtp(aadhaarOtpValidateRequestDto));
         verify(kycClient).validateAadhaarOtp(isA(AadhaarOtpValidateRequestDto.class));
     }
 

@@ -2,6 +2,8 @@ package com.incede.nbfc.core.monolith.client.fallback;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.incede.nbfc.core.monolith.client.UpiIdValidationClient;
 import com.incede.nbfc.core.monolith.client.dto.UpiAccountDetailsResponseDto;
+import com.incede.nbfc.core.monolith.common.CommonConstants;
+import com.incede.nbfc.core.monolith.exception.ErrorCodes;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +30,7 @@ public class UpiIdValidationFallbackFactory implements FallbackFactory<UpiIdVali
 
                 } catch (Exception e) {
                     log.error("Failed to parse vendor error response", e);
-                    fallbackResponse.setStatus("FAILURE");
-
+                    fallbackResponse.setStatus(CommonConstants.FAILURE);
                 }
             } else {
                 fallbackResponse.setStatus("FAILURE");

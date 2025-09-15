@@ -1,5 +1,4 @@
 package com.incede.nbfc.core.monolith.controller;
-
 import com.incede.nbfc.core.monolith.client.dto.BankValidationResponseDto;
 import com.incede.nbfc.core.monolith.domain.dto.BankValidateRequestDto;
 import com.incede.nbfc.core.monolith.service.BankValidationService;
@@ -33,7 +32,7 @@ public class BankValidationController {
      * @param bankvalidaterequestdto the request containing account number and IFSC
      * @return ResponseEntity containing validation result
      */
-    @PostMapping("pennyDrop/verify")
+    @PostMapping("account/verify")
     public ResponseEntity<BankValidationResponseDto> validateBankAccount(@RequestBody BankValidateRequestDto bankvalidaterequestdto){
         BankValidationResponseDto response = bankvalidationservice.validateBankAccount(bankvalidaterequestdto);
         return ResponseEntity.ok(response);

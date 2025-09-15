@@ -1,8 +1,7 @@
 package com.incede.nbfc.core.monolith.customer.controller;
 
-import com.incede.nbfc.core.monolith.customer.controller.CustomerAddressController;
-import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressRequestDTO;
-import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressResponseDTO;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressRequestDto;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressResponseDto;
 import com.incede.nbfc.core.monolith.customer.service.CustomerAddressService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,15 +29,15 @@ class CustomerAddressControllerTest {
 
     private UUID customerIdentity;
     private Integer addressId;
-    private CustomerAddressRequestDTO requestDTO;
-    private CustomerAddressResponseDTO responseDTO;
+    private CustomerAddressRequestDto requestDTO;
+    private CustomerAddressResponseDto responseDTO;
 
     @BeforeEach
     void setUp() {
         customerIdentity = UUID.fromString("123e4567-e89b-12d3-a456-426614174003");
         addressId = 1;
 
-        requestDTO = CustomerAddressRequestDTO.builder()
+        requestDTO = CustomerAddressRequestDto.builder()
                 .addressTypeId(1)
                 .doorNumber("12C")
                 .addressLine1("MG Road")
@@ -59,7 +58,7 @@ class CustomerAddressControllerTest {
                 .digipin("DIGI12405")
                 .build();
 
-        responseDTO = CustomerAddressResponseDTO.builder()
+        responseDTO = CustomerAddressResponseDto.builder()
                 .identity(customerIdentity)
                 .customerCode("CUST001")
                 .status("SUCCESS")
@@ -70,7 +69,7 @@ class CustomerAddressControllerTest {
     void testCreateAddressSuccess() {
         when(customerAddressService.createAddress(customerIdentity, requestDTO)).thenReturn(responseDTO);
 
-        ResponseEntity<CustomerAddressResponseDTO> response =
+        ResponseEntity<CustomerAddressResponseDto> response =
                 customerAddressController.createAddress(customerIdentity, requestDTO);
 
         assertNotNull(response);
@@ -86,7 +85,7 @@ class CustomerAddressControllerTest {
     void testUpdateAddressSuccess() {
         when(customerAddressService.updateAddress(customerIdentity, addressId, requestDTO)).thenReturn(responseDTO);
 
-        ResponseEntity<CustomerAddressResponseDTO> response =
+        ResponseEntity<CustomerAddressResponseDto> response =
                 customerAddressController.updateAddress(customerIdentity, addressId, requestDTO);
 
         assertNotNull(response);
@@ -104,7 +103,7 @@ class CustomerAddressControllerTest {
         for (Integer id : addressIds) {
             when(customerAddressService.updateAddress(customerIdentity, id, requestDTO)).thenReturn(responseDTO);
 
-            ResponseEntity<CustomerAddressResponseDTO> response =
+            ResponseEntity<CustomerAddressResponseDto> response =
                     customerAddressController.updateAddress(customerIdentity, id, requestDTO);
 
             assertNotNull(response);
@@ -117,7 +116,7 @@ class CustomerAddressControllerTest {
     void testGetActiveAddressesSuccess() {
         when(customerAddressService.getActiveAddressesByCustomerIdentity(customerIdentity)).thenReturn(responseDTO);
 
-        ResponseEntity<CustomerAddressResponseDTO> response =
+        ResponseEntity<CustomerAddressResponseDto> response =
                 customerAddressController.getActiveAddresses(customerIdentity);
 
         assertNotNull(response);
@@ -154,7 +153,7 @@ class CustomerAddressControllerTest {
         for (UUID uuid : uuids) {
             when(customerAddressService.createAddress(uuid, requestDTO)).thenReturn(responseDTO);
 
-            ResponseEntity<CustomerAddressResponseDTO> response =
+            ResponseEntity<CustomerAddressResponseDto> response =
                     customerAddressController.createAddress(uuid, requestDTO);
 
             assertNotNull(response);
@@ -174,7 +173,7 @@ class CustomerAddressControllerTest {
         for (UUID uuid : uuids) {
             when(customerAddressService.updateAddress(uuid, addressId, requestDTO)).thenReturn(responseDTO);
 
-            ResponseEntity<CustomerAddressResponseDTO> response =
+            ResponseEntity<CustomerAddressResponseDto> response =
                     customerAddressController.updateAddress(uuid, addressId, requestDTO);
 
             assertNotNull(response);
@@ -194,7 +193,7 @@ class CustomerAddressControllerTest {
         for (UUID uuid : uuids) {
             when(customerAddressService.getActiveAddressesByCustomerIdentity(uuid)).thenReturn(responseDTO);
 
-            ResponseEntity<CustomerAddressResponseDTO> response =
+            ResponseEntity<CustomerAddressResponseDto> response =
                     customerAddressController.getActiveAddresses(uuid);
 
             assertNotNull(response);
@@ -246,7 +245,7 @@ class CustomerAddressControllerTest {
     void testControllerMethodsWithNullServiceResponse() {
 
         when(customerAddressService.createAddress(customerIdentity, requestDTO)).thenReturn(null);
-        ResponseEntity<CustomerAddressResponseDTO> createResponse =
+        ResponseEntity<CustomerAddressResponseDto> createResponse =
                 customerAddressController.createAddress(customerIdentity, requestDTO);
         assertNotNull(createResponse);
         assertEquals(HttpStatus.CREATED, createResponse.getStatusCode());
@@ -254,7 +253,7 @@ class CustomerAddressControllerTest {
 
 
         when(customerAddressService.updateAddress(customerIdentity, addressId, requestDTO)).thenReturn(null);
-        ResponseEntity<CustomerAddressResponseDTO> updateResponse =
+        ResponseEntity<CustomerAddressResponseDto> updateResponse =
                 customerAddressController.updateAddress(customerIdentity, addressId, requestDTO);
         assertNotNull(updateResponse);
         assertEquals(HttpStatus.OK, updateResponse.getStatusCode());
@@ -262,7 +261,7 @@ class CustomerAddressControllerTest {
 
 
         when(customerAddressService.getActiveAddressesByCustomerIdentity(customerIdentity)).thenReturn(null);
-        ResponseEntity<CustomerAddressResponseDTO> getResponse =
+        ResponseEntity<CustomerAddressResponseDto> getResponse =
                 customerAddressController.getActiveAddresses(customerIdentity);
         assertNotNull(getResponse);
         assertEquals(HttpStatus.OK, getResponse.getStatusCode());

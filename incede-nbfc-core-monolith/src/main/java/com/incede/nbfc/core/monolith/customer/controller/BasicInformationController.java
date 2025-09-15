@@ -43,7 +43,7 @@ public class BasicInformationController {
      * @param request DTO containing updated basic info
      * @return ResponseEntity with updated customer's basic info
      */
-    @PutMapping("/basic/{customerUUID}")
+    @PutMapping("/{customerUUID}/basic")
     @Operation(summary = "Update Basic Info", description = "Updates basic info for an existing customer using UUID")
     public ResponseEntity<BasicInformationResponseDto> updateBasicInfo(
             @PathVariable UUID customerUUID,

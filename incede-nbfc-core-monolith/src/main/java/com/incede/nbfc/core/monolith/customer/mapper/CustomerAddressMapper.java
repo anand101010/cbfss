@@ -2,8 +2,8 @@ package com.incede.nbfc.core.monolith.customer.mapper;
 
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerAddress;
-import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressRequestDTO;
-import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressResponseDTO;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressRequestDto;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressResponseDto;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -16,34 +16,34 @@ public class CustomerAddressMapper {
      * Maps DTO to entity for creating a new CustomerAddress.
      * Validates that createdBy is not null.
      */
-    public CustomerAddress toEntity(Customer customer, CustomerAddressRequestDTO customerAddressRequestDTO) {
-        java.util.Objects.requireNonNull(customerAddressRequestDTO, "CustomerAddressRequestDTO must not be null");
-        if (customerAddressRequestDTO.getCreatedBy() == null) {
+    public CustomerAddress toEntity(Customer customer, CustomerAddressRequestDto customerAddressRequestDto) {
+        java.util.Objects.requireNonNull(customerAddressRequestDto, "CustomerAddressRequestDto must not be null");
+        if (customerAddressRequestDto.getCreatedBy() == null) {
             throw new IllegalArgumentException("createdBy must not be null for creation");
         }
 
         CustomerAddress address = new CustomerAddress();
         address.setCustomer(customer);
-        address.setAddressTypeId(customerAddressRequestDTO.getAddressTypeId());
-        address.setDoorNumber(customerAddressRequestDTO.getDoorNumber());
-        address.setAddressLine1(customerAddressRequestDTO.getAddressLine1());
-        address.setAddressLine2(customerAddressRequestDTO.getAddressLine2());
-        address.setLandmark(customerAddressRequestDTO.getLandmark());
-        address.setPlaceName(customerAddressRequestDTO.getPlaceName());
-        address.setCityId(customerAddressRequestDTO.getCityId());
-        address.setDistrictId(customerAddressRequestDTO.getDistrictId());
-        address.setStateId(customerAddressRequestDTO.getStateId());
-        address.setCountryId(customerAddressRequestDTO.getCountryId());
-        address.setPincode(customerAddressRequestDTO.getPincode());
-        address.setPostOfficeId(customerAddressRequestDTO.getPostOfficeId());
-        address.setLatitude(customerAddressRequestDTO.getLatitude());
-        address.setLongitude(customerAddressRequestDTO.getLongitude());
-        address.setGeoAccuracy(customerAddressRequestDTO.getGeoAccuracy());
-        address.setAddressProofTypes(customerAddressRequestDTO.getAddressProofType());
-        address.setIsActive(customerAddressRequestDTO.getIsActive() != null ? customerAddressRequestDTO.getIsActive() : true);
-        address.setDigipin(customerAddressRequestDTO.getDigipin());
+        address.setAddressTypeId(customerAddressRequestDto.getAddressTypeId());
+        address.setDoorNumber(customerAddressRequestDto.getDoorNumber());
+        address.setAddressLine1(customerAddressRequestDto.getAddressLine1());
+        address.setAddressLine2(customerAddressRequestDto.getAddressLine2());
+        address.setLandmark(customerAddressRequestDto.getLandmark());
+        address.setPlaceName(customerAddressRequestDto.getPlaceName());
+        address.setCityId(customerAddressRequestDto.getCityId());
+        address.setDistrictId(customerAddressRequestDto.getDistrictId());
+        address.setStateId(customerAddressRequestDto.getStateId());
+        address.setCountryId(customerAddressRequestDto.getCountryId());
+        address.setPincode(customerAddressRequestDto.getPincode());
+        address.setPostOfficeId(customerAddressRequestDto.getPostOfficeId());
+        address.setLatitude(customerAddressRequestDto.getLatitude());
+        address.setLongitude(customerAddressRequestDto.getLongitude());
+        address.setGeoAccuracy(customerAddressRequestDto.getGeoAccuracy());
+        address.setAddressProofTypes(customerAddressRequestDto.getAddressProofType());
+        address.setIsActive(customerAddressRequestDto.getIsActive() != null ? customerAddressRequestDto.getIsActive() : true);
+        address.setDigipin(customerAddressRequestDto.getDigipin());
         address.setIdentity(UUID.randomUUID());
-        address.setCreatedBy(customerAddressRequestDTO.getCreatedBy());
+        address.setCreatedBy(customerAddressRequestDto.getCreatedBy());
 
         return address;
     }
@@ -52,34 +52,34 @@ public class CustomerAddressMapper {
      * Updates an existing CustomerAddress entity with DTO values.
      * Validates that updatedBy is not null.
      */
-    public void updateEntity(CustomerAddress address, CustomerAddressRequestDTO customerAddressRequestDTO) {
-        if (customerAddressRequestDTO.getUpdatedBy() == null) {
+    public void updateEntity(CustomerAddress address, CustomerAddressRequestDto customerAddressRequestDto) {
+        if (customerAddressRequestDto.getUpdatedBy() == null) {
             throw new IllegalArgumentException("updatedBy must not be null for update");
         }
 
-        address.setAddressTypeId(customerAddressRequestDTO.getAddressTypeId());
-        address.setDoorNumber(customerAddressRequestDTO.getDoorNumber());
-        address.setAddressLine1(customerAddressRequestDTO.getAddressLine1());
-        address.setAddressLine2(customerAddressRequestDTO.getAddressLine2());
-        address.setLandmark(customerAddressRequestDTO.getLandmark());
-        address.setPlaceName(customerAddressRequestDTO.getPlaceName());
-        address.setCityId(customerAddressRequestDTO.getCityId());
-        address.setDistrictId(customerAddressRequestDTO.getDistrictId());
-        address.setStateId(customerAddressRequestDTO.getStateId());
-        address.setCountryId(customerAddressRequestDTO.getCountryId());
-        address.setPincode(customerAddressRequestDTO.getPincode());
-        address.setPostOfficeId(customerAddressRequestDTO.getPostOfficeId());
-        address.setLatitude(customerAddressRequestDTO.getLatitude());
-        address.setLongitude(customerAddressRequestDTO.getLongitude());
-        address.setGeoAccuracy(customerAddressRequestDTO.getGeoAccuracy());
-        address.setAddressProofTypes(customerAddressRequestDTO.getAddressProofType());
-        address.setIsActive(customerAddressRequestDTO.getIsActive() != null ? customerAddressRequestDTO.getIsActive() : true);
-        address.setDigipin(customerAddressRequestDTO.getDigipin());
-        address.setUpdatedBy(customerAddressRequestDTO.getUpdatedBy());
+        address.setAddressTypeId(customerAddressRequestDto.getAddressTypeId());
+        address.setDoorNumber(customerAddressRequestDto.getDoorNumber());
+        address.setAddressLine1(customerAddressRequestDto.getAddressLine1());
+        address.setAddressLine2(customerAddressRequestDto.getAddressLine2());
+        address.setLandmark(customerAddressRequestDto.getLandmark());
+        address.setPlaceName(customerAddressRequestDto.getPlaceName());
+        address.setCityId(customerAddressRequestDto.getCityId());
+        address.setDistrictId(customerAddressRequestDto.getDistrictId());
+        address.setStateId(customerAddressRequestDto.getStateId());
+        address.setCountryId(customerAddressRequestDto.getCountryId());
+        address.setPincode(customerAddressRequestDto.getPincode());
+        address.setPostOfficeId(customerAddressRequestDto.getPostOfficeId());
+        address.setLatitude(customerAddressRequestDto.getLatitude());
+        address.setLongitude(customerAddressRequestDto.getLongitude());
+        address.setGeoAccuracy(customerAddressRequestDto.getGeoAccuracy());
+        address.setAddressProofTypes(customerAddressRequestDto.getAddressProofType());
+        address.setIsActive(customerAddressRequestDto.getIsActive() != null ? customerAddressRequestDto.getIsActive() : true);
+        address.setDigipin(customerAddressRequestDto.getDigipin());
+        address.setUpdatedBy(customerAddressRequestDto.getUpdatedBy());
     }
 
-    public CustomerAddressResponseDTO.AddressDetail toAddressDetail(CustomerAddress address) {
-        return CustomerAddressResponseDTO.AddressDetail.builder()
+    public CustomerAddressResponseDto.AddressDetail toAddressDetail(CustomerAddress address) {
+        return CustomerAddressResponseDto.AddressDetail.builder()
                 .addressId(address.getAddressId())
                 .addressTypeId(address.getAddressTypeId())
                 .doorNumber(address.getDoorNumber())
@@ -102,8 +102,8 @@ public class CustomerAddressMapper {
                 .build();
     }
 
-    public CustomerAddressResponseDTO toResponse(Customer customer, String status, List<CustomerAddressResponseDTO.AddressDetail> addressDetails) {
-        return CustomerAddressResponseDTO.builder()
+    public CustomerAddressResponseDto toResponse(Customer customer, String status, List<CustomerAddressResponseDto.AddressDetail> addressDetails) {
+        return CustomerAddressResponseDto.builder()
                 .identity(customer.getIdentity())
                 .customerCode(customer.getCustomerCode())
                 .status(status)

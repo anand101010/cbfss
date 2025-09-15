@@ -1,6 +1,4 @@
 package com.incede.nbfc.core.monolith.controller;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.incede.nbfc.core.monolith.client.dto.AadhaarMaskingResponseDto;
 import com.incede.nbfc.core.monolith.client.dto.AadhaarOtpResponse;
 import com.incede.nbfc.core.monolith.client.dto.AadhaarOtpValidatedResponseDto;
@@ -11,10 +9,8 @@ import com.incede.nbfc.core.monolith.domain.dto.AadhaarOtpValidateRequestDto;
 import com.incede.nbfc.core.monolith.enums.KycType;
 import com.incede.nbfc.core.monolith.client.dto.*;
 import com.incede.nbfc.core.monolith.domain.dto.*;
-
 import com.incede.nbfc.core.monolith.service.KycService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,11 +39,11 @@ public class KycController
      * @return AadhaarOtpResponse  just return the expected  success status
      */
 
-    @GetMapping("/otp/send")
-    public ResponseEntity<AadhaarOtpResponse> generateOtp(@RequestParam("aadhaarNumber")String aadhaarNumber)
+    @PostMapping("/otp/send")
+    public ResponseEntity<AadhaarOtpResponse> generateOtp(@RequestBody AadhaarOtpRequestDto aadhaarOtpRequestDto )
     {
         log.info("Get Aadhaar request received");
-        AadhaarOtpResponse response = kycService.generateOtp(aadhaarNumber);
+        AadhaarOtpResponse response = kycService.generateOtp(aadhaarOtpRequestDto);
         return ResponseEntity.ok(response);
     }
     /**
@@ -55,11 +51,11 @@ public class KycController
      * @paramwith transaction id and otp
      * @return  AadhaarOtpValidatedResponseDto entire dto of Aadhaar
      */
-    @GetMapping("/otp/verify")
-    public ResponseEntity<AadhaarOtpValidatedResponseDto> validateOtp(@RequestParam("initiationTransactionId")  String initiationTransactionId ,@RequestParam("otp") String otp)
+    @PostMapping("/otp/verify")
+    public ResponseEntity<AadhaarOtpValidatedResponseDto> validateOtp(@RequestBody AadhaarOtpValidateRequestDto aadhaarOtpValidateRequestDto)
     {
         log.info("Get Aadhaar OTP request received");
-        AadhaarOtpValidatedResponseDto response = kycService.validateAaadhaarOtp(initiationTransactionId,otp);
+        AadhaarOtpValidatedResponseDto response = kycService.validateAaadhaarOtp(aadhaarOtpValidateRequestDto);
         return ResponseEntity.ok(response);
     }
 
@@ -110,14 +106,14 @@ public class KycController
 
     /**
      *
-     * @param UPIId will receive teh UPIid from fronte end
+     * @param upiId will receive teh UPIid from fronte end
      * @return will m UpiAccountDetailsResponseDto  return the consolidated  upidetaisl
      */
     @GetMapping("/upi/matching")
-    public ResponseEntity<UpiAccountDetailsResponseDto> getUpiMatching( @RequestParam("upiID") String UPIId) {
+    public ResponseEntity<UpiAccountDetailsResponseDto> getUpiMatching( @RequestParam("upiId") String upiId) {
 
         log.info("Get UPI Validation  Received");
-        UpiAccountDetailsResponseDto response = kycService.getUpiIdValidationResponse(UPIId);
+        UpiAccountDetailsResponseDto response = kycService.getUpiIdValidationResponse(upiId);
         return ResponseEntity.ok(response);
 
     }
