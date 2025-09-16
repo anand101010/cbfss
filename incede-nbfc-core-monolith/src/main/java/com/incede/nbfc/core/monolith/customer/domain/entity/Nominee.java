@@ -17,17 +17,16 @@ import java.time.LocalDate;
 
 /**
  * Entity for maintaining Nominee Details .
-
  * @version 1.0.0
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 @Table(name = "nominees", schema = "customers")
 public class Nominee extends CustomerBaseEntity implements Serializable {
     private static final long serialVersionUID = 1L;
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -70,25 +69,48 @@ public class Nominee extends CustomerBaseEntity implements Serializable {
     @Size(max = 100, message = "Landmark must not exceed 100 characters")
     private String landmark;
 
+    @Column(name = "place_name", length = 50, nullable = false)
+    @NotBlank(message = "Place name must not be blank")
+    @Size(max = 50, message = "Place name must not exceed 50 characters")
+    private String placeName;
+
     @Column(name = "city")
     @Min(value = 1, message = "City must be a positive integer")
     private Integer city;
 
     @Column(name = "district")
-    @Min(value = 1, message = "district  must be a positive integer")
+    @Min(value = 1, message = "District must be a positive integer")
     private Integer district;
 
     @Column(name = "state_id")
-    @Min(value = 1, message = "stateId  must be a positive integer")
+    @Min(value = 1, message = "State must be a positive integer")
     private Integer stateId;
 
     @Column(name = "country")
-    @Min(value = 1, message = "country must be a positive integer")
+    @Min(value = 1, message = "Country must be a positive integer")
     private Integer country;
 
-    @Column(name = "pincode", length = 10)
-    @Size(max = 10, message = "Pincode must not exceed 10 characters")
-    private String pincode;
+    @Column(name = "pincode")
+    @Min(value = 100000, message = "Pincode must be at least 6 digits")
+    @Max(value = 999999, message = "Pincode must be at most 6 digits")
+    private Integer pincode;
+
+    @Column(name = "address_type_id", nullable = false)
+    @NotNull(message = "Address type must not be null")
+    private Integer addressTypeId;
+
+    @Column(name = "post_office_id", nullable = false)
+    @NotNull(message = "Post office ID must not be null")
+    private Integer postOfficeId;
+
+    @Column(name = "latitude", precision = 9, scale = 6)
+    private BigDecimal latitude;
+
+    @Column(name = "longitude", precision = 9, scale = 6)
+    private BigDecimal longitude;
+
+    @Column(name = "digipin", length = 100)
+    private String digipin;
 
     @Digits(integer = 5, fraction = 2)
     @Column(name = "percentage_share", precision = 5, scale = 2)
@@ -109,7 +131,8 @@ public class Nominee extends CustomerBaseEntity implements Serializable {
     @Past(message = "Guardian's date of birth must be in the past")
     private LocalDate guardianDob;
 
-    @Column(name = "guardian_contact_number", length = 15)
-    @Size(max = 15, message = "Guardian contact number must not exceed 15 characters")
+    @Column(name = "guardian_contact_number", length = 10)
+    @Size(max = 10, message = "Guardian contact number must not exceed 10 characters")
     private String guardianContactNumber;
 }
+

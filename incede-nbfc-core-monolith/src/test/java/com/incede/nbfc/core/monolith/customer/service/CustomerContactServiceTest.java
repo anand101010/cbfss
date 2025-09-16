@@ -57,8 +57,6 @@ class CustomerContactServiceTest {
                 .contactDetails("test@test.com")
                 .contactType(1)
                 .isPrimary(true)
-                .createdBy(1)
-                .updatedBy(1)
                 .build();
     }
 

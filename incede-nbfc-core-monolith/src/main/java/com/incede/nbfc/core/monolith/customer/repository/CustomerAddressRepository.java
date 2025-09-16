@@ -12,10 +12,11 @@ import java.util.UUID;
 @Repository
 public interface CustomerAddressRepository extends JpaRepository<CustomerAddress, Integer> {
 
-
     Optional<CustomerAddress> findByIdentity(UUID identity);
+
     List<CustomerAddress> findByCustomerAndIsDelFalse(Customer customer);
-    Optional<CustomerAddress> findByCustomer(Customer customer);
-    Optional<CustomerAddress> findByAddressIdAndCustomer_CustomerId(Integer addressId, Integer customerId);
+
+    List<CustomerAddress> findByCustomerAndAddressTypeIdAndIsActiveTrueAndIsDelFalse(Customer customer, Integer addressTypeId);
+
 
 }

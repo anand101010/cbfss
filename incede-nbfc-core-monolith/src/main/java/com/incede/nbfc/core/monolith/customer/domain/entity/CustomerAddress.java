@@ -10,7 +10,6 @@ import lombok.ToString;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.UUID;
 
 /**
  * CustomerAddress entity for managing multiple address types.
@@ -103,6 +102,14 @@ public class CustomerAddress extends CustomerBaseEntity implements Serializable 
     @Column(name = "address_proof_type")
     private Integer addressProofTypes;
 
+    @Column(name = "is_sameAs_permanent")
+    private Boolean isSameAsPermanent = false;
+
+    @Column(name = "document_ref_id")
+    @Min(value = 1, message = "Document reference ID must be a positive integer")
+    private Integer documentRefId;
+
     @Column(name = "is_active")
     private Boolean isActive = true;
+
 }

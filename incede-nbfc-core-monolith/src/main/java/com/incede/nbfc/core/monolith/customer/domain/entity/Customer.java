@@ -165,7 +165,7 @@ public class Customer extends CustomerBaseEntity implements Serializable {
     private Integer guardianCustomerId;
 
     @Column(name ="aadhar_vault_id")
-    private Integer aadharVaultId;
+    private String aadharVaultId;
 
     @Column(name="mobile_number")
     private String mobileNumber;

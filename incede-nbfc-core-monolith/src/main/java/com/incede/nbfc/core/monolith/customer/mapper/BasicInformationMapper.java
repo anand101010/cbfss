@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.mapper;
 
+import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.dto.BasicInformationRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.BasicInformationResponseDto;
@@ -49,9 +50,9 @@ public class BasicInformationMapper {
         customer.setMobileNumber(basicInformationRequestDto.getMobileNumber());
         customer.setGuardianCustomerId(basicInformationRequestDto.getGuardianCustomerId());
         customer.setOtpIsVerified(basicInformationRequestDto.getOtpVerified());
-        customer.setAadharVaultId(basicInformationRequestDto.getAadharVaultId());
+        customer.setAadharVaultId(basicInformationRequestDto.getAadharVault());
         customer.setIsMinor(basicInformationRequestDto.getIsMinor());
-        customer.setCreatedBy(basicInformationRequestDto.getCreatedBy());
+        customer.setCreatedBy(getCreatedBy());
 
         return customer;
     }
@@ -96,7 +97,10 @@ public class BasicInformationMapper {
 
         customer.setOtpIsVerified(basicInformation.getOtpVerified());
 
-        customer.setAadharVaultId(basicInformation.getAadharVaultId());
+        customer.setAadharVaultId(basicInformation.getAadharVault());
+        customer.setUpdatedBy(getUpdatedBy());
+
+
     }
 
 
@@ -147,5 +151,15 @@ public class BasicInformationMapper {
                 .basic(basic)
                 .build();
     }
+
+    public  Integer getCreatedBy(){
+        return CommonConstants.CREATED_BY;
+
+    }
+    public  Integer getUpdatedBy(){
+        return CommonConstants.UPDATED_BY;
+
+    }
+
 
 }

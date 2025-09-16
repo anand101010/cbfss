@@ -58,7 +58,7 @@ public class BasicInformationController {
      * @param customerUUID Customer UUID
      * @return ResponseEntity with customer's basic info
      */
-    @GetMapping("/basic/{customerUUID}")
+    @GetMapping("/{customerUUID}/basic")
     @Operation(summary = "Get Basic Info", description = "Fetches basic info of a customer by UUID")
     public ResponseEntity<BasicInformationResponseDto> getBasicInfoByUuid(@PathVariable UUID customerUUID) {
         BasicInformationResponseDto response = customerOnboardingService.getBasicInformationByUuid(customerUUID);

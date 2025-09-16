@@ -33,7 +33,11 @@ public class CustomerBankAccountService {
     private final ObjectMapper objectMapper;
 
     /**
-     * Create a new bank account for the given customer.
+     *  create a bank account for a customer
+     * @param identity
+     * @param requestJson
+     * @param bankProof
+     * @return
      */
     @Transactional
     public CustomerBankAccountResponseDto createBankAccount(UUID identity, String requestJson, MultipartFile bankProof) {

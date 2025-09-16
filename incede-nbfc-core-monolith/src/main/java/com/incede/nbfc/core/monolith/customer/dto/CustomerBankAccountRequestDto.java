@@ -56,9 +56,7 @@ public class CustomerBankAccountRequestDto {
         @Size(max = 64, message = "PD transaction ID must not exceed 64 characters")
         private String pdTxnId;
 
-        private Integer createdBy;
 
-        private Integer updatedBy;
 
         @ToString.Exclude
         private String customerCode;

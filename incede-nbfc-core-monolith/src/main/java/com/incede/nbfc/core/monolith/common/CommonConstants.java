@@ -1,5 +1,8 @@
 package com.incede.nbfc.core.monolith.common;
 
+import com.incede.nbfc.core.monolith.customer.enums.PhotoStatus;
+import jakarta.validation.constraints.NotBlank;
+
 /**
  * Common constants used throughout the application.
  * 
@@ -10,6 +13,8 @@ package com.incede.nbfc.core.monolith.common;
  * @version 1.0.0
  */
 public final class CommonConstants {
+
+
 
     private CommonConstants() {
         // Utility class - prevent instantiation
@@ -86,6 +91,17 @@ public final class CommonConstants {
     public static  String CREATED_BY_REQUIRED="CreatedBy is required";
     public static  String UPDATED_BY_REQUIRED="UpdatedBy is required";
     public static final String INVALID_JSON = "Invalid Json format";
+    public static final Integer CREATED_BY = 1;
+    public static final Integer UPDATED_BY=1;
+    public static  String EMPLOYMENT_NOT_FOUND="Employment info not found";
+    public static  String REFERRAL_NOT_FOUND="Referral info not found";
+    public static  String PEP_NOT_FOUND="PEP info not found";
+    public static  String PROFILE_EXTRA_NOT_FOUND="Profile-Extra info not found";
+    public static   String FILE_PATH = "/C/customer/photo";
+
+
+
+
 
 
 
@@ -127,6 +143,8 @@ public final class CommonConstants {
     public static final String ENTITY_CUSTOMER = "Customer";
     public static final String ENTITY_ADDRESS = "Address";
     public static final String ENTITY_BANK_ACCOUNT = "CustomerBankAccount";
+    public static final String ADDRESS_TYPE_PERMANENT = "PERMANENT";
+    public static final String ENTITY_NOMINEE = "Nominee";
 
     // Customer Address Status
     public static final String CUSTOMER_ADDRESS_STATUS_IN_PROGRESS = "IN_PROGRESS";

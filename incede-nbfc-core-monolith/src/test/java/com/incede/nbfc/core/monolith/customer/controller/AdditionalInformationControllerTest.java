@@ -49,8 +49,6 @@ class CustomerAdditionalInfoControllerTest {
                                 .incomeSourceId(1)
                                 .monthlySalary(BigDecimal.valueOf(20000))
                                 .annualIncome(BigDecimal.valueOf(2000000))
-                                .createdBy(1)
-                                .updatedBy(1)
                                 .build())
                         .referrals(CustomerReferralDto.builder()
                                 .referralSourceId(10)

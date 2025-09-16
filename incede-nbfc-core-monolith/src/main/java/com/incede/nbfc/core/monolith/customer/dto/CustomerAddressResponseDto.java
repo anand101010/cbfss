@@ -23,7 +23,7 @@ public class CustomerAddressResponseDto {
     @AllArgsConstructor
     @Builder
     public static class AddressDetail {
-        private Integer addressId;
+        private UUID addressIdentity;
         private Integer addressTypeId;
         private String doorNumber;
         private String addressLine1;

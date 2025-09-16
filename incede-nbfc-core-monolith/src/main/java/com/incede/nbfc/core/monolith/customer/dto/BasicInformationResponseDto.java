@@ -84,7 +84,7 @@ public class BasicInformationResponseDto {
 
         private String mobileNumber;
 
-        private Integer aadharVaultId;
+        private String aadharVaultId;
 
         private Boolean otpVerified;
 

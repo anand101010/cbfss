@@ -39,7 +39,5 @@ public class CustomerEmploymentDto {
     @ToString.Exclude
     private BigDecimal annualIncome;
 
-    private Integer createdBy;
 
-    private Integer updatedBy;
 }

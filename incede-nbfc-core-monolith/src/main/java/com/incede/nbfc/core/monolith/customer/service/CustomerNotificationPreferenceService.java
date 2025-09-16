@@ -26,6 +26,12 @@ public class CustomerNotificationPreferenceService {
     private final CustomerNotificationPreferenceRepository notificationRepository;
     private final CustomerNotificationPreferenceMapper mapper = new CustomerNotificationPreferenceMapper();
 
+    /**
+     * save notification preference
+     * @param customerId
+     * @param dto
+     * @return
+     */
     @Transactional
     public CustomerNotificationPreferenceResponseDto saveNotification(UUID customerId, CustomerNotificationPreferenceRequestDto dto) {
         log.info("Saving notification preference for customer [{}]", customerId);
@@ -34,13 +40,20 @@ public class CustomerNotificationPreferenceService {
                 .orElseThrow(() -> new BusinessException(CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.RESOURCE_NOT_FOUND));
 
         if (notificationRepository.findByCustomer(customer).isPresent()) {
-            throw new BusinessException("Notification preference already exists for this customer", ErrorCodes.CONFLICT);
+            throw new BusinessException(CommonConstants.CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
         }
 
         CustomerNotificationPreference entity = mapper.toEntity(dto, customer);
         CustomerNotificationPreference saved = notificationRepository.save(entity);
         return mapper.toResponseDto(saved);
     }
+
+    /**
+     * update notification preference
+     * @param customerId
+     * @param dto
+     * @return
+     */
 
     @Transactional
     public CustomerNotificationPreferenceResponseDto updateNotification(UUID customerId, CustomerNotificationPreferenceRequestDto dto) {
@@ -56,6 +69,14 @@ public class CustomerNotificationPreferenceService {
         CustomerNotificationPreference updated = notificationRepository.save(entity);
         return mapper.toResponseDto(updated);
     }
+
+
+    /**
+     * get notification preference
+     * @param customerId
+     * @return
+     */
+
 
     @Transactional(readOnly = true)
     public CustomerNotificationPreferenceResponseDto getNotificationPreferences(UUID customerId) {

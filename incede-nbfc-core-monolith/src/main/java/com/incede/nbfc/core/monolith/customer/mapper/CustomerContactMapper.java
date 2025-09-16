@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.mapper;
 
+import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerContact;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerContactRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerContactResponceDto;
@@ -14,14 +15,7 @@ import java.util.Objects;
 @Component
 public class CustomerContactMapper {
 
-    /**
-     * Simulate fetching the current user ID from security context or token.
-     * Replace this with actual authentication logic in production.
-     */
-    private Integer getCurrentUserId() {
-        // TODO: Replace with actual user ID from JWT or security context
-        return 1;
-    }
+
 
     /**
      * Convert a request DTO to a CustomerContact entity.
@@ -35,8 +29,7 @@ public class CustomerContactMapper {
         contact.setContactValue(Objects.requireNonNull(dto.getContactDetails(), "contactDetails must not be null"));
         contact.setIsPrimary(Objects.requireNonNull(dto.getIsPrimary(), "isPrimary must not be null"));
         contact.setIsActive(Objects.requireNonNull(dto.getIsActive(), "isActive must not be null"));
-        contact.setCreatedBy(getCurrentUserId());
-        contact.setUpdatedBy(getCurrentUserId());
+        contact.setCreatedBy(getCreatedBy());
         contact.setIsPromotionalOptOut(
                 Objects.requireNonNull(dto.getIsOptOutPromotionalNotification(),
                         "isOptOutPromotionalNotification must not be null")
@@ -57,7 +50,7 @@ public class CustomerContactMapper {
         contact.setContactValue(Objects.requireNonNull(dto.getContactDetails(), "contactDetails must not be null"));
         contact.setIsPrimary(Objects.requireNonNull(dto.getIsPrimary(), "isPrimary must not be null"));
         contact.setIsActive(Objects.requireNonNull(dto.getIsActive(), "isActive must not be null"));
-        contact.setUpdatedBy(getCurrentUserId());
+        contact.setUpdatedBy(getUpdatedBy());
         contact.setIsPromotionalOptOut(
                 Objects.requireNonNull(dto.getIsOptOutPromotionalNotification(),
                         "isOptOutPromotionalNotification must not be null")
@@ -78,5 +71,13 @@ public class CustomerContactMapper {
                 .isOptOutPromotionalNotification(entity.getIsPromotionalOptOut())
                 .contactIdentity(entity.getIdentity())
                 .build();
+    }
+    public  Integer getCreatedBy(){
+        return CommonConstants.CREATED_BY;
+
+    }
+    public  Integer getUpdatedBy(){
+        return CommonConstants.UPDATED_BY;
+
     }
 }

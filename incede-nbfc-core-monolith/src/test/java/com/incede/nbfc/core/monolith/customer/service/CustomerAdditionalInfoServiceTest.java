@@ -8,11 +8,7 @@ import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.exception.ErrorCodes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
-import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,178 +17,162 @@ import static org.mockito.Mockito.*;
 
 class CustomerAdditionalInfoServiceTest {
 
-    @Mock
+    private CustomerAdditionalInfoMapper mapper;
     private CustomerRepository customerRepository;
-
-    @Mock
     private CustomerEmploymentRepository employmentRepository;
-
-    @Mock
     private CustomerReferralRepository referralRepository;
-
-    @Mock
     private CustomerPepRepository pepRepository;
-
-    @Mock
     private CustomerProfileExtraRepository profileExtraRepository;
-
-    @Mock
     private CustomerAssetRepository assetRepository;
 
-    @Mock
-    private CustomerAdditionalInfoMapper mapper;
-
-    @InjectMocks
     private CustomerAdditionalInfoService service;
 
     private UUID customerId;
     private Customer customer;
-    private CustomerAdditionalInfoRequestDto requestDto;
-    private AdditionalInfoDto additionalDto;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        mapper = mock(CustomerAdditionalInfoMapper.class);
+        customerRepository = mock(CustomerRepository.class);
+        employmentRepository = mock(CustomerEmploymentRepository.class);
+        referralRepository = mock(CustomerReferralRepository.class);
+        pepRepository = mock(CustomerPepRepository.class);
+        profileExtraRepository = mock(CustomerProfileExtraRepository.class);
+        assetRepository = mock(CustomerAssetRepository.class);
+
+        service = new CustomerAdditionalInfoService(
+                mapper,
+                customerRepository,
+                employmentRepository,
+                referralRepository,
+                pepRepository,
+                profileExtraRepository,
+                assetRepository
+        );
 
         customerId = UUID.randomUUID();
         customer = new Customer();
         customer.setIdentity(customerId);
-        customer.setCustomerCode("CUST001");
-        customer.setOnboardingStatus("ACTIVE");
+    }
 
-
-        CustomerEmploymentDto employmentDto = CustomerEmploymentDto.builder()
-                .occupationId(1)
-                .designationId(1)
-                .employer("Test Employer")
-                .incomeSourceId(1)
-                .monthlySalary(BigDecimal.valueOf(5000))
-                .annualIncome(BigDecimal.valueOf(60000))
-                .createdBy(1)
-                .updatedBy(1)
-                .build();
-
-        CustomerReferralDto referralDto = CustomerReferralDto.builder()
-                .referralSourceId(1)
-                .canvassedTypeId(1)
-                .canvasserStaffId(1)
-                .createdBy(1)
-                .updatedBy(1)
-                .build();
-
-        CustomerPepDto pepDto = CustomerPepDto.builder()
-                .status("active")
-                .categoryId(1)
-                .relationshipId(1)
-                .verificationSourceId(1)
-                .createdBy(1)
-                .updatedBy(1)
-                .build();
-
-        CustomerProfileExtraDto profileExtraDto = CustomerProfileExtraDto.builder()
-                .educationLevelId(1)
-                .purposeId(1)
-                .createdBy(1)
-                .updatedBy(1)
-                .build();
-
-        CustomerAssetDto assetDto = CustomerAssetDto.builder()
-                .assetId(1)
-                .assetTypeId(1)
-                .description("House")
-                .approxValue(BigDecimal.valueOf(100000))
-                .ownsAsset(true)
-                .homeLoanCompany("Bank")
-                .hasHomeLoan(true)
-                .createdBy(1)
-                .updatedBy(1)
-                .build();
-
-        AdditionalInfoCustomerDto customerInfoDto = AdditionalInfoCustomerDto.builder()
-                .nationality(1)
-                .preferredLanguageId(1)
-                .residentialStatusId(1)
-                .build();
-
-        additionalDto = AdditionalInfoDto.builder()
-                .employment(employmentDto)
-                .referrals(referralDto)
-                .pep(pepDto)
-                .profileExtra(profileExtraDto)
-                .customerAsset(assetDto)
-                .customer(customerInfoDto)
-                .build();
-
-        requestDto = CustomerAdditionalInfoRequestDto.builder()
-                .additional(additionalDto)
-                .build();
+    /** Helper to build a valid request DTO **/
+    private CustomerAdditionalInfoRequestDto buildValidRequestDto() {
+        CustomerAdditionalInfoRequestDto dto = new CustomerAdditionalInfoRequestDto();
+        AdditionalInfoDto additional = new AdditionalInfoDto();
+        additional.setEmployment(new CustomerEmploymentDto());
+        additional.setReferrals(new CustomerReferralDto());
+        additional.setPep(new CustomerPepDto());
+        additional.setProfileExtra(new CustomerProfileExtraDto());
+        additional.setCustomerAsset(new CustomerAssetDto());
+        additional.setCustomer(new AdditionalInfoCustomerDto());
+        dto.setAdditional(additional);
+        return dto;
     }
 
     @Test
-    void saveAdditionalInfo_shouldSaveAndReturnResponse() {
+    void saveAdditionalInfo_success() {
+        CustomerAdditionalInfoRequestDto dto = buildValidRequestDto();
 
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-
-        CustomerEmployment employment = new CustomerEmployment();
-        CustomerReferral referral = new CustomerReferral();
-        CustomerPep pep = new CustomerPep();
-        CustomerProfileExtra profileExtra = new CustomerProfileExtra();
-        CustomerAsset asset = new CustomerAsset();
-
-        when(employmentRepository.findByCustomer(customer)).thenReturn(Optional.of(employment));
-        when(referralRepository.findByCustomer(customer)).thenReturn(Optional.of(referral));
-        when(pepRepository.findByCustomer(customer)).thenReturn(Optional.of(pep));
-        when(profileExtraRepository.findByCustomer(customer)).thenReturn(Optional.of(profileExtra));
-        when(mapper.mapToAsset(additionalDto.getCustomerAsset(), customer)).thenReturn(asset);
-        when(mapper.updateCustomerFromAdditionalInfo(customer, additionalDto.getCustomer())).thenReturn(customer);
-        when(mapper.buildResponseDto(customer, employment, referral, pep, profileExtra, asset))
+        when(employmentRepository.findByCustomer(customer)).thenReturn(Optional.empty());
+        when(referralRepository.findByCustomer(customer)).thenReturn(Optional.empty());
+        when(pepRepository.findByCustomer(customer)).thenReturn(Optional.empty());
+        when(profileExtraRepository.findByCustomer(customer)).thenReturn(Optional.empty());
+        when(assetRepository.save(any())).thenReturn(new CustomerAsset());
+        when(customerRepository.save(any())).thenReturn(customer);
+        when(mapper.buildResponseDto(any(), any(), any(), any(), any(), any()))
                 .thenReturn(new CustomerAdditionalInfoResponseDto());
 
-
-        CustomerAdditionalInfoResponseDto response = service.saveAdditionalInfo(customerId, requestDto);
-
-
-        verify(employmentRepository).save(employment);
-        verify(referralRepository).save(referral);
-        verify(pepRepository).save(pep);
-        verify(profileExtraRepository).save(profileExtra);
-        verify(assetRepository).save(asset);
-        verify(customerRepository).save(customer);
+        CustomerAdditionalInfoResponseDto response = service.saveAdditionalInfo(customerId, dto);
 
         assertNotNull(response);
+        verify(employmentRepository).save(any());
+        verify(referralRepository).save(any());
+        verify(pepRepository).save(any());
+        verify(profileExtraRepository).save(any());
+        verify(assetRepository).save(any());
+        verify(customerRepository).save(any());
     }
 
     @Test
-    void saveAdditionalInfo_shouldThrowException_whenCustomerNotFound() {
+    void saveAdditionalInfo_customerNotFound_shouldThrow() {
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
-
-        BusinessException ex = assertThrows(BusinessException.class, () ->
-                service.saveAdditionalInfo(customerId, requestDto));
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.saveAdditionalInfo(customerId, buildValidRequestDto()));
 
         assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
+        verifyNoInteractions(employmentRepository);
     }
 
     @Test
-    void getAdditionalInfo_shouldReturnResponse() {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-
+    void updateAdditionalInfo_success() {
+        CustomerAdditionalInfoRequestDto dto = buildValidRequestDto();
         CustomerEmployment employment = new CustomerEmployment();
         CustomerReferral referral = new CustomerReferral();
         CustomerPep pep = new CustomerPep();
         CustomerProfileExtra profileExtra = new CustomerProfileExtra();
         CustomerAsset asset = new CustomerAsset();
 
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(employmentRepository.findByCustomer(customer)).thenReturn(Optional.of(employment));
         when(referralRepository.findByCustomer(customer)).thenReturn(Optional.of(referral));
         when(pepRepository.findByCustomer(customer)).thenReturn(Optional.of(pep));
         when(profileExtraRepository.findByCustomer(customer)).thenReturn(Optional.of(profileExtra));
         when(assetRepository.findByCustomer(customer)).thenReturn(asset);
-        when(mapper.buildResponseDto(customer, employment, referral, pep, profileExtra, asset))
+        when(customerRepository.save(any())).thenReturn(customer);
+        when(mapper.buildResponseDto(any(), any(), any(), any(), any(), any()))
+                .thenReturn(new CustomerAdditionalInfoResponseDto());
+
+        CustomerAdditionalInfoResponseDto response = service.updateAdditionalInfo(customerId, dto);
+
+        assertNotNull(response);
+        verify(employmentRepository).save(employment);
+        verify(referralRepository).save(referral);
+        verify(pepRepository).save(pep);
+        verify(profileExtraRepository).save(profileExtra);
+        verify(assetRepository).save(asset);
+        verify(customerRepository).save(any());
+    }
+
+    @Test
+    void updateAdditionalInfo_customerNotFound_shouldThrow() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.updateAdditionalInfo(customerId, buildValidRequestDto()));
+
+        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
+    }
+
+    @Test
+    void updateAdditionalInfo_employmentNotFound_shouldThrow() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(employmentRepository.findByCustomer(customer)).thenReturn(Optional.empty());
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.updateAdditionalInfo(customerId, buildValidRequestDto()));
+
+        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
+    }
+
+    @Test
+    void getAdditionalInfo_success() {
+        CustomerEmployment employment = new CustomerEmployment();
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(employmentRepository.findByCustomer(customer)).thenReturn(Optional.of(employment));
+        when(mapper.buildResponseDto(any(), any(), any(), any(), any(), any()))
                 .thenReturn(new CustomerAdditionalInfoResponseDto());
 
         CustomerAdditionalInfoResponseDto response = service.getAdditionalInfo(customerId);
 
         assertNotNull(response);
-        verify(mapper).buildResponseDto(customer, employment, referral, pep, profileExtra, asset);
+        verify(mapper).buildResponseDto(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void getAdditionalInfo_customerNotFound_shouldThrow() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.getAdditionalInfo(customerId));
+
+        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
     }
 }

@@ -40,37 +40,38 @@ public class BasicInformationService {
      */
     @Transactional
     public BasicInformationResponseDto saveBasicInformation(BasicInformationRequestDto dto) {
-        boolean exists = customerRepository.existsByTenantIdAndFirstNameAndLastName(
-                dto.getTenantId(), dto.getFirstName(), dto.getLastName());
+        boolean exists = customerRepository.existsByTenantIdAndAadharVaultId(
+                dto.getTenantId(), dto.getAadharVault());
 
         if (exists) {
-            log.warn("Duplicate customer detected: {} {}", dto.getFirstName(), dto.getLastName());
+            log.warn("Duplicate customer detected for Aadhaar: {}", dto.getAadharVault());
             throw new BusinessException(CommonConstants.CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
         }
 
-        if (dto.getCreatedBy() == null) {
-            throw new BusinessException(CommonConstants.CREATED_BY_REQUIRED, ErrorCodes.VALIDATION_FAILED);
-        }
+
 
         try {
             Customer customer = customerMapper.toEntity(dto);
             customer.setIdentity(UUID.randomUUID());
             customer.setCustomerCode(generateCustomerCode(dto.getTenantId()));
-            customer.setCreatedBy(dto.getCreatedBy());
-            customer.setOnboardingStatus(CommonConstants.DRAFT);
+            customer.setOnboardingStatus(CommonConstants.IN_PROGRESS);
 
             Customer savedCustomer = customerRepository.save(customer);
+            log.info("Customer created successfully with Aadhaar: {} and identity: {}",
+                    dto.getAadharVault(), savedCustomer.getIdentity());
+
             return customerMapper.toResponseDto(savedCustomer);
 
         } catch (DataIntegrityViolationException e) {
-            log.error("Constraint violation while saving customer. DTO: {}", dto, e);
+            log.error("Constraint violation while saving customer. Aadhaar: {}, DTO: {}", dto.getAadharVault(), dto, e);
             throw new BusinessException(CommonConstants.CONSTRAIN_VIOLATION,
                     ErrorCodes.CONSTRAINT_VIOLATION, e);
         } catch (IllegalArgumentException e) {
-            log.warn("Validation failed for DTO: {} - {}", dto, e.getMessage());
+            log.warn("Validation failed for DTO with Aadhaar {}: {}", dto.getAadharVault(), e.getMessage());
             throw new BusinessException(e.getMessage(), ErrorCodes.VALIDATION_FAILED, e);
         }
     }
+
 
     /**
      * Update basic information for an existing customer.
@@ -87,36 +88,33 @@ public class BasicInformationService {
                         CommonConstants.NOT_FOUND_MESSAGE,
                         ErrorCodes.RESOURCE_NOT_FOUND));
 
-        if (dto.getUpdatedBy() == null) {
-            throw new BusinessException(CommonConstants.UPDATED_BY_REQUIRED, ErrorCodes.VALIDATION_FAILED);
-        }
-
         try {
-
             customerMapper.updateEntityFromDto(existingCustomer, dto);
-            existingCustomer.setUpdatedBy(dto.getUpdatedBy());
             existingCustomer.setUpdatedAt(LocalDateTime.now());
 
-
             Optional<Customer> duplicate = customerRepository
-                    .findByTenantIdAndFirstNameAndLastName(dto.getTenantId(), dto.getFirstName(), dto.getLastName());
+                    .findByTenantIdAndAadharVaultId(dto.getTenantId(), dto.getAadharVault());
+
             if (duplicate.isPresent() && !duplicate.get().getIdentity().equals(identity)) {
-                log.warn("Duplicate customer name detected for update: {} {}", dto.getFirstName(), dto.getLastName());
+                log.warn("Duplicate Aadhaar vault detected for update: {}", dto.getAadharVault());
                 throw new BusinessException(CommonConstants.CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
             }
 
             Customer updatedCustomer = customerRepository.save(existingCustomer);
+            log.info("Customer {} updated successfully with Aadhaar vault {}", updatedCustomer.getIdentity(), dto.getAadharVault());
+
             return customerMapper.toResponseDto(updatedCustomer);
 
         } catch (DataIntegrityViolationException e) {
-            log.error("Constraint violation while updating customer. DTO: {}", dto, e);
+            log.error("Constraint violation while updating customer. Aadhaar: {}, DTO: {}", dto.getAadharVault(), dto, e);
             throw new BusinessException(CommonConstants.CONSTRAIN_VIOLATION,
                     ErrorCodes.CONSTRAINT_VIOLATION, e);
         } catch (IllegalArgumentException e) {
-            log.warn("Validation failed for DTO: {} - {}", dto, e.getMessage());
+            log.warn("Validation failed for DTO with Aadhaar {}: {}", dto.getAadharVault(), e.getMessage());
             throw new BusinessException(e.getMessage(), ErrorCodes.VALIDATION_FAILED, e);
         }
     }
+
 
 
     /**

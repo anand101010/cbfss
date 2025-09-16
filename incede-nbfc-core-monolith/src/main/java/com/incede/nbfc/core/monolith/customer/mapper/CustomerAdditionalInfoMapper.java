@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.mapper;
 
+import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.*;
 import com.incede.nbfc.core.monolith.customer.dto.*;
 import org.springframework.stereotype.Component;
@@ -71,9 +72,43 @@ public class CustomerAdditionalInfoMapper {
         asset.setOwnsAsset(assetDto.getOwnsAsset() != null ? assetDto.getOwnsAsset() : false);
         asset.setHomeLoanCompany(assetDto.getHomeLoanCompany() != null ? assetDto.getHomeLoanCompany() : "");
         asset.setHasHomeLoan(assetDto.getHasHomeLoan() != null ? assetDto.getHasHomeLoan() : false);
-        asset.setCreatedBy(assetDto.getCreatedBy());
-        asset.setUpdatedBy(assetDto.getUpdatedBy());
+        asset.setUpdatedBy(getUpdatedBy());
+
+
     }
+
+
+    public void createAsset(CustomerAsset asset, CustomerAssetDto assetDto, Customer customer) {
+        Objects.requireNonNull(asset, "CustomerAsset must not be null");
+        Objects.requireNonNull(assetDto, "CustomerAssetDto must not be null");
+        Objects.requireNonNull(customer, "Customer must not be null");
+
+        asset.setCustomer(customer);
+        asset.setAssetId(assetDto.getAssetId());
+        asset.setAssetTypeId(assetDto.getAssetTypeId());
+        asset.setDescription(assetDto.getDescription());
+        asset.setApproxValue(assetDto.getApproxValue());
+        asset.setOwnsAsset(assetDto.getOwnsAsset() != null ? assetDto.getOwnsAsset() : false);
+        asset.setHomeLoanCompany(assetDto.getHomeLoanCompany() != null ? assetDto.getHomeLoanCompany() : "");
+        asset.setHasHomeLoan(assetDto.getHasHomeLoan() != null ? assetDto.getHasHomeLoan() : false);
+        asset.setCreatedBy(getCreatedBy());
+
+
+    }
+
+
+    public void createProfileExtra(CustomerProfileExtra profileExtra, CustomerProfileExtraDto profileExtraDto, Customer customer) {
+        Objects.requireNonNull(profileExtra, "CustomerProfileExtra must not be null");
+        Objects.requireNonNull(profileExtraDto, "CustomerProfileExtraDto must not be null");
+        Objects.requireNonNull(customer, "Customer must not be null");
+
+        profileExtra.setCustomer(customer);
+        profileExtra.setEducationLevelId(profileExtraDto.getEducationLevelId());
+        profileExtra.setPurposeId(profileExtraDto.getPurposeId());
+        profileExtra.setCreatedBy(getCreatedBy());
+
+    }
+
 
     public void updateProfileExtra(CustomerProfileExtra profileExtra, CustomerProfileExtraDto profileExtraDto, Customer customer) {
         Objects.requireNonNull(profileExtra, "CustomerProfileExtra must not be null");
@@ -83,8 +118,7 @@ public class CustomerAdditionalInfoMapper {
         profileExtra.setCustomer(customer);
         profileExtra.setEducationLevelId(profileExtraDto.getEducationLevelId());
         profileExtra.setPurposeId(profileExtraDto.getPurposeId());
-        profileExtra.setCreatedBy(profileExtraDto.getCreatedBy());
-        profileExtra.setUpdatedBy(profileExtraDto.getUpdatedBy());
+        profileExtra.setUpdatedBy(getUpdatedBy());
     }
 
     public void updatePep(CustomerPep pep, CustomerPepDto pepDto, Customer customer) {
@@ -97,9 +131,23 @@ public class CustomerAdditionalInfoMapper {
         pep.setCategoryId(pepDto.getCategoryId());
         pep.setRelationshipId(pepDto.getRelationshipId());
         pep.setVerificationSourceId(pepDto.getVerificationSourceId());
-        pep.setCreatedBy(pepDto.getCreatedBy());
-        pep.setUpdatedBy(pepDto.getUpdatedBy());
+        pep.setUpdatedBy(getUpdatedBy());
     }
+
+
+    public void createPep(CustomerPep pep, CustomerPepDto pepDto, Customer customer) {
+        Objects.requireNonNull(pep, "CustomerPep must not be null");
+        Objects.requireNonNull(pepDto, "CustomerPepDto must not be null");
+        Objects.requireNonNull(customer, "Customer must not be null");
+
+        pep.setCustomer(customer);
+        pep.setStatus(pepDto.getStatus());
+        pep.setCategoryId(pepDto.getCategoryId());
+        pep.setRelationshipId(pepDto.getRelationshipId());
+        pep.setVerificationSourceId(pepDto.getVerificationSourceId());
+        pep.setCreatedBy(getCreatedBy());
+    }
+
 
     public void updateReferral(CustomerReferral referral, CustomerReferralDto referralDto, Customer customer) {
         Objects.requireNonNull(referral, "CustomerReferral must not be null");
@@ -110,8 +158,20 @@ public class CustomerAdditionalInfoMapper {
         referral.setReferralSourceId(referralDto.getReferralSourceId());
         referral.setCanvassedTypeId(referralDto.getCanvassedTypeId());
         referral.setCanvasserStaffId(referralDto.getCanvasserStaffId());
-        referral.setCreatedBy(referralDto.getCreatedBy());
-        referral.setUpdatedBy(referralDto.getUpdatedBy());
+        referral.setUpdatedBy(getUpdatedBy());
+    }
+
+
+    public void createReferral(CustomerReferral referral, CustomerReferralDto referralDto, Customer customer) {
+        Objects.requireNonNull(referral, "CustomerReferral must not be null");
+        Objects.requireNonNull(referralDto, "CustomerReferralDto must not be null");
+        Objects.requireNonNull(customer, "Customer must not be null");
+
+        referral.setCustomer(customer);
+        referral.setReferralSourceId(referralDto.getReferralSourceId());
+        referral.setCanvassedTypeId(referralDto.getCanvassedTypeId());
+        referral.setCanvasserStaffId(referralDto.getCanvasserStaffId());
+        referral.setCreatedBy(getCreatedBy());
     }
 
     public void updateEmployment(CustomerEmployment employment, CustomerEmploymentDto employmentDto, Customer customer) {
@@ -126,9 +186,23 @@ public class CustomerAdditionalInfoMapper {
         employment.setIncomeSourceId(employmentDto.getIncomeSourceId());
         employment.setMonthlySalary(employmentDto.getMonthlySalary());
         employment.setAnnualIncome(employmentDto.getAnnualIncome());
-        employment.setCreatedBy(employmentDto.getCreatedBy());
-        employment.setUpdatedBy(employmentDto.getUpdatedBy());
+        employment.setUpdatedBy(getUpdatedBy());
     }
+    public void createEmployment(CustomerEmployment employment, CustomerEmploymentDto employmentDto, Customer customer) {
+        Objects.requireNonNull(employment, "CustomerEmployment must not be null");
+        Objects.requireNonNull(employmentDto, "CustomerEmploymentDto must not be null");
+        Objects.requireNonNull(customer, "Customer must not be null");
+
+        employment.setCustomer(customer);
+        employment.setOccupationId(employmentDto.getOccupationId());
+        employment.setDesignationId(employmentDto.getDesignationId());
+        employment.setEmployer(employmentDto.getEmployer());
+        employment.setIncomeSourceId(employmentDto.getIncomeSourceId());
+        employment.setMonthlySalary(employmentDto.getMonthlySalary());
+        employment.setAnnualIncome(employmentDto.getAnnualIncome());
+        employment.setCreatedBy(getCreatedBy());
+    }
+
 
     public Customer updateCustomerFromAdditionalInfo(Customer customer, AdditionalInfoCustomerDto dto) {
         Objects.requireNonNull(customer, "Customer must not be null");
@@ -136,6 +210,7 @@ public class CustomerAdditionalInfoMapper {
             customer.setNationality(dto.getNationality());
             customer.setPreferredLanguageId(dto.getPreferredLanguageId());
             customer.setResidentialStatusId(dto.getResidentialStatusId());
+            customer.setUpdatedBy(getUpdatedBy());
         }
         return customer;
     }
@@ -151,8 +226,6 @@ public class CustomerAdditionalInfoMapper {
                 .incomeSourceId(employment.getIncomeSourceId())
                 .monthlySalary(employment.getMonthlySalary())
                 .annualIncome(employment.getAnnualIncome())
-                .createdBy(employment.getCreatedBy())
-                .updatedBy(employment.getUpdatedBy())
                 .build();
     }
 
@@ -162,8 +235,6 @@ public class CustomerAdditionalInfoMapper {
                 .referralSourceId(referral.getReferralSourceId())
                 .canvassedTypeId(referral.getCanvassedTypeId())
                 .canvasserStaffId(referral.getCanvasserStaffId())
-                .createdBy(referral.getCreatedBy())
-                .updatedBy(referral.getUpdatedBy())
                 .build();
     }
 
@@ -174,8 +245,6 @@ public class CustomerAdditionalInfoMapper {
                 .categoryId(pep.getCategoryId())
                 .relationshipId(pep.getRelationshipId())
                 .verificationSourceId(pep.getVerificationSourceId())
-                .createdBy(pep.getCreatedBy())
-                .updatedBy(pep.getUpdatedBy())
                 .build();
     }
 
@@ -184,8 +253,6 @@ public class CustomerAdditionalInfoMapper {
         return CustomerProfileExtraDto.builder()
                 .educationLevelId(profileExtra.getEducationLevelId())
                 .purposeId(profileExtra.getPurposeId())
-                .createdBy(profileExtra.getCreatedBy())
-                .updatedBy(profileExtra.getUpdatedBy())
                 .build();
     }
 
@@ -199,8 +266,6 @@ public class CustomerAdditionalInfoMapper {
                 .ownsAsset(asset.getOwnsAsset())
                 .homeLoanCompany(asset.getHomeLoanCompany())
                 .hasHomeLoan(asset.getHasHomeLoan())
-                .createdBy(asset.getCreatedBy())
-                .updatedBy(asset.getUpdatedBy())
                 .build();
     }
 
@@ -242,4 +307,14 @@ public class CustomerAdditionalInfoMapper {
                 .additional(additional)
                 .build();
     }
+
+    public  Integer getCreatedBy(){
+        return CommonConstants.CREATED_BY;
+
+    }
+    public  Integer getUpdatedBy(){
+        return CommonConstants.UPDATED_BY;
+
+    }
+
 }

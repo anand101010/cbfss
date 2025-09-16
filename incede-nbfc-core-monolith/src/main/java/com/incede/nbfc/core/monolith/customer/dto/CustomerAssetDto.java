@@ -37,13 +37,8 @@ public class CustomerAssetDto {
     @NotNull(message = "Has Home Loan flag is required")
     private Boolean hasHomeLoan;
 
-    @NotBlank(message="homeLoanCompany cannot be null")
+    @NotBlank(message = "homeLoanCompany cannot be null")
     private String homeLoanCompany;
 
 
-    @ToString.Exclude
-    private Integer createdBy;
-
-    @ToString.Exclude
-    private Integer updatedBy;
 }

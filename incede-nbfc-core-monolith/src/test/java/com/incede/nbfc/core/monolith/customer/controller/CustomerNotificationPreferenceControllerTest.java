@@ -42,8 +42,6 @@ class CustomerNotificationPreferenceControllerTest {
                 .consentSms(true)
                 .consentEmail(true)
                 .consentWhatsapp(false)
-                .createdBy(1)
-                .updatedBy(1)
                 .build();
 
         responseDto = CustomerNotificationPreferenceResponseDto.builder()

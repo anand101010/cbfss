@@ -24,7 +24,9 @@ public interface CustomerRepository extends JpaRepository<Customer,Integer> {
     Long getNextCustomerCodeSeq();
 
 
+    boolean existsByTenantIdAndAadharVaultId( Integer tenantId,String aadharVault);
 
+    Optional<Customer> findByTenantIdAndAadharVaultId(Integer tenantId, String aadharVault);
 }
 
 

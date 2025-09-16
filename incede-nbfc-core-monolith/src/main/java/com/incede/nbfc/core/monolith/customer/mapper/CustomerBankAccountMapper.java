@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.mapper;
 
+import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerBankAccount;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerBankAccountRequestDto;
@@ -41,7 +42,7 @@ public class CustomerBankAccountMapper {
         customerBankAccount.setIsActive(dto.getIsActive() != null ? dto.getIsActive() : true);
         customerBankAccount.setPdStatus(dto.getPdStatus());
         customerBankAccount.setPdTxnId(dto.getPdTxnId());
-        customerBankAccount.setCreatedBy(dto.getCreatedBy());
+        customerBankAccount.setCreatedBy(getCreatedBy());
         customerBankAccount.setUpiVerified(dto.getUpiVerified() != null ? dto.getUpiVerified() : false);
 
         return customerBankAccount;
@@ -71,6 +72,7 @@ public class CustomerBankAccountMapper {
         customerBankAccount.setIsActive(dto.getIsActive() != null ? dto.getIsActive() : true);
 
         customerBankAccount.setUpiVerified(dto.getUpiVerified() != null ? dto.getUpiVerified() : false);
+        customerBankAccount.setUpdatedBy(getUpdatedBy());
     }
 
     public CustomerBankAccountResponseDto.BankAccount toAccountDetail(CustomerBankAccount account) {
@@ -105,5 +107,13 @@ public class CustomerBankAccountMapper {
                 .status(status)
                 .bankAccounts(bankAccount)
                 .build();
+    }
+    public  Integer getCreatedBy(){
+        return CommonConstants.CREATED_BY;
+
+    }
+    public  Integer getUpdatedBy(){
+        return CommonConstants.UPDATED_BY;
+
     }
 }

@@ -25,9 +25,7 @@ public class CustomerNotificationPreferenceRequestDto {
     private Boolean consentWhatsapp ;
 
 
-    private Integer createdBy;
 
-    private Integer updatedBy;
 
 
 }

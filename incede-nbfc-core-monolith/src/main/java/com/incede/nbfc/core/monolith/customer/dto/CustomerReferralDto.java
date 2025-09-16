@@ -25,9 +25,5 @@ public class CustomerReferralDto {
     @Min(value = 1, message = "Canvasser staff ID must be a positive number")
     private Integer canvasserStaffId;
 
-    @ToString.Exclude
-    private Integer createdBy;
 
-    @ToString.Exclude
-    private Integer updatedBy;
 }

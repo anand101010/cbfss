@@ -41,20 +41,17 @@ class BasicInformationServiceTest {
 
         requestDto = new BasicInformationRequestDto();
         requestDto.setTenantId(1);
-        requestDto.setFirstName("test");
-        requestDto.setLastName("test1");
-        requestDto.setCreatedBy(1001);
+        requestDto.setAadharVault("");
 
         customer = new Customer();
-        customer.setFirstName("test");
-        customer.setLastName("test1");
         customer.setIdentity(UUID.randomUUID());
+        customer.setAadharVaultId("vault123");
     }
 
     @Test
     void testSaveBasicInformation_success() {
-        when(customerRepository.existsByTenantIdAndFirstNameAndLastName(
-                requestDto.getTenantId(), requestDto.getFirstName(), requestDto.getLastName()))
+        when(customerRepository.existsByTenantIdAndAadharVaultId(
+                requestDto.getTenantId(), requestDto.getAadharVault()))
                 .thenReturn(false);
         when(customerMapper.toEntity(requestDto)).thenReturn(customer);
         when(customerRepository.save(any(Customer.class))).thenReturn(customer);
@@ -67,14 +64,18 @@ class BasicInformationServiceTest {
     }
 
     @Test
-    void testSaveBasicInformation_missingCreatedBy() {
-        requestDto.setCreatedBy(null);
+    void testSaveBasicInformation_dataIntegrityViolation() {
+        when(customerRepository.existsByTenantIdAndAadharVaultId(
+                requestDto.getTenantId(), requestDto.getAadharVault()))
+                .thenReturn(false);
+        when(customerMapper.toEntity(requestDto)).thenReturn(customer);
+        when(customerRepository.save(customer)).thenThrow(new DataIntegrityViolationException("DB constraint"));
 
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> basicInformationService.saveBasicInformation(requestDto));
 
-        assertEquals(CommonConstants.CREATED_BY_REQUIRED, exception.getMessage());
-        assertEquals(ErrorCodes.VALIDATION_FAILED, exception.getErrorCode());
+        assertEquals(CommonConstants.CONSTRAIN_VIOLATION, exception.getMessage());
+        assertEquals(ErrorCodes.CONSTRAINT_VIOLATION, exception.getErrorCode());
     }
 
     @Test
@@ -82,14 +83,11 @@ class BasicInformationServiceTest {
         UUID identity = UUID.randomUUID();
         Customer existingCustomer = new Customer();
         existingCustomer.setIdentity(identity);
-        existingCustomer.setFirstName("test");
-        existingCustomer.setLastName("test1");
-
-        requestDto.setUpdatedBy(2001);
+        existingCustomer.setAadharVaultId("vault123");
 
         when(customerRepository.findByIdentity(identity)).thenReturn(Optional.of(existingCustomer));
-        when(customerRepository.findByTenantIdAndFirstNameAndLastName(
-                requestDto.getTenantId(), requestDto.getFirstName(), requestDto.getLastName()))
+        when(customerRepository.findByTenantIdAndAadharVaultId(
+                requestDto.getTenantId(), requestDto.getAadharVault()))
                 .thenReturn(Optional.of(existingCustomer));
         when(customerRepository.save(existingCustomer)).thenReturn(existingCustomer);
         when(customerMapper.toResponseDto(existingCustomer)).thenReturn(new BasicInformationResponseDto());
@@ -101,30 +99,15 @@ class BasicInformationServiceTest {
     }
 
     @Test
-    void testUpdateBasicInformation_missingUpdatedBy() {
-        UUID identity = UUID.randomUUID();
-        when(customerRepository.findByIdentity(identity)).thenReturn(Optional.of(customer));
-
-        requestDto.setUpdatedBy(null);
-
-        BusinessException exception = assertThrows(BusinessException.class,
-                () -> basicInformationService.updateBasicInformation(identity, requestDto));
-
-        assertEquals(CommonConstants.UPDATED_BY_REQUIRED, exception.getMessage());
-        assertEquals(ErrorCodes.VALIDATION_FAILED, exception.getErrorCode());
-    }
-
-    @Test
-    void testUpdateBasicInformation_duplicateName() {
+    void testUpdateBasicInformation_duplicateAadharVault() {
         UUID identity = UUID.randomUUID();
         Customer duplicateCustomer = new Customer();
         duplicateCustomer.setIdentity(UUID.randomUUID());
-
-        requestDto.setUpdatedBy(2001);
+        duplicateCustomer.setAadharVaultId("vault123");
 
         when(customerRepository.findByIdentity(identity)).thenReturn(Optional.of(customer));
-        when(customerRepository.findByTenantIdAndFirstNameAndLastName(
-                requestDto.getTenantId(), requestDto.getFirstName(), requestDto.getLastName()))
+        when(customerRepository.findByTenantIdAndAadharVaultId(
+                requestDto.getTenantId(), requestDto.getAadharVault()))
                 .thenReturn(Optional.of(duplicateCustomer));
 
         BusinessException exception = assertThrows(BusinessException.class,
@@ -132,6 +115,24 @@ class BasicInformationServiceTest {
 
         assertEquals(CommonConstants.CONFLICT_MESSAGE, exception.getMessage());
         assertEquals(ErrorCodes.CONFLICT, exception.getErrorCode());
+    }
+
+    @Test
+    void testUpdateBasicInformation_dataIntegrityViolation() {
+        UUID identity = UUID.randomUUID();
+
+        when(customerRepository.findByIdentity(identity)).thenReturn(Optional.of(customer));
+        doNothing().when(customerMapper).updateEntityFromDto(customer, requestDto);
+        when(customerRepository.findByTenantIdAndAadharVaultId(
+                requestDto.getTenantId(), requestDto.getAadharVault()))
+                .thenReturn(Optional.empty());
+        when(customerRepository.save(customer)).thenThrow(new DataIntegrityViolationException("DB constraint"));
+
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> basicInformationService.updateBasicInformation(identity, requestDto));
+
+        assertEquals(CommonConstants.CONSTRAIN_VIOLATION, exception.getMessage());
+        assertEquals(ErrorCodes.CONSTRAINT_VIOLATION, exception.getErrorCode());
     }
 
     @Test
@@ -158,43 +159,6 @@ class BasicInformationServiceTest {
 
         assertEquals(CommonConstants.NOT_FOUND_MESSAGE, exception.getMessage());
         assertEquals(ErrorCodes.NOT_FOUND, exception.getErrorCode());
-    }
-
-    @Test
-    void testSaveBasicInformation_dataIntegrityViolation() {
-        when(customerRepository.existsByTenantIdAndFirstNameAndLastName(
-                requestDto.getTenantId(), requestDto.getFirstName(), requestDto.getLastName()))
-                .thenReturn(false);
-        when(customerMapper.toEntity(requestDto)).thenReturn(customer);
-        when(customerRepository.save(customer)).thenThrow(new DataIntegrityViolationException("DB constraint"));
-
-        BusinessException exception = assertThrows(BusinessException.class,
-                () -> basicInformationService.saveBasicInformation(requestDto));
-
-        assertEquals(CommonConstants.CONSTRAIN_VIOLATION, exception.getMessage());
-        assertEquals(ErrorCodes.CONSTRAINT_VIOLATION, exception.getErrorCode());
-    }
-
-    @Test
-    void testUpdateBasicInformation_dataIntegrityViolation() {
-        UUID identity = UUID.randomUUID();
-        requestDto.setUpdatedBy(2001);
-
-        when(customerRepository.findByIdentity(identity)).thenReturn(Optional.of(customer));
-        doNothing().when(customerMapper).updateEntityFromDto(customer, requestDto);
-
-
-        when(customerRepository.findByTenantIdAndFirstNameAndLastName(
-                requestDto.getTenantId(), requestDto.getFirstName(), requestDto.getLastName()))
-                .thenReturn(Optional.empty());
-
-        when(customerRepository.save(customer)).thenThrow(new DataIntegrityViolationException("DB constraint"));
-
-        BusinessException exception = assertThrows(BusinessException.class,
-                () -> basicInformationService.updateBasicInformation(identity, requestDto));
-
-        assertEquals(CommonConstants.CONSTRAIN_VIOLATION, exception.getMessage());
-        assertEquals(ErrorCodes.CONSTRAINT_VIOLATION, exception.getErrorCode());
     }
 
 }

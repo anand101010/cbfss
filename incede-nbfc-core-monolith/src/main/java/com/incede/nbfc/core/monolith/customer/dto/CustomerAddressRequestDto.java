@@ -49,6 +49,8 @@ public class CustomerAddressRequestDto {
     @Digits(integer = 3, fraction = 6, message = "Latitude must be valid")
     private BigDecimal latitude;
 
+    private Boolean isSameAsPermanent;
+
     @Digits(integer = 3, fraction = 6, message = "Longitude must be valid")
     private BigDecimal longitude;
 
@@ -59,9 +61,7 @@ public class CustomerAddressRequestDto {
 
     private Boolean isActive;
 
-    private Integer createdBy;
 
-    private Integer updatedBy;
 
     private Boolean isDel;
 

@@ -26,9 +26,6 @@ public class CustomerContactRequestDto {
     private Boolean isActive;
 
 
-    private Integer createdBy;
-
-    private Integer updatedBy;
 
     @ToString.Exclude
     @NotNull(message="isOptOutPromotionalNotification must not be null")

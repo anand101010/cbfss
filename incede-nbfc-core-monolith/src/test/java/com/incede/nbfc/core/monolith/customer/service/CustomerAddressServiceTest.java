@@ -1,5 +1,7 @@
 package com.incede.nbfc.core.monolith.customer.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerAddress;
@@ -8,12 +10,16 @@ import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressResponseDto;
 import com.incede.nbfc.core.monolith.customer.mapper.CustomerAddressMapper;
 import com.incede.nbfc.core.monolith.customer.repository.CustomerAddressRepository;
 import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
+import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +28,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class CustomerAddressServiceTest {
 
     @Mock
@@ -33,189 +40,118 @@ class CustomerAddressServiceTest {
     @Mock
     private CustomerAddressMapper addressMapper;
 
-    @InjectMocks
-    private CustomerAddressService customerAddressService;
+    @Mock
+    private ObjectMapper objectMapper;
 
+    @InjectMocks
+    private CustomerAddressService service;
+
+    private UUID customerId;
+    private UUID addressId;
     private Customer customer;
-    private CustomerAddressRequestDto requestDTO;
-    private UUID customerIdentity;
     private CustomerAddress address;
+    private CustomerAddressRequestDto requestDto;
+    private CustomerAddressResponseDto responseDto;
+    private String requestJson;
 
     @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
+    void setUp() throws JsonProcessingException {
+        customerId = UUID.randomUUID();
+        addressId = UUID.randomUUID();
 
-        customerIdentity = UUID.randomUUID();
         customer = new Customer();
         customer.setCustomerId(1);
-        customer.setIdentity(customerIdentity);
-        customer.setCustomerCode("CUST001");
-
-        requestDTO = CustomerAddressRequestDto.builder()
-                .addressTypeId(1)
-                .doorNumber("123")
-                .addressLine1("Street 1")
-                .addressLine2("Street 2")
-                .landmark("Landmark")
-                .placeName("Place")
-                .cityId(1)
-                .districtId(1)
-                .stateId(1)
-                .countryId(1)
-                .pincode(12345)
-                .postOfficeId(101)
-                .latitude(null)
-                .longitude(null)
-                .geoAccuracy(null)
-                .addressProofType(1)
-                .isActive(true)
-                .createdBy(1001)
-                .updatedBy(1002)
-                .isDel(false)
-                .digipin("1234")
-                .customerCode("CUST001")
-                .build();
 
         address = new CustomerAddress();
-        address.setAddressId(1);
         address.setCustomer(customer);
+
+        requestDto = CustomerAddressRequestDto.builder()
+                .addressTypeId(1)
+                .doorNumber("12C")
+                .addressLine1("MG Road")
+                .isSameAsPermanent(false)
+                .build();
+
+        requestJson = "{}"; // objectMapper is mocked
+        responseDto = new CustomerAddressResponseDto();
+
+        // Lenient stubbing
+        lenient().when(objectMapper.readValue(requestJson, CustomerAddressRequestDto.class)).thenReturn(requestDto);
     }
 
+
     @Test
-    void testCreateAddressSuccess() {
-        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
-        when(addressMapper.toEntity(customer, requestDTO)).thenReturn(address);
+    void testCreateAddress_Success() throws JsonProcessingException {
+        MultipartFile file = null;
+
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(addressMapper.toEntity(customer, requestDto)).thenReturn(address);
         when(addressRepository.save(address)).thenReturn(address);
-        when(addressMapper.toAddressDetail(address)).thenReturn(CustomerAddressResponseDto.AddressDetail.builder().build());
-        when(addressMapper.toResponse(eq(customer), eq(CommonConstants.CUSTOMER_ADDRESS_STATUS_IN_PROGRESS), anyList()))
-                .thenReturn(new CustomerAddressResponseDto());
+        when(addressMapper.toAddressDetail(address)).thenReturn(new CustomerAddressResponseDto.AddressDetail());
+        when(addressMapper.toResponse(eq(customer), anyString(), anyList())).thenReturn(responseDto);
 
-        CustomerAddressResponseDto response = customerAddressService.createAddress(customerIdentity, requestDTO);
+        CustomerAddressResponseDto result = service.createAddress(customerId, requestJson, file);
 
-        assertNotNull(response);
+        assertEquals(responseDto, result);
         verify(addressRepository, times(1)).save(address);
     }
 
     @Test
-    void testCreateAddressCustomerNotFound() {
-        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.empty());
+    void testCreateAddress_WithIsSameAsPermanentAndFile() throws JsonProcessingException {
+        MockMultipartFile file = new MockMultipartFile("file", "doc.txt", "text/plain", "dummy".getBytes());
+        requestDto.setIsSameAsPermanent(true);
 
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> customerAddressService.createAddress(customerIdentity, requestDTO));
-
-        assertEquals(CommonConstants.ENTITY_CUSTOMER, exception.getResourceType());
-        assertEquals(customerIdentity.toString(), exception.getResourceId());
-    }
-
-    @Test
-    void testUpdateAddressSuccess() {
-        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
-        when(addressRepository.findByAddressIdAndCustomer_CustomerId(1, customer.getCustomerId())).thenReturn(Optional.of(address));
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(addressMapper.toEntity(customer, requestDto)).thenReturn(address);
         when(addressRepository.save(address)).thenReturn(address);
-        when(addressMapper.toAddressDetail(address)).thenReturn(CustomerAddressResponseDto.AddressDetail.builder().build());
-        when(addressMapper.toResponse(eq(customer), eq(CommonConstants.CUSTOMER_ADDRESS_STATUS_UPDATED), anyList()))
-                .thenReturn(new CustomerAddressResponseDto());
+        when(addressMapper.toAddressDetail(address)).thenReturn(new CustomerAddressResponseDto.AddressDetail());
+        when(addressMapper.toResponse(eq(customer), anyString(), anyList())).thenReturn(responseDto);
 
-        CustomerAddressResponseDto response = customerAddressService.updateAddress(customerIdentity, 1, requestDTO);
+        CustomerAddressResponseDto result = service.createAddress(customerId, requestJson, file);
 
-        assertNotNull(response);
+        assertEquals(responseDto, result);
+        assertNotNull(address.getDocumentRefId());
         verify(addressRepository, times(1)).save(address);
     }
 
     @Test
-    void testUpdateAddressCustomerNotFound() {
-        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.empty());
+    void testCreateAddress_ThrowsBusinessExceptionWhenFileMissing() {
+        requestDto.setIsSameAsPermanent(true);
+        MultipartFile file = null;
 
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> customerAddressService.updateAddress(customerIdentity, 1, requestDTO));
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
 
-        assertEquals(CommonConstants.ENTITY_CUSTOMER, exception.getResourceType());
-        assertEquals(customerIdentity.toString(), exception.getResourceId());
+        BusinessException exception = assertThrows(BusinessException.class, () ->
+                service.createAddress(customerId, requestJson, file));
+
+        assertEquals("Document file must be provided if 'isSameAsPermanent' is true", exception.getMessage());
+    }
+
+
+
+
+    @Test
+    void testGetActiveAddresses_Success() {
+        List<CustomerAddress> addresses = List.of(address);
+
+        when(customerRepository.findByIdentityAndIsDelFalse(customerId)).thenReturn(Optional.of(customer));
+        when(addressRepository.findByCustomerAndIsDelFalse(customer)).thenReturn(addresses);
+        when(addressMapper.toAddressDetail(address)).thenReturn(new CustomerAddressResponseDto.AddressDetail());
+        when(addressMapper.toResponse(eq(customer), anyString(), anyList())).thenReturn(responseDto);
+
+        CustomerAddressResponseDto result = service.getActiveAddressesByCustomerIdentity(customerId);
+
+        assertEquals(responseDto, result);
     }
 
     @Test
-    void testUpdateAddressAddressNotFound() {
-        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
-        when(addressRepository.findByAddressIdAndCustomer_CustomerId(1, customer.getCustomerId()))
-                .thenReturn(Optional.empty());
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> customerAddressService.updateAddress(customerIdentity, 1, requestDTO));
-
-        assertEquals(CommonConstants.ENTITY_ADDRESS, exception.getResourceType());
-        assertEquals("1", exception.getResourceId());
-    }
-
-    @Test
-    void testDeleteAddressSuccess() {
-        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
-        when(addressRepository.findByAddressIdAndCustomer_CustomerId(1, customer.getCustomerId())).thenReturn(Optional.of(address));
-        when(addressRepository.save(address)).thenReturn(address);
-
-        customerAddressService.deleteAddress(customerIdentity, 1);
-
-        assertTrue(address.getIsDel());
-        assertFalse(address.getIsActive());
-        verify(addressRepository, times(1)).save(address);
-    }
-
-    @Test
-    void testDeleteAddressCustomerNotFound() {
-        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.empty());
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> customerAddressService.deleteAddress(customerIdentity, 1));
-
-        assertEquals(CommonConstants.ENTITY_CUSTOMER, exception.getResourceType());
-        assertEquals(customerIdentity.toString(), exception.getResourceId());
-    }
-
-    @Test
-    void testDeleteAddressAddressNotFound() {
-        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
-        when(addressRepository.findByAddressIdAndCustomer_CustomerId(1, customer.getCustomerId()))
-                .thenReturn(Optional.empty());
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> customerAddressService.deleteAddress(customerIdentity, 1));
-
-        assertEquals(CommonConstants.ENTITY_ADDRESS, exception.getResourceType());
-        assertEquals("1", exception.getResourceId());
-    }
-
-    @Test
-    void testGetActiveAddressesByCustomerIdentitySuccess() {
-        when(customerRepository.findByIdentityAndIsDelFalse(customerIdentity)).thenReturn(Optional.of(customer));
-        when(addressRepository.findByCustomerAndIsDelFalse(customer)).thenReturn(List.of(address));
-        when(addressMapper.toAddressDetail(address)).thenReturn(CustomerAddressResponseDto.AddressDetail.builder().build());
-        when(addressMapper.toResponse(eq(customer), eq(CommonConstants.CUSTOMER_ADDRESS_STATUS_SUCCESS), anyList()))
-                .thenReturn(new CustomerAddressResponseDto());
-
-        CustomerAddressResponseDto response = customerAddressService.getActiveAddressesByCustomerIdentity(customerIdentity);
-
-        assertNotNull(response);
-        verify(addressRepository, times(1)).findByCustomerAndIsDelFalse(customer);
-    }
-
-    @Test
-    void testGetActiveAddressesByCustomerIdentityCustomerNotFound() {
-        when(customerRepository.findByIdentityAndIsDelFalse(customerIdentity)).thenReturn(Optional.empty());
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> customerAddressService.getActiveAddressesByCustomerIdentity(customerIdentity));
-
-        assertEquals(CommonConstants.ENTITY_CUSTOMER, exception.getResourceType());
-        assertEquals(customerIdentity.toString(), exception.getResourceId());
-    }
-
-    @Test
-    void testGetActiveAddressesByCustomerIdentityNoAddresses() {
-        when(customerRepository.findByIdentityAndIsDelFalse(customerIdentity)).thenReturn(Optional.of(customer));
+    void testGetActiveAddresses_ThrowsResourceNotFound() {
+        when(customerRepository.findByIdentityAndIsDelFalse(customerId)).thenReturn(Optional.of(customer));
         when(addressRepository.findByCustomerAndIsDelFalse(customer)).thenReturn(List.of());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> customerAddressService.getActiveAddressesByCustomerIdentity(customerIdentity));
+                () -> service.getActiveAddressesByCustomerIdentity(customerId));
 
-        assertEquals(CommonConstants.ENTITY_ADDRESS, exception.getResourceType());
+        assertTrue(exception.getMessage().contains("No active addresses found for customer identity"));
     }
 }

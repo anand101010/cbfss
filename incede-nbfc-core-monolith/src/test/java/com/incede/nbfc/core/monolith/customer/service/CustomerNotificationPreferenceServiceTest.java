@@ -5,7 +5,6 @@ import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerNotificationPreference;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerNotificationPreferenceRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerNotificationPreferenceResponseDto;
-import com.incede.nbfc.core.monolith.customer.mapper.CustomerNotificationPreferenceMapper;
 import com.incede.nbfc.core.monolith.customer.repository.CustomerNotificationPreferenceRepository;
 import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
@@ -36,7 +35,6 @@ class CustomerNotificationPreferenceServiceTest {
     private Customer customer;
     private CustomerNotificationPreference entity;
     private CustomerNotificationPreferenceRequestDto requestDto;
-    private CustomerNotificationPreferenceResponseDto responseDto;
 
     @BeforeEach
     void setUp() {
@@ -45,17 +43,13 @@ class CustomerNotificationPreferenceServiceTest {
         customer = new Customer();
         customer.setIdentity(customerId);
         entity = new CustomerNotificationPreference();
-        responseDto = new CustomerNotificationPreferenceMapper().toResponseDto(entity);
 
         requestDto = CustomerNotificationPreferenceRequestDto.builder()
                 .consentSms(true)
                 .consentEmail(true)
                 .consentWhatsapp(true)
-                .createdBy(1)
-                .updatedBy(1)
                 .build();
     }
-
 
     @Test
     void testSaveNotification_Success() {
@@ -89,9 +83,7 @@ class CustomerNotificationPreferenceServiceTest {
         CustomerNotificationPreferenceResponseDto result = service.getNotificationPreferences(customerId);
 
         assertNotNull(result);
-        assertEquals(responseDto.getClass(), result.getClass());
     }
-
 
     @Test
     void testSaveNotification_CustomerNotFound() {
@@ -112,7 +104,7 @@ class CustomerNotificationPreferenceServiceTest {
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.saveNotification(customerId, requestDto));
 
-        assertEquals("Notification preference already exists for this customer", ex.getMessage());
+        assertEquals(CommonConstants.CONFLICT_MESSAGE, ex.getMessage());
         assertEquals(ErrorCodes.CONFLICT, ex.getErrorCode());
     }
 

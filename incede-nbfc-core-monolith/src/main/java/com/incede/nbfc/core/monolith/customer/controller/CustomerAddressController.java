@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressResponseDto;
 import com.incede.nbfc.core.monolith.customer.service.CustomerAddressService;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -22,31 +24,38 @@ public class CustomerAddressController {
      * Create a new address for a given customer identity (UUID)
      *
      * @param customerIdentity UUID of the customer
-     * @param addressRequestDto Address request payload
      * @return ResponseEntity with created address DTO
      */
-    @PostMapping("/{customerIdentity}/addresses")
-    public ResponseEntity<CustomerAddressResponseDto> createAddress(@PathVariable UUID customerIdentity,
-                                                                    @RequestBody @Valid CustomerAddressRequestDto addressRequestDto) {
+    @PostMapping(value = "/{customerIdentity}/addresses", consumes = {"multipart/form-data"})
+    public ResponseEntity<CustomerAddressResponseDto> createAddress(
+            @PathVariable UUID customerIdentity,
+            @RequestPart("request") String requestJson,
+            @RequestPart(value = "file", required = false) MultipartFile file) throws JsonProcessingException {
 
-        CustomerAddressResponseDto createdAddress = customerAddressService.createAddress(customerIdentity, addressRequestDto);
+        CustomerAddressResponseDto createdAddress = customerAddressService.createAddress(customerIdentity, requestJson, file);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(createdAddress);
     }
+
+
 
     /**
      * Update an existing address
      *
      * @param customerIdentity UUID of the customer
-     * @param addressId Address ID
-     * @param requestDto Address request payload
+     * @param addressIdentity  Address ID
+     * @param requestJson      Address request payload in JSON
+     * @param file             Optional document file
      * @return ResponseEntity with updated address DTO
      */
-    @PutMapping("/{customerIdentity}/addresses/{addressId}")
-    public ResponseEntity<CustomerAddressResponseDto> updateAddress(@PathVariable UUID customerIdentity,
-                                                                    @PathVariable Integer addressId,
-                                                                    @RequestBody CustomerAddressRequestDto requestDto) {
+    @PutMapping(value = "/{customerIdentity}/addresses/{addressIdentity}", consumes = {"multipart/form-data"})
+    public ResponseEntity<CustomerAddressResponseDto> updateAddress(
+            @PathVariable UUID customerIdentity,
+            @PathVariable UUID addressIdentity,
+            @RequestPart("request") String requestJson,
+            @RequestPart(value = "file", required = false) MultipartFile file) throws JsonProcessingException {
 
-        CustomerAddressResponseDto response = customerAddressService.updateAddress(customerIdentity, addressId, requestDto);
+        CustomerAddressResponseDto response = customerAddressService.updateAddress(customerIdentity, addressIdentity, requestJson, file);
         return ResponseEntity.ok(response);
     }
 
@@ -67,13 +76,14 @@ public class CustomerAddressController {
      * Delete an address by ID for a customer
      *
      * @param customerIdentity UUID of the customer
-     * @param addressId Address ID
+     * @param addressIdentity Address ID
      * @return ResponseEntity with no content
      */
-    @DeleteMapping("/{customerIdentity}/addresses/{addressId}")
-    public ResponseEntity<Void> deleteAddress(@PathVariable UUID customerIdentity, @PathVariable Integer addressId) {
+    @DeleteMapping("/{customerIdentity}/addresses/{addressIdentity}")
+    public ResponseEntity<Void> deleteAddress(@PathVariable UUID customerIdentity,
+                                              @PathVariable UUID addressIdentity) {
 
-        customerAddressService.deleteAddress(customerIdentity, addressId);
+        customerAddressService.deleteAddress(customerIdentity, addressIdentity);
         return ResponseEntity.noContent().build();
     }
 }

@@ -34,6 +34,9 @@ public class CustomerPhotoRequestDto {
     @NotNull(message = "Longitude is required")
     private BigDecimal longitude;
 
+    @NotNull(message="faceMatchScore should not be null")
+    private Integer photo;
+
     @ToString.Exclude
     @Digits(integer = 5, fraction = 2, message = "Accuracy must have up to 5 digits and 2 decimals")
     @NotNull(message = "Accuracy is required")
@@ -54,16 +57,7 @@ public class CustomerPhotoRequestDto {
     private String captureTime;
 
 
-    private PhotoStatus status;
 
-    @ToString.Exclude
-    @NotBlank(message = "File path is required")
-    private String filePath;
 
-    @NotNull(message = "createdBy status is required")
-    @Min(value = 1, message = "createdBy must be a positive integer")
-    private Integer createdBy;
 
-    @Min(value = 1, message = "updatedBy must be a positive integer")
-    private Integer updatedBy;
 }

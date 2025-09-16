@@ -1,10 +1,12 @@
 package com.incede.nbfc.core.monolith.customer.mapper;
 
+import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerAddress;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressResponseDto;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,12 +20,10 @@ public class CustomerAddressMapper {
      */
     public CustomerAddress toEntity(Customer customer, CustomerAddressRequestDto customerAddressRequestDto) {
         java.util.Objects.requireNonNull(customerAddressRequestDto, "CustomerAddressRequestDto must not be null");
-        if (customerAddressRequestDto.getCreatedBy() == null) {
-            throw new IllegalArgumentException("createdBy must not be null for creation");
-        }
 
         CustomerAddress address = new CustomerAddress();
         address.setCustomer(customer);
+        address.setIsSameAsPermanent(customerAddressRequestDto.getIsSameAsPermanent());
         address.setAddressTypeId(customerAddressRequestDto.getAddressTypeId());
         address.setDoorNumber(customerAddressRequestDto.getDoorNumber());
         address.setAddressLine1(customerAddressRequestDto.getAddressLine1());
@@ -43,7 +43,7 @@ public class CustomerAddressMapper {
         address.setIsActive(customerAddressRequestDto.getIsActive() != null ? customerAddressRequestDto.getIsActive() : true);
         address.setDigipin(customerAddressRequestDto.getDigipin());
         address.setIdentity(UUID.randomUUID());
-        address.setCreatedBy(customerAddressRequestDto.getCreatedBy());
+        address.setCreatedBy(getCreatedBy());
 
         return address;
     }
@@ -53,9 +53,7 @@ public class CustomerAddressMapper {
      * Validates that updatedBy is not null.
      */
     public void updateEntity(CustomerAddress address, CustomerAddressRequestDto customerAddressRequestDto) {
-        if (customerAddressRequestDto.getUpdatedBy() == null) {
-            throw new IllegalArgumentException("updatedBy must not be null for update");
-        }
+
 
         address.setAddressTypeId(customerAddressRequestDto.getAddressTypeId());
         address.setDoorNumber(customerAddressRequestDto.getDoorNumber());
@@ -75,12 +73,12 @@ public class CustomerAddressMapper {
         address.setAddressProofTypes(customerAddressRequestDto.getAddressProofType());
         address.setIsActive(customerAddressRequestDto.getIsActive() != null ? customerAddressRequestDto.getIsActive() : true);
         address.setDigipin(customerAddressRequestDto.getDigipin());
-        address.setUpdatedBy(customerAddressRequestDto.getUpdatedBy());
+        address.setUpdatedBy(getUpdatedBy());
     }
 
     public CustomerAddressResponseDto.AddressDetail toAddressDetail(CustomerAddress address) {
         return CustomerAddressResponseDto.AddressDetail.builder()
-                .addressId(address.getAddressId())
+                .addressIdentity(address.getIdentity())
                 .addressTypeId(address.getAddressTypeId())
                 .doorNumber(address.getDoorNumber())
                 .addressLine1(address.getAddressLine1())
@@ -109,5 +107,14 @@ public class CustomerAddressMapper {
                 .status(status)
                 .addresses(addressDetails)
                 .build();
+    }
+
+    public  Integer getCreatedBy(){
+        return CommonConstants.CREATED_BY;
+
+    }
+    public  Integer getUpdatedBy(){
+        return CommonConstants.UPDATED_BY;
+
     }
 }

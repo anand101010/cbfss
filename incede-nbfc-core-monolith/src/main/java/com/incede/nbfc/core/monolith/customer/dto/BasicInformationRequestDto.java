@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.dto;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -50,6 +51,10 @@ public class BasicInformationRequestDto {
     @NotNull(message = "Tax category is required")
     private Integer taxCategory;
 
+    @NotNull(message = " aadharVaultId is required")
+    @ToString.Exclude
+    private String aadharVault;
+
     @ToString.Exclude
     @NotBlank(message = "CRM Reference ID is required")
     private String crmReferenceId;
@@ -93,16 +98,14 @@ public class BasicInformationRequestDto {
     private String mobileNumber;
 
 
+    @NotNull(message = " otpVerified is required")
     private Boolean otpVerified;
+
+
 
     private Integer guardianCustomerId;
 
-    private Integer aadharVaultId;
 
-
-    private Integer createdBy;
-
-    private Integer updatedBy;
 
 
 }

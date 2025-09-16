@@ -37,7 +37,7 @@ public class CustomerContactService {
                         CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.RESOURCE_NOT_FOUND));
 
         if (contactRepository.existsByContactValue(dto.getContactDetails())) {
-            throw new BusinessException("Contact value already exists", ErrorCodes.CONFLICT);
+            throw new BusinessException(CommonConstants.CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
         }
 
         boolean isPrimary = Boolean.TRUE.equals(dto.getIsPrimary());
@@ -57,8 +57,7 @@ public class CustomerContactService {
         contact.setIsActive(true);
         contact.setCreatedAt(LocalDateTime.now());
         contact.setUpdatedAt(LocalDateTime.now());
-        contact.setCreatedBy(dto.getCreatedBy());
-        contact.setUpdatedBy(dto.getUpdatedBy());
+
 
         CustomerContact saved = contactRepository.save(contact);
 
@@ -81,7 +80,7 @@ public class CustomerContactService {
                         CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.RESOURCE_NOT_FOUND));
 
         if (contactRepository.existsByContactValueAndIdentityNot(dto.getContactDetails(), contactId)) {
-            throw new BusinessException("Contact value already exists", ErrorCodes.CONFLICT);
+            throw new BusinessException(CommonConstants.CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
         }
 
         boolean isPrimary = Boolean.TRUE.equals(dto.getIsPrimary());
@@ -100,7 +99,6 @@ public class CustomerContactService {
         contactMapper.updateEntityFromDto(contact, dto);
         contact.setIsPrimary(isPrimary);
         contact.setUpdatedAt(LocalDateTime.now());
-        contact.setUpdatedBy(dto.getUpdatedBy());
         contactRepository.save(contact);
 
         return CustomerContactResponceDto.builder()

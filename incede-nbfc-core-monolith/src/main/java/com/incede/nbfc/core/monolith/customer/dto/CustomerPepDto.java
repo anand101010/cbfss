@@ -33,7 +33,5 @@ public class CustomerPepDto {
     private Integer verificationSourceId;
 
 
-    private Integer createdBy;
 
-    private Integer updatedBy;
 }

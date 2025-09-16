@@ -42,7 +42,7 @@ class BasicInformationControllerTest {
                 0,0,0,0,0,"middleName","crmReferenceId",0,
                 "employer",BigDecimal.ZERO,0,true,true,0,
                 "spouseName","fatherName","motherName",false,
-                0,0,"9999999999",0,true
+                0,0,"9999999999","ui1213",true
         );
         responseDto = new BasicInformationResponseDto(identity,"customerCode","status",basic);
         requestDto = BasicInformationRequestDto.builder()
@@ -51,7 +51,7 @@ class BasicInformationControllerTest {
                 .gender(0).dob(LocalDate.of(2025, Month.SEPTEMBER, 2))
                 .maritalStatus(0).taxCategory(0).crmReferenceId("crmReferenceId")
                 .occupation(0).employer("employer").annualIncome(BigDecimal.ZERO)
-                .customerListTypeId(0).isBusiness(true).isFirm(true).createdBy(0)
+                .customerListTypeId(0).isBusiness(true).isFirm(true)
                 .guardianCustomerId(1).spouseName("spouseName").fatherName("fatherName").motherName("motherName")
                 .isMinor(false).customerStatus(0).build();
     }

@@ -1,9 +1,11 @@
 package com.incede.nbfc.core.monolith.customer.mapper;
 
+import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerPhoto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerPhotoRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerPhotoResponseDto;
+import com.incede.nbfc.core.monolith.customer.enums.PhotoStatus;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -34,13 +36,14 @@ public class CustomerPhotoMapper {
         photo.setCaptureDevice(dto.getCaptureDevice());
         photo.setCaptureTime(LocalDateTime.parse(dto.getCaptureTime()));
 
-        photo.setFilePath(dto.getFilePath());
+        photo.setFilePath(CommonConstants.FILE_PATH);
         photo.setLocationDescription(dto.getLocationDescription());
         photo.setLongitude(dto.getLongitude());
-        photo.setStatus(dto.getStatus());
-        photo.setCreatedBy(dto.getCreatedBy());
-        photo.setUpdatedBy(dto.getUpdatedBy());
+
+        photo.setStatus(PhotoStatus.PENDING);
+        photo.setCreatedBy(getCreatedBy());
         photo.setIsDel(false);
+
         return photo;
     }
 
@@ -98,5 +101,13 @@ public class CustomerPhotoMapper {
                 .photo(toPhotoDetails(photos,customer))
 
                 .build();
+    }
+    public  Integer getCreatedBy(){
+        return CommonConstants.CREATED_BY;
+
+    }
+    public  Integer getUpdatedBy(){
+        return CommonConstants.UPDATED_BY;
+
     }
 }

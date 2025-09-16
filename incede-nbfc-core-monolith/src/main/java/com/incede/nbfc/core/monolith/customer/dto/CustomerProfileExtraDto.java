@@ -22,9 +22,5 @@ public class CustomerProfileExtraDto {
     private Integer purposeId;
 
 
-    @ToString.Exclude
-    private Integer createdBy;
 
-    @ToString.Exclude
-    private Integer updatedBy;
 }

@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.mapper;
 
+import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerNotificationPreference;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerNotificationPreferenceRequestDto;
@@ -24,8 +25,7 @@ public class CustomerNotificationPreferenceMapper {
         entity.setConsentSms(Objects.requireNonNull(dto.getConsentSms(), "consentSms must not be null"));
         entity.setConsentEmail(Objects.requireNonNull(dto.getConsentEmail(), "consentEmail must not be null"));
         entity.setConsentWhatsapp(Objects.requireNonNull(dto.getConsentWhatsapp(), "consentWhatsapp must not be null"));
-        entity.setCreatedBy(dto.getCreatedBy());
-        entity.setUpdatedBy(dto.getUpdatedBy());
+        entity.setCreatedBy(getCreatedBy());
         entity.setIdentity(UUID.randomUUID());
         return entity;
     }
@@ -40,7 +40,7 @@ public class CustomerNotificationPreferenceMapper {
         entity.setConsentSms(Objects.requireNonNull(dto.getConsentSms(), "consentSms must not be null"));
         entity.setConsentEmail(Objects.requireNonNull(dto.getConsentEmail(), "consentEmail must not be null"));
         entity.setConsentWhatsapp(Objects.requireNonNull(dto.getConsentWhatsapp(), "consentWhatsapp must not be null"));
-        entity.setUpdatedBy(dto.getUpdatedBy());
+        entity.setUpdatedBy(getUpdatedBy());
     }
 
     /**
@@ -60,5 +60,14 @@ public class CustomerNotificationPreferenceMapper {
                 .identity(entity.getIdentity())
                 .notificationPreference(preference)
                 .build();
+    }
+
+    public  Integer getCreatedBy(){
+        return CommonConstants.CREATED_BY;
+
+    }
+    public  Integer getUpdatedBy(){
+        return CommonConstants.UPDATED_BY;
+
     }
 }
