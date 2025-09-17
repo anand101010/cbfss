@@ -39,8 +39,12 @@ public class CustomerPhotoMapper {
         photo.setFilePath(CommonConstants.FILE_PATH);
         photo.setLocationDescription(dto.getLocationDescription());
         photo.setLongitude(dto.getLongitude());
+        if (!"SUCCESS".equalsIgnoreCase(dto.getPhotoLivenessStatus())) {
+            photo.setStatus(PhotoStatus.PENDING);
+        } else {
+            photo.setStatus(PhotoStatus.VERIFIED);
+        }
 
-        photo.setStatus(PhotoStatus.PENDING);
         photo.setCreatedBy(getCreatedBy());
         photo.setIsDel(false);
 

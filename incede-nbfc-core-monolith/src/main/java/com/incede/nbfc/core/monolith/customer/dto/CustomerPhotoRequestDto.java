@@ -16,9 +16,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CustomerPhotoRequestDto {
 
-    @ToString.Exclude
-    @NotNull(message = "Photo reference ID is required")
-    private Integer photoRefId;
+
 
     @NotNull(message = "CapturedBy is required")
     @Min(value = 1, message = "CapturedBy must be a positive integer")
@@ -34,8 +32,8 @@ public class CustomerPhotoRequestDto {
     @NotNull(message = "Longitude is required")
     private BigDecimal longitude;
 
-    @NotNull(message="faceMatchScore should not be null")
-    private Integer photo;
+    @NotBlank(message="photoLivenessStatus should not be null")
+    private String photoLivenessStatus;
 
     @ToString.Exclude
     @Digits(integer = 5, fraction = 2, message = "Accuracy must have up to 5 digits and 2 decimals")

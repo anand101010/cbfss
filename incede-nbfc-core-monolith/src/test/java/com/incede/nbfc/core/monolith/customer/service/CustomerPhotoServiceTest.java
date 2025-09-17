@@ -73,8 +73,7 @@ class CustomerPhotoServiceTest {
         requestDto.setCapturedBy(1);
         requestDto.setCaptureDevice("mobile");
         requestDto.setCaptureTime("2025-09-08T17:00:00");
-        requestDto.setFilePath("/images/photo.png");
-        requestDto.setStatus(PhotoStatus.PENDING);
+
 
         requestJson = "{ \"latitude\": 12.34, \"longitude\": 56.78, \"capturedBy\": 1, \"captureDevice\": \"mobile\", \"captureTime\": \"2025-09-08T17:00:00\", \"filePath\": \"/images/photo.png\", \"status\": \"PENDING\", \"createdBy\": 1 }";
 
