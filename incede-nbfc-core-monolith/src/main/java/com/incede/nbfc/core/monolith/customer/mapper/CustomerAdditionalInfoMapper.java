@@ -65,17 +65,21 @@ public class CustomerAdditionalInfoMapper {
         Objects.requireNonNull(customer, "Customer must not be null");
 
         asset.setCustomer(customer);
-        asset.setAssetId(assetDto.getAssetId());
         asset.setAssetTypeId(assetDto.getAssetTypeId());
         asset.setDescription(assetDto.getDescription());
         asset.setApproxValue(assetDto.getApproxValue());
-        asset.setOwnsAsset(assetDto.getOwnsAsset() != null ? assetDto.getOwnsAsset() : false);
-        asset.setHomeLoanCompany(assetDto.getHomeLoanCompany() != null ? assetDto.getHomeLoanCompany() : "");
+
         asset.setHasHomeLoan(assetDto.getHasHomeLoan() != null ? assetDto.getHasHomeLoan() : false);
+
+        if (Boolean.TRUE.equals(assetDto.getHasHomeLoan())) {
+            asset.setHomeLoanCompany(assetDto.getHomeLoanCompany());
+        } else {
+            asset.setHomeLoanCompany(null);
+        }
+
         asset.setUpdatedBy(getUpdatedBy());
-
-
     }
+
 
 
     public void createAsset(CustomerAsset asset, CustomerAssetDto assetDto, Customer customer) {
@@ -84,13 +88,17 @@ public class CustomerAdditionalInfoMapper {
         Objects.requireNonNull(customer, "Customer must not be null");
 
         asset.setCustomer(customer);
-        asset.setAssetId(assetDto.getAssetId());
         asset.setAssetTypeId(assetDto.getAssetTypeId());
         asset.setDescription(assetDto.getDescription());
         asset.setApproxValue(assetDto.getApproxValue());
         asset.setOwnsAsset(assetDto.getOwnsAsset() != null ? assetDto.getOwnsAsset() : false);
-        asset.setHomeLoanCompany(assetDto.getHomeLoanCompany() != null ? assetDto.getHomeLoanCompany() : "");
         asset.setHasHomeLoan(assetDto.getHasHomeLoan() != null ? assetDto.getHasHomeLoan() : false);
+
+        if (Boolean.TRUE.equals(assetDto.getHasHomeLoan())) {
+            asset.setHomeLoanCompany(assetDto.getHomeLoanCompany());
+        } else {
+            asset.setHomeLoanCompany(null);
+        }
         asset.setCreatedBy(getCreatedBy());
 
 

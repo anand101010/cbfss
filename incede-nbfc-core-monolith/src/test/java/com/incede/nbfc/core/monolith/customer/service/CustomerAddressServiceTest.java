@@ -154,4 +154,84 @@ class CustomerAddressServiceTest {
 
         assertTrue(exception.getMessage().contains("No active addresses found for customer identity"));
     }
+    @Test
+    void testUpdateAddress_Success_WithFile() throws Exception {
+        requestDto.setIsSameAsPermanent(true);
+
+        when(objectMapper.readValue(requestJson, CustomerAddressRequestDto.class)).thenReturn(requestDto);
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(addressRepository.findByIdentity(addressId)).thenReturn(Optional.of(address));
+        MockMultipartFile file = new MockMultipartFile("file", "doc.txt", "text/plain", "dummy".getBytes());
+
+        when(addressRepository.save(any(CustomerAddress.class))).thenReturn(address);
+        when(addressMapper.toAddressDetail(address)).thenReturn(new CustomerAddressResponseDto.AddressDetail());
+        when(addressMapper.toResponse(eq(customer), anyString(), anyList())).thenReturn(responseDto);
+
+        CustomerAddressResponseDto result = service.updateAddress(customerId, addressId, requestJson, file);
+
+        assertEquals(responseDto, result);
+        verify(addressRepository).save(address);
+    }
+
+    @Test
+    void testUpdateAddress_ThrowsBusinessException_WhenFileMissing() throws Exception {
+        requestDto.setIsSameAsPermanent(true);
+        when(objectMapper.readValue(requestJson, CustomerAddressRequestDto.class)).thenReturn(requestDto);
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(addressRepository.findByIdentity(addressId)).thenReturn(Optional.of(address));
+
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> service.updateAddress(customerId, addressId, requestJson, null));
+
+        assertEquals("Document file must be provided if 'isSameAsPermanent' is true", exception.getMessage());
+    }
+
+    @Test
+    void testUpdateAddress_ThrowsResourceNotFound_WhenCustomerMissing() throws Exception {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> service.updateAddress(customerId, addressId, requestJson, null));
+    }
+
+    @Test
+    void testUpdateAddress_ThrowsResourceNotFound_WhenAddressMissing() throws Exception {
+        when(objectMapper.readValue(requestJson, CustomerAddressRequestDto.class)).thenReturn(requestDto);
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(addressRepository.findByIdentity(addressId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> service.updateAddress(customerId, addressId, requestJson, null));
+    }
+
+    @Test
+    void testDeleteAddress_Success() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(addressRepository.findByIdentity(addressId)).thenReturn(Optional.of(address));
+
+        service.deleteAddress(customerId, addressId);
+
+        assertTrue(address.getIsDel());
+        assertFalse(address.getIsActive());
+        verify(addressRepository).save(address);
+    }
+
+    @Test
+    void testDeleteAddress_ThrowsResourceNotFound_WhenCustomerMissing() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> service.deleteAddress(customerId, addressId));
+    }
+
+    @Test
+    void testDeleteAddress_ThrowsResourceNotFound_WhenAddressMissing() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(addressRepository.findByIdentity(addressId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> service.deleteAddress(customerId, addressId));
+    }
+
 }
+

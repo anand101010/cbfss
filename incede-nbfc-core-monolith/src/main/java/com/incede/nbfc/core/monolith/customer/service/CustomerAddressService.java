@@ -7,18 +7,24 @@ import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerAddress;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressResponseDto;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerBankAccountRequestDto;
 import com.incede.nbfc.core.monolith.customer.mapper.CustomerAddressMapper;
 import com.incede.nbfc.core.monolith.customer.repository.CustomerAddressRepository;
 import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
+import com.incede.nbfc.core.monolith.exception.ErrorCodes;
 import com.incede.nbfc.core.monolith.exception.ResourceNotFoundException;
 import com.incede.nbfc.core.monolith.masterdata.repository.AddressTypeRepository;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -28,9 +34,8 @@ public class CustomerAddressService {
     private final CustomerRepository customerRepository;
     private final CustomerAddressRepository addressRepository;
     private final CustomerAddressMapper addressMapper;
-    private final AddressTypeRepository addressTypeRepository;
     private final ObjectMapper objectMapper;
-
+    Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     /**
      * create address
@@ -41,16 +46,24 @@ public class CustomerAddressService {
     public CustomerAddressResponseDto createAddress(UUID customerIdentity, String requestJson, MultipartFile file) throws JsonProcessingException {
 
 
-        CustomerAddressRequestDto requestDTO = objectMapper.readValue(requestJson, CustomerAddressRequestDto.class);
+        CustomerAddressRequestDto CustomerAddressRequestDto = objectMapper.readValue(requestJson, CustomerAddressRequestDto.class);
+        Set<ConstraintViolation<CustomerAddressRequestDto>> violations = validator.validate(CustomerAddressRequestDto);
 
+        if (!violations.isEmpty()) {
+            String errorMsg = violations.stream()
+                    .map(v -> v.getPropertyPath() + " " + v.getMessage())
+                    .reduce((m1, m2) -> m1 + ", " + m2)
+                    .orElse("Validation failed");
+            throw new BusinessException(errorMsg, ErrorCodes.VALIDATION_FAILED);
+        }
         Customer customer = customerRepository.findByIdentity(customerIdentity)
                 .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_CUSTOMER, customerIdentity.toString()));
 
 
-        CustomerAddress address = addressMapper.toEntity(customer, requestDTO);
+        CustomerAddress address = addressMapper.toEntity(customer, CustomerAddressRequestDto);
 
 
-        if (Boolean.TRUE.equals(requestDTO.getIsSameAsPermanent())) {
+        if (Boolean.TRUE.equals(CustomerAddressRequestDto.getIsSameAsPermanent())) {
             if (file == null || file.isEmpty()) {
                 throw new BusinessException("Document file must be provided if 'isSameAsPermanent' is true");
             }

@@ -49,8 +49,8 @@ public class CustomerNotificationPreferenceMapper {
     public CustomerNotificationPreferenceResponseDto toResponseDto(CustomerNotificationPreference entity) {
         Objects.requireNonNull(entity, "CustomerNotificationPreference entity must not be null");
 
-        CustomerNotificationPreferenceResponseDto.notificationPreference preference =
-                CustomerNotificationPreferenceResponseDto.notificationPreference.builder()
+        CustomerNotificationPreferenceResponseDto.NotificationPreference preference =
+                CustomerNotificationPreferenceResponseDto.NotificationPreference.builder()
                         .consentSms(entity.getConsentSms())
                         .consentEmail(entity.getConsentEmail())
                         .consentWhatsapp(entity.getConsentWhatsapp())

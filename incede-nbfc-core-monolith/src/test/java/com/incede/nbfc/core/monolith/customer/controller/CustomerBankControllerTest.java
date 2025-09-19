@@ -43,7 +43,6 @@ class CustomerBankAccountControllerTest {
 
         CustomerBankAccountResponseDto.BankAccount bankAccount =
                 CustomerBankAccountResponseDto.BankAccount.builder()
-                        .bankAccountId(1)
                         .bankName("BankName")
                         .branchName("BranchName")
                         .ifscCode("IFSC0001")
@@ -57,6 +56,7 @@ class CustomerBankAccountControllerTest {
                         .pdStatus("OK")
                         .upiVerified(true)
                         .isActive(true)
+                        .bankAccountIdentity(UUID.randomUUID())
                         .build();
 
         responseDto = CustomerBankAccountResponseDto.builder()

@@ -38,29 +38,14 @@ public class BankMasterDataController
     }
 
 
-
-
-
-
-    /**
-     * Get all branches.
-     *
-     * @return List of all branches
-     */
     @GetMapping("/branches")
     @Operation(summary = "Get all branches", description = "Retrieves all branches from the system")
-    public ResponseEntity<List<BranchesView>> getAllBranches() {
+    public ResponseEntity<List<BranchesDto>> getAllBranches() {
         log.info("Fetching all branches");
-        List<BranchesView> branches = bankMasterDataService.getAllBranches();
+        List<BranchesDto> branches = bankMasterDataService.getAllBranches();
         log.info("Found {} branches", branches.size());
         return ResponseEntity.ok(branches);
     }
-
-
-
-
-
-
 
     /**
      * Get all customer-statuses.

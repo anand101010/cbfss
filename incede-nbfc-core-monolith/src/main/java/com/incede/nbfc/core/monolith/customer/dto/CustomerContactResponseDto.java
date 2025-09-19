@@ -1,9 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.w3c.dom.stylesheets.LinkStyle;
 
 import java.util.List;
 import java.util.UUID;
@@ -11,7 +8,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CustomerContactResponceDto {
+public class CustomerContactResponseDto {
 
     private UUID identity;
     private List<Contact> contacts;

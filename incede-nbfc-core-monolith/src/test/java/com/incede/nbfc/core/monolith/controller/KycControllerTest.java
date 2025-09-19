@@ -296,7 +296,7 @@ class KycControllerTest {
                 .perform(requestBuilder)
                 .andExpect(status().isInternalServerError())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-             ;
+        ;
     }
 
     /**
@@ -360,7 +360,7 @@ class KycControllerTest {
                 .build()
                 .perform(requestBuilder)
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError())
-              ;
+        ;
     }
     /**
      * Test {@link KycController#getUpiMatching(String)}.
@@ -373,7 +373,7 @@ class KycControllerTest {
         when(kycService.getUpiIdValidationResponse(Mockito.<String>any()))
                 .thenReturn(new UpiAccountDetailsResponseDto());
         MockHttpServletRequestBuilder requestBuilder =
-                MockMvcRequestBuilders.get("/ext/ekyc/upi/matching").param("upiID", "foo");
+                MockMvcRequestBuilders.get("/ext/ekyc/upi/matching").param("upiId", "foo");
 
 
         MockMvcBuilders.standaloneSetup(kycController)

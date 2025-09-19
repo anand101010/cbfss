@@ -47,7 +47,7 @@ class CustomerNotificationPreferenceControllerTest {
         responseDto = CustomerNotificationPreferenceResponseDto.builder()
                 .identity(customerId)
                 .notificationPreference(
-                        CustomerNotificationPreferenceResponseDto.notificationPreference.builder()
+                        CustomerNotificationPreferenceResponseDto.NotificationPreference.builder()
                                 .consentSms(true)
                                 .consentEmail(true)
                                 .consentWhatsapp(false)

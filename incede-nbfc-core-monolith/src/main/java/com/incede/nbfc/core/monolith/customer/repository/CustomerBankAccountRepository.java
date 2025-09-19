@@ -24,4 +24,10 @@ public interface CustomerBankAccountRepository extends JpaRepository<CustomerBan
 
         boolean existsByAccountNumberAndCustomer(String accountNumber, Customer customer);
 
+    boolean existsByUpiIdAndIsDelFalse(String upiId);
+
+
+    boolean existsByAccountNumberAndCustomerAndBankAccountIdNot( String accountNumber, Customer customer, Integer bankAccountId);
+
+    boolean existsByUpiIdAndIsDelFalseAndBankAccountIdNot(String upiId, Integer bankAccountId);
 }

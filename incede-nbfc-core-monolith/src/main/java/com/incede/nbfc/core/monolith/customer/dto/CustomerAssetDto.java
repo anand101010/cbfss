@@ -31,13 +31,11 @@ public class CustomerAssetDto {
     @DecimalMin(value = "0.0", inclusive = false, message = "Approximate value must be greater than zero")
     private BigDecimal approxValue;
 
-    @NotNull(message = "Owns Asset flag is required")
     private Boolean ownsAsset;
 
     @NotNull(message = "Has Home Loan flag is required")
     private Boolean hasHomeLoan;
 
-    @NotBlank(message = "homeLoanCompany cannot be null")
     private String homeLoanCompany;
 
 

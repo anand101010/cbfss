@@ -3,7 +3,7 @@ package com.incede.nbfc.core.monolith.customer.mapper;
 import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerContact;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerContactRequestDto;
-import com.incede.nbfc.core.monolith.customer.dto.CustomerContactResponceDto;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerContactResponseDto;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -60,10 +60,10 @@ public class CustomerContactMapper {
     /**
      * Convert a CustomerContact entity to a response DTO.
      */
-    public CustomerContactResponceDto.Contact toResponseDto(CustomerContact entity) {
+    public CustomerContactResponseDto.Contact toResponseDto(CustomerContact entity) {
         Objects.requireNonNull(entity, "CustomerContact entity must not be null");
 
-        return CustomerContactResponceDto.Contact.builder()
+        return CustomerContactResponseDto.Contact.builder()
                 .contactType(entity.getContactType())
                 .contactDetails(entity.getContactValue())
                 .isPrimary(entity.getIsPrimary())

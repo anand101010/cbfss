@@ -70,7 +70,7 @@ class BankValidationControllerTest {
 
         // Act & Assert
         MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders
-                .post("/ext/bank/pennyDrop/verify")
+                .post("/ext/bank/account/verify")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(content);
 
@@ -102,13 +102,13 @@ class BankValidationControllerTest {
 
         // Act & Assert
         MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders
-                .post("/ext/bank/pennyDrop/verify")
+                .post("/ext/bank/account/verify")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(content);
 
         mockMvc.perform(requestBuilder)
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-              ;
+        ;
     }
 }

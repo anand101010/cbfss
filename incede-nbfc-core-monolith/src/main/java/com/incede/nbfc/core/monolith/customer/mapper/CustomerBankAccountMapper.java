@@ -70,7 +70,8 @@ public class CustomerBankAccountMapper {
 
         customerBankAccount.setIsPrimary(dto.getIsPrimary() != null ? dto.getIsPrimary() : false);
         customerBankAccount.setIsActive(dto.getIsActive() != null ? dto.getIsActive() : true);
-
+        customerBankAccount.setPdStatus(dto.getPdStatus());
+        customerBankAccount.setPdTxnId(dto.getPdTxnId());
         customerBankAccount.setUpiVerified(dto.getUpiVerified() != null ? dto.getUpiVerified() : false);
         customerBankAccount.setUpdatedBy(getUpdatedBy());
     }
@@ -91,6 +92,7 @@ public class CustomerBankAccountMapper {
                 .pdStatus(String.valueOf(account.getPdStatus()))
                 .isActive(account.getIsActive())
                 .bankProofDocumentRefId(account.getBankProofDocumentRefId())
+                .bankAccountIdentity(account.getIdentity())
                 .build();
     }
     private String maskAccountNumber(String accountNumber) {

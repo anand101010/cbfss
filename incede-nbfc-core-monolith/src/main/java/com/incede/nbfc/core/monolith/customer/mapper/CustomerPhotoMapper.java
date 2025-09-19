@@ -6,10 +6,12 @@ import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerPhoto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerPhotoRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerPhotoResponseDto;
 import com.incede.nbfc.core.monolith.customer.enums.PhotoStatus;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -19,6 +21,10 @@ import java.util.stream.Collectors;
  */
 @Component
 public class CustomerPhotoMapper {
+
+    @Value("${photo.filepath}")
+    private String photoFilePath;
+
 
     /**
      * Converts a request DTO into a CustomerPhoto entity.
@@ -36,7 +42,7 @@ public class CustomerPhotoMapper {
         photo.setCaptureDevice(dto.getCaptureDevice());
         photo.setCaptureTime(LocalDateTime.parse(dto.getCaptureTime()));
 
-        photo.setFilePath(CommonConstants.FILE_PATH);
+        photo.setFilePath(photoFilePath);
         photo.setLocationDescription(dto.getLocationDescription());
         photo.setLongitude(dto.getLongitude());
         if (!"SUCCESS".equalsIgnoreCase(dto.getPhotoLivenessStatus())) {
@@ -58,9 +64,8 @@ public class CustomerPhotoMapper {
      * @return photo detail DTO
      */
     public CustomerPhotoResponseDto.PhotoDetail toPhotoDetail(CustomerPhoto entity,Customer customer) {
-        if (entity == null) {
-            return null;
-        }
+        Objects.requireNonNull(entity, "CustomerPhoto entity must not be null");
+        Objects.requireNonNull(customer, "Customer must not be null");
         return CustomerPhotoResponseDto.PhotoDetail.builder()
                 .photoId(entity.getPhotoId())
                 .firstname(customer.getFirstName())

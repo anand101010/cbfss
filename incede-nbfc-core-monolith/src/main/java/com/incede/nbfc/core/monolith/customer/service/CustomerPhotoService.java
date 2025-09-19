@@ -12,6 +12,8 @@ import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.exception.ErrorCodes;
 import com.incede.nbfc.core.monolith.exception.ResourceNotFoundException;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +40,9 @@ public class CustomerPhotoService {
     private final CustomerRepository customerRepository;
     private final CustomerPhotoRepository photoRepository;
     private final CustomerPhotoMapper customerPhotoMapper;
-    private final ObjectMapper objectMapper; // Injected ObjectMapper
+    private final ObjectMapper objectMapper;
+
+    Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     /**
      * Create and store a new customer photo.
@@ -55,12 +59,23 @@ public class CustomerPhotoService {
         try {
             CustomerPhotoRequestDto requestDTO = objectMapper.readValue(requestJson, CustomerPhotoRequestDto.class);
 
+
+            var violations = validator.validate(requestDTO);
+            if (!violations.isEmpty()) {
+                String errorMsg = violations.stream()
+                        .map(v -> v.getPropertyPath() + " " + v.getMessage())
+                        .reduce((m1, m2) -> m1 + ", " + m2)
+                        .orElse("Invalid request");
+                throw new BusinessException(errorMsg, ErrorCodes.VALIDATION_FAILED);
+            }
+
             CustomerPhoto photo = customerPhotoMapper.toEntity(requestDTO);
             photo.setCustomer(customer);
 
             Integer photoRefId = uploadPhoto(file);
             photo.setPhotoRefId(photoRefId);
             CustomerPhoto savedPhoto = photoRepository.save(photo);
+
             return customerPhotoMapper.toResponseDto(customer, List.of(savedPhoto));
 
         } catch (JsonProcessingException e) {
@@ -75,12 +90,9 @@ public class CustomerPhotoService {
         } catch (IOException e) {
             log.error("File processing failed for customer {}. File: {}", identity, file.getOriginalFilename(), e);
             throw new BusinessException("Error processing file upload", ErrorCodes.INTERNAL_SERVER_ERROR, e);
-
-        } catch (IllegalArgumentException e) {
-            log.warn("Validation failed for photo DTO: {} - {}", requestJson, e.getMessage());
-            throw new BusinessException(e.getMessage(), ErrorCodes.VALIDATION_FAILED, e);
         }
     }
+
 
 
     /**

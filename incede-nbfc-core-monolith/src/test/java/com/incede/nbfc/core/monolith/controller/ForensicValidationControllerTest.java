@@ -146,4 +146,23 @@ class ForensicValidationControllerTest {
                                                 + " are lost\",\"data\":{\"status\":\"Status\",\"live\":true,\"livenessScore\":10.0,\"needToReview\":true},\"responseKey"
                                                 + "\":\"Response Key\"}"));
     }
+
+    @Test
+    void testGetPhotoMatchingPercentage_givenMissingParam_thenBadRequest() throws Exception {
+        MockHttpServletRequestBuilder requestBuilder =
+                MockMvcRequestBuilders.post("/ext/forensic/image/verify")
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        // missing aadhaarImageBase64
+                        .param("liveImageBase64", "base64LiveImage");
+
+        MockMvcBuilders.standaloneSetup(forensicValidationController)
+                .setControllerAdvice(globalExceptionHandler)
+                .build()
+                .perform(requestBuilder)
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+    }
+
+
+
+
 }

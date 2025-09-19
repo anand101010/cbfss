@@ -73,11 +73,12 @@ public class CustomerAdditionalInfoService {
 
             CustomerProfileExtra profileExtra = profileExtraRepository.findByCustomer(customer)
                     .orElseGet(CustomerProfileExtra::new);
-            customerAdditionalInfoMapper.updateProfileExtra(profileExtra, dto.getAdditional().getProfileExtra(), customer);
+            customerAdditionalInfoMapper.createProfileExtra(profileExtra, dto.getAdditional().getProfileExtra(), customer);
             profileExtraRepository.save(profileExtra);
 
-            CustomerAsset asset =
-                    customerAdditionalInfoMapper.mapToAsset(dto.getAdditional().getCustomerAsset(), customer);
+            CustomerAsset asset = assetRepository.findByCustomer(customer)
+                    .orElseGet(CustomerAsset::new);
+            customerAdditionalInfoMapper.createAsset(asset, dto.getAdditional().getCustomerAsset(), customer);
             assetRepository.save(asset);
 
             Customer updatedCustomer = customerAdditionalInfoMapper
@@ -138,12 +139,11 @@ public class CustomerAdditionalInfoService {
             customerAdditionalInfoMapper.updateProfileExtra(profileExtra, dto.getAdditional().getProfileExtra(), customer);
             profileExtraRepository.save(profileExtra);
 
-            CustomerAsset asset = assetRepository.findByCustomer(customer);
-            if (asset == null) {
-                log.warn("Customer asset info not found for identity={}", identity);
-                throw new BusinessException("Customer asset info not found", ErrorCodes.RESOURCE_NOT_FOUND);
-            }
-            customerAdditionalInfoMapper.mapToAsset(dto.getAdditional().getCustomerAsset(), customer);
+            CustomerAsset asset = assetRepository.findByCustomer(customer)
+                    .orElseThrow(() -> new BusinessException(CommonConstants.ASSET_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
+            log.warn("Customer asset info not found for identity={}", identity);
+
+            customerAdditionalInfoMapper.updateAsset(asset,dto.getAdditional().getCustomerAsset(), customer);
             assetRepository.save(asset);
 
             Customer updatedCustomer = customerAdditionalInfoMapper
@@ -186,7 +186,7 @@ public class CustomerAdditionalInfoService {
         CustomerReferral referral = referralRepository.findByCustomer(customer).orElse(null);
         CustomerPep pep = pepRepository.findByCustomer(customer).orElse(null);
         CustomerProfileExtra profileExtra = profileExtraRepository.findByCustomer(customer).orElse(null);
-        CustomerAsset assets = assetRepository.findByCustomer(customer);
+        CustomerAsset assets = assetRepository.findByCustomer(customer).orElse(null);
 
         log.info("Successfully fetched additional info for customer: {}", customerIdentity);
         return customerAdditionalInfoMapper.buildResponseDto(customer, employment, referral, pep, profileExtra, assets);

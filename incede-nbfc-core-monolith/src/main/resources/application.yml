@@ -32,6 +32,8 @@ decentro:
   uatmodule:
     secret: vbJnBbmoVC2fwhSS2qlJmgBbquhigFxJ
 
+photo:
+  filepath: "c:/customer/photo"
 pixl:
   api:
     url: https://maskv6.pixl.ai/api/v6/

@@ -97,7 +97,10 @@ public final class CommonConstants {
     public static  String REFERRAL_NOT_FOUND="Referral info not found";
     public static  String PEP_NOT_FOUND="PEP info not found";
     public static  String PROFILE_EXTRA_NOT_FOUND="Profile-Extra info not found";
-    public static   String FILE_PATH = "/C/customer/photo";
+    public static  String ASSET_NOT_FOUND = "Asset not found";
+    public static  String CUSTOMER_BANK_UPI_CONFLICT = "UPI-id already exists";
+    public static final String CONTACT_ALREADY_EXIST ="A primary contact with this contact value already exists for another customer" ;
+    public static final String CONTACT_EXISTS = "A contact with the given value already exists";
 
 
 

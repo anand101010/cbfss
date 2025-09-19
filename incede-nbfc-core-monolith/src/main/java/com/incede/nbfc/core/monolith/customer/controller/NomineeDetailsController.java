@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -33,15 +34,15 @@ public class NomineeDetailsController {
         NomineeDetailsResponseDto response = nomineeDetailsService.createNominee(customerIdentity, requestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-
     /**
      * Update an existing nominee for a customer.
      *
      * @param customerIdentity UUID of the customer
-     * @param nomineeIdentity        ID of the nominee to update
+     * @param nomineeIdentity  UUID of the nominee to update
      * @param dto              DTO containing updated nominee details
-     * @return ResponseEntity with updated nominee details including customer identity
+     * @return ResponseEntity with HTTP 200 OK and the updated nominee details
      */
+
     @PutMapping("{customerIdentity}/nominees/{nomineeIdentity}")
     public ResponseEntity<NomineeDetailsResponseDto> updateNominee(
             @PathVariable UUID customerIdentity,
@@ -55,16 +56,18 @@ public class NomineeDetailsController {
     /**
      * Fetch all active nominees for a given customer.
      *
-     * @param customerIdentity String representation of customer UUID
+     * @param customerIdentity UUID of the customer
      * @return ResponseEntity with HTTP 200 OK and list of nominee details
      */
+
     @GetMapping("{customerIdentity}/nominees")
     public ResponseEntity<NomineeDetailsResponseDto> getNomineesByCustomerIdentity(
-            @PathVariable("customerIdentity") String customerIdentity) {
+            @PathVariable("customerIdentity") UUID customerIdentity) {
 
         NomineeDetailsResponseDto response = nomineeDetailsService.getNomineesByCustomerIdentity(customerIdentity);
         return ResponseEntity.ok(response);
     }
+
     /**
      * Delete a nominee for a customer.
      *

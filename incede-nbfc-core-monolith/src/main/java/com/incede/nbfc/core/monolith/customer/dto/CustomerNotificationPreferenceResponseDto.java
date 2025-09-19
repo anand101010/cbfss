@@ -14,14 +14,14 @@ import java.util.UUID;
 public class CustomerNotificationPreferenceResponseDto {
 
     private UUID identity;
-    private notificationPreference notificationPreference;
+    private NotificationPreference notificationPreference;
 
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class notificationPreference {
+    public static class NotificationPreference {
     private Boolean consentSms;
 
 

@@ -83,11 +83,19 @@ public class NomineeDetailsService {
 
         validateMinorNominee(dto);
 
+        if (!existingNominee.getFullName().equals(dto.getFullName()) ||
+                !existingNominee.getRelationship().equals(dto.getRelationship())) {
+
+            boolean isDuplicate = nomineeRepository.existsByCustomerAndFullNameAndRelationshipAndIsDelFalse(
+                    customer, dto.getFullName(), dto.getRelationship());
+            if (isDuplicate) {
+                throw new BusinessException("A nominee with the same name and relationship already exists.");
+            }
+        }
         BigDecimal totalShare = calculateTotalShareForUpdate(customer, existingNominee, dto);
         validatePercentageShare(totalShare);
 
         NomineeAddressDto address = resolveNomineeAddress(dto, customer);
-
         nomineeMapper.updateEntity(existingNominee, dto, address);
         existingNominee = nomineeRepository.save(existingNominee);
 
@@ -118,8 +126,8 @@ public class NomineeDetailsService {
      * @return
      */
     @Transactional(readOnly = true)
-    public NomineeDetailsResponseDto getNomineesByCustomerIdentity(String customerIdentity) {
-        Customer customer = findCustomer(UUID.fromString(customerIdentity));
+    public NomineeDetailsResponseDto getNomineesByCustomerIdentity(UUID customerIdentity) {
+        Customer customer = findCustomer(customerIdentity);
         return getNomineesByCustomer(customer);
     }
 
@@ -177,7 +185,7 @@ public class NomineeDetailsService {
      */
     private BigDecimal calculateTotalShare(Customer customer, NomineeDetailsRequestDto dto) {
         BigDecimal share = dto.getPercentageShare() != null ? dto.getPercentageShare() : BigDecimal.valueOf(100);
-        return nomineeRepository.findByCustomerIdentity(customer.getIdentity())
+        return nomineeRepository.findByCustomerIdentityAndIsDelFalse(customer.getIdentity())
                 .stream()
                 .map(Nominee::getPercentageShare)
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
@@ -193,7 +201,7 @@ public class NomineeDetailsService {
      */
     private BigDecimal calculateTotalShareForUpdate(Customer customer, Nominee existingNominee, NomineeDetailsRequestDto dto) {
         BigDecimal newShare = dto.getPercentageShare() != null ? dto.getPercentageShare() : BigDecimal.valueOf(100);
-        BigDecimal totalExistingShares = nomineeRepository.findByCustomerIdentity(customer.getIdentity())
+        BigDecimal totalExistingShares = nomineeRepository.findByCustomerIdentityAndIsDelFalse(customer.getIdentity())
                 .stream()
                 .filter(n -> !n.getNomineeId().equals(existingNominee.getNomineeId()))
                 .map(Nominee::getPercentageShare)

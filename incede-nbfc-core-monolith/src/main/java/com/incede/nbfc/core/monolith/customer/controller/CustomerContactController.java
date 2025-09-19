@@ -1,7 +1,7 @@
 package com.incede.nbfc.core.monolith.customer.controller;
 
 import com.incede.nbfc.core.monolith.customer.dto.CustomerContactRequestDto;
-import com.incede.nbfc.core.monolith.customer.dto.CustomerContactResponceDto;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerContactResponseDto;
 import com.incede.nbfc.core.monolith.customer.service.CustomerContactService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,11 +30,11 @@ public class CustomerContactController {
      */
     @PostMapping("/{customerIdentity}/contacts")
     @Operation(summary = "Create Contact", description = "Creates a new contact for a customer and returns created details")
-    public ResponseEntity<CustomerContactResponceDto> createContact(
+    public ResponseEntity<CustomerContactResponseDto> createContact(
             @PathVariable UUID customerIdentity,
             @Valid @RequestBody CustomerContactRequestDto request) {
 
-        CustomerContactResponceDto response = contactService.saveContact(customerIdentity, request);
+        CustomerContactResponseDto response = contactService.saveContact(customerIdentity, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -48,12 +48,12 @@ public class CustomerContactController {
      */
     @PutMapping("/{customerIdentity}/contacts/{contactIdentity}")
     @Operation(summary = "Update Contact", description = "Updates an existing contact for a customer using contact UUID")
-    public ResponseEntity<CustomerContactResponceDto> updateContact(
+    public ResponseEntity<CustomerContactResponseDto> updateContact(
             @PathVariable UUID customerIdentity,
             @PathVariable UUID contactIdentity,
             @Valid @RequestBody CustomerContactRequestDto request) {
 
-        CustomerContactResponceDto response = contactService.updateContact(customerIdentity, contactIdentity, request);
+        CustomerContactResponseDto response = contactService.updateContact(customerIdentity, contactIdentity, request);
         return ResponseEntity.ok(response);
     }
 
@@ -65,8 +65,8 @@ public class CustomerContactController {
      */
     @GetMapping("/{customerIdentity}/contacts")
     @Operation(summary = "Get Contacts", description = "Fetches all contacts for a given customer UUID")
-    public ResponseEntity<CustomerContactResponceDto> getContacts(@PathVariable UUID customerIdentity) {
-        CustomerContactResponceDto response = contactService.getContacts(customerIdentity);
+    public ResponseEntity<CustomerContactResponseDto> getContacts(@PathVariable UUID customerIdentity) {
+        CustomerContactResponseDto response = contactService.getContacts(customerIdentity);
         return ResponseEntity.ok(response);
     }
 }

@@ -6,10 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CustomerAssetRepository extends JpaRepository<CustomerAsset, Integer> {
     void deleteByCustomer(Customer customer);
 
-    CustomerAsset findByCustomer(Customer customer);
+    Optional<CustomerAsset> findByCustomer(Customer customer);
 }

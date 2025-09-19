@@ -51,7 +51,7 @@ public class CustomerPhotoRequestDto {
 
     @NotNull(message = "Capture time is required")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    @PastOrPresent(message = "Capture time must be in the past or present")
+
     private String captureTime;
 
 

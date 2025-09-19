@@ -19,9 +19,10 @@ public class ReferenceMasterDataService {
     private final AddressProofTypeRepository addressProofTypeRepository;
     private final ResidentialStatusesRepository residentialStatusesRepository;
     private final ContactTypesRepository contactTypesRepository;
+    private final PincodesRepository pincodesRepository;
 
     /**
-     * Retrieves all active address types
+     * Retrieves all active address p
      *
      */
     @Transactional(readOnly = true)
@@ -90,4 +91,15 @@ public class ReferenceMasterDataService {
         return Collections.unmodifiableList(contactTypes);
     }
 
+    public List<PincodesView> getAllPincodes() {
+        log.info("Fetching pincodes from repository");
+        List<PincodesView> pincodes = pincodesRepository.findByIsDelFalse();
+
+        if (pincodes.isEmpty()) {
+            log.warn("No pincodes found");
+            return pincodes;
+        }
+        log.info("Fetched {} pincodes", pincodes.size());
+        return Collections.unmodifiableList(pincodes);
+    }
 }

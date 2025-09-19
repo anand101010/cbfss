@@ -13,6 +13,7 @@ import java.util.UUID;
 public class CustomerBankAccountResponseDto {
 
     private UUID identity;
+    @ToString.Exclude
     private String customerCode;
     private String status;
     private List<BankAccount> bankAccounts;
@@ -24,12 +25,15 @@ public class CustomerBankAccountResponseDto {
     @Builder
     public static class BankAccount{
 
-        private Integer bankAccountId;
+
         private String bankName;
         private String branchName;
         private String ifscCode;
+        @ToString.Exclude
         private String upiId;
+        @ToString.Exclude
         private String accountNumber;
+        @ToString.Exclude
         private String maskedAccountNumber;
         private String accountHolderName;
         private Integer accountType;
@@ -38,7 +42,9 @@ public class CustomerBankAccountResponseDto {
         private String pdStatus;
         private Boolean upiVerified;
         private Boolean isActive;
+        @ToString.Exclude
         private Integer bankProofDocumentRefId;
+        private UUID bankAccountIdentity;
     }
 
 }

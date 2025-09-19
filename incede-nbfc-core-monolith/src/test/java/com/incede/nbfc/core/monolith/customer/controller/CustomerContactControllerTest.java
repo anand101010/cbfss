@@ -1,7 +1,7 @@
 package com.incede.nbfc.core.monolith.customer.controller;
 
 import com.incede.nbfc.core.monolith.customer.dto.CustomerContactRequestDto;
-import com.incede.nbfc.core.monolith.customer.dto.CustomerContactResponceDto;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerContactResponseDto;
 import com.incede.nbfc.core.monolith.customer.service.CustomerContactService;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.exception.ErrorCodes;
@@ -30,7 +30,7 @@ class CustomerContactControllerTest {
     private UUID customerId;
     private UUID contactId;
     private CustomerContactRequestDto requestDto;
-    private CustomerContactResponceDto responseDto;
+    private CustomerContactResponseDto responseDto;
 
     @BeforeEach
     void setUp() {
@@ -47,7 +47,7 @@ class CustomerContactControllerTest {
                 .isOptOutPromotionalNotification(false)
                 .build();
 
-        responseDto = CustomerContactResponceDto.builder()
+        responseDto = CustomerContactResponseDto.builder()
                 .identity(contactId)
                 .contacts(Collections.emptyList())
                 .build();
@@ -59,7 +59,7 @@ class CustomerContactControllerTest {
         when(contactService.saveContact(eq(customerId), any(CustomerContactRequestDto.class)))
                 .thenReturn(responseDto);
 
-        ResponseEntity<CustomerContactResponceDto> result =
+        ResponseEntity<CustomerContactResponseDto> result =
                 controller.createContact(customerId, requestDto);
 
         assertEquals(HttpStatus.CREATED, result.getStatusCode());
@@ -71,7 +71,7 @@ class CustomerContactControllerTest {
         when(contactService.updateContact(eq(customerId), eq(contactId), any(CustomerContactRequestDto.class)))
                 .thenReturn(responseDto);
 
-        ResponseEntity<CustomerContactResponceDto> result =
+        ResponseEntity<CustomerContactResponseDto> result =
                 controller.updateContact(customerId, contactId, requestDto);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
@@ -83,7 +83,7 @@ class CustomerContactControllerTest {
         when(contactService.getContacts(eq(customerId)))
                 .thenReturn(responseDto);
 
-        ResponseEntity<CustomerContactResponceDto> result =
+        ResponseEntity<CustomerContactResponseDto> result =
                 controller.getContacts(customerId);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());

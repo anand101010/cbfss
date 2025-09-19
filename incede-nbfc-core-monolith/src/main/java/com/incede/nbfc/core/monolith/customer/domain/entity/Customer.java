@@ -145,7 +145,6 @@ public class Customer extends CustomerBaseEntity implements Serializable {
     private String motherName;
 
     @ToString.Exclude
-    @NotBlank(message = "spouseName cannot be Blank")
     @Column(name = "spouse_name", length = 100)
     private String spouseName;
 

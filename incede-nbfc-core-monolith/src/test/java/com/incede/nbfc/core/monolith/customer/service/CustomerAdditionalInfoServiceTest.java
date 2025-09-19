@@ -9,6 +9,8 @@ import com.incede.nbfc.core.monolith.exception.ErrorCodes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.dao.DataIntegrityViolationException;
+
 import java.util.Optional;
 import java.util.UUID;
 
@@ -55,7 +57,6 @@ class CustomerAdditionalInfoServiceTest {
         customer.setIdentity(customerId);
     }
 
-    /** Helper to build a valid request DTO **/
     private CustomerAdditionalInfoRequestDto buildValidRequestDto() {
         CustomerAdditionalInfoRequestDto dto = new CustomerAdditionalInfoRequestDto();
         AdditionalInfoDto additional = new AdditionalInfoDto();
@@ -69,6 +70,7 @@ class CustomerAdditionalInfoServiceTest {
         return dto;
     }
 
+
     @Test
     void saveAdditionalInfo_success() {
         CustomerAdditionalInfoRequestDto dto = buildValidRequestDto();
@@ -78,8 +80,8 @@ class CustomerAdditionalInfoServiceTest {
         when(referralRepository.findByCustomer(customer)).thenReturn(Optional.empty());
         when(pepRepository.findByCustomer(customer)).thenReturn(Optional.empty());
         when(profileExtraRepository.findByCustomer(customer)).thenReturn(Optional.empty());
-        when(assetRepository.save(any())).thenReturn(new CustomerAsset());
-        when(customerRepository.save(any())).thenReturn(customer);
+        when(assetRepository.findByCustomer(customer)).thenReturn(Optional.empty());
+
         when(mapper.buildResponseDto(any(), any(), any(), any(), any(), any()))
                 .thenReturn(new CustomerAdditionalInfoResponseDto());
 
@@ -97,12 +99,37 @@ class CustomerAdditionalInfoServiceTest {
     @Test
     void saveAdditionalInfo_customerNotFound_shouldThrow() {
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
+
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.saveAdditionalInfo(customerId, buildValidRequestDto()));
 
         assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
         verifyNoInteractions(employmentRepository);
     }
+
+    @Test
+    void saveAdditionalInfo_constraintViolation_shouldThrow() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        doThrow(DataIntegrityViolationException.class).when(employmentRepository).save(any());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.saveAdditionalInfo(customerId, buildValidRequestDto()));
+
+        assertEquals(ErrorCodes.CONSTRAINT_VIOLATION, ex.getErrorCode());
+    }
+
+    @Test
+    void saveAdditionalInfo_validationFailure_shouldThrow() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        doThrow(IllegalArgumentException.class)
+                .when(mapper).createEmployment(any(), any(), any());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.saveAdditionalInfo(customerId, buildValidRequestDto()));
+
+        assertEquals(ErrorCodes.VALIDATION_FAILED, ex.getErrorCode());
+    }
+
 
     @Test
     void updateAdditionalInfo_success() {
@@ -118,8 +145,7 @@ class CustomerAdditionalInfoServiceTest {
         when(referralRepository.findByCustomer(customer)).thenReturn(Optional.of(referral));
         when(pepRepository.findByCustomer(customer)).thenReturn(Optional.of(pep));
         when(profileExtraRepository.findByCustomer(customer)).thenReturn(Optional.of(profileExtra));
-        when(assetRepository.findByCustomer(customer)).thenReturn(asset);
-        when(customerRepository.save(any())).thenReturn(customer);
+        when(assetRepository.findByCustomer(customer)).thenReturn(Optional.of(asset));
         when(mapper.buildResponseDto(any(), any(), any(), any(), any(), any()))
                 .thenReturn(new CustomerAdditionalInfoResponseDto());
 
@@ -137,6 +163,7 @@ class CustomerAdditionalInfoServiceTest {
     @Test
     void updateAdditionalInfo_customerNotFound_shouldThrow() {
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
+
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.updateAdditionalInfo(customerId, buildValidRequestDto()));
 
@@ -144,14 +171,40 @@ class CustomerAdditionalInfoServiceTest {
     }
 
     @Test
-    void updateAdditionalInfo_employmentNotFound_shouldThrow() {
+    void updateAdditionalInfo_subEntityNotFound_shouldThrow() {
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(employmentRepository.findByCustomer(customer)).thenReturn(Optional.empty());
+
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.updateAdditionalInfo(customerId, buildValidRequestDto()));
 
         assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
     }
+
+    @Test
+    void updateAdditionalInfo_constraintViolation_shouldThrow() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(employmentRepository.findByCustomer(customer)).thenReturn(Optional.of(new CustomerEmployment()));
+        doThrow(DataIntegrityViolationException.class).when(employmentRepository).save(any());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.updateAdditionalInfo(customerId, buildValidRequestDto()));
+
+        assertEquals(ErrorCodes.CONSTRAINT_VIOLATION, ex.getErrorCode());
+    }
+
+    @Test
+    void updateAdditionalInfo_validationFailure_shouldThrow() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(employmentRepository.findByCustomer(customer)).thenReturn(Optional.of(new CustomerEmployment()));
+        doThrow(IllegalArgumentException.class).when(mapper).updateEmployment(any(), any(), any());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.updateAdditionalInfo(customerId, buildValidRequestDto()));
+
+        assertEquals(ErrorCodes.VALIDATION_FAILED, ex.getErrorCode());
+    }
+
 
     @Test
     void getAdditionalInfo_success() {
@@ -170,6 +223,7 @@ class CustomerAdditionalInfoServiceTest {
     @Test
     void getAdditionalInfo_customerNotFound_shouldThrow() {
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
+
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.getAdditionalInfo(customerId));
 

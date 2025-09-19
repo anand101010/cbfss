@@ -29,6 +29,7 @@ public class BankMasterDataControllerTest {
         MockitoAnnotations.openMocks(this);
     }
 
+
     @Test
     void testGetAllAccountTypes() {
         AccountTypeMasterView mockAccountType = mock(AccountTypeMasterView.class);
@@ -45,11 +46,13 @@ public class BankMasterDataControllerTest {
 
     @Test
     void testGetAllBranches() {
-        BranchesView mockBranch = mock(BranchesView.class);
-        given(mockBranch.getBranchName()).willReturn("Main Branch");
+
+        BranchesDto mockBranch = new BranchesDto();
+        mockBranch.setBranchName("Main Branch");
+
         given(bankMasterDataService.getAllBranches()).willReturn(List.of(mockBranch));
 
-        ResponseEntity<List<BranchesView>> response = bankMasterDataController.getAllBranches();
+        ResponseEntity<List<BranchesDto>> response = bankMasterDataController.getAllBranches();
 
         assertThat(response).isNotNull();
         assertThat(response.getBody()).hasSize(1);

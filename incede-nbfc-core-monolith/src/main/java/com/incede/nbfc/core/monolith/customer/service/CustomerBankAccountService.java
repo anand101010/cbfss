@@ -11,13 +11,18 @@ import com.incede.nbfc.core.monolith.customer.mapper.CustomerBankAccountMapper;
 import com.incede.nbfc.core.monolith.customer.repository.CustomerBankAccountRepository;
 import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
+import com.incede.nbfc.core.monolith.exception.ErrorCodes;
 import com.incede.nbfc.core.monolith.exception.ResourceNotFoundException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -31,6 +36,7 @@ public class CustomerBankAccountService {
     private final CustomerBankAccountRepository customerBankAccountRepository;
     private final CustomerBankAccountMapper customerBankAccountMapper;
     private final ObjectMapper objectMapper;
+    Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     /**
      *  create a bank account for a customer
@@ -43,13 +49,25 @@ public class CustomerBankAccountService {
     public CustomerBankAccountResponseDto createBankAccount(UUID identity, String requestJson, MultipartFile bankProof) {
         try {
             CustomerBankAccountRequestDto requestDto = objectMapper.readValue(requestJson, CustomerBankAccountRequestDto.class);
+            Set<ConstraintViolation<CustomerBankAccountRequestDto>> violations = validator.validate(requestDto);
 
+            if (!violations.isEmpty()) {
+                String errorMsg = violations.stream()
+                        .map(v -> v.getPropertyPath() + " " + v.getMessage())
+                        .reduce((m1, m2) -> m1 + ", " + m2)
+                        .orElse("Validation failed");
+                throw new BusinessException(errorMsg, ErrorCodes.VALIDATION_FAILED);
+            }
             Customer customer = customerRepository.findByIdentity(identity)
                     .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_CUSTOMER, identity.toString()));
 
             if (customerBankAccountRepository.existsByAccountNumberAndCustomer(requestDto.getAccountNumber(), customer)) {
                 throw new BusinessException(CommonConstants.CUSTOMER_BANK_ACCOUNT_CONFLICT);
             }
+            if(customerBankAccountRepository.existsByUpiIdAndIsDelFalse(requestDto.getUpiId())){
+                throw new BusinessException(CommonConstants.CUSTOMER_BANK_UPI_CONFLICT);
+            }
+
 
             CustomerBankAccount bankAccount = customerBankAccountMapper.toEntity(requestDto);
             bankAccount.setBankProofDocumentRefId(uploadBankProof(bankProof));
@@ -90,6 +108,15 @@ public class CustomerBankAccountService {
                 throw new BusinessException(CommonConstants.CUSTOMER_BANK_ACCOUNT_MISMATCH);
             }
 
+            if (customerBankAccountRepository.existsByAccountNumberAndCustomerAndBankAccountIdNot(
+                    requestDto.getAccountNumber(), customer, bankAccountId)) {
+                throw new BusinessException(CommonConstants.CUSTOMER_BANK_ACCOUNT_CONFLICT);
+            }
+
+            if (customerBankAccountRepository.existsByUpiIdAndIsDelFalseAndBankAccountIdNot(
+                    requestDto.getUpiId(), bankAccountId)) {
+                throw new BusinessException(CommonConstants.CUSTOMER_BANK_UPI_CONFLICT);
+            }
             customerBankAccountMapper.updateEntityFromDto(bankAccount, requestDto);
             CustomerBankAccount updated = customerBankAccountRepository.save(bankAccount);
 
@@ -99,12 +126,17 @@ public class CustomerBankAccountService {
                             .map(customerBankAccountMapper::toAccountDetail)
                             .collect(Collectors.toList());
 
-            return customerBankAccountMapper.toResponse(customer, CommonConstants.CUSTOMER_ADDRESS_STATUS_UPDATED, accounts);
+            return customerBankAccountMapper.toResponse(
+                    customer,
+                    CommonConstants.CUSTOMER_ADDRESS_STATUS_UPDATED,
+                    accounts
+            );
 
         } catch (ResourceNotFoundException | BusinessException e) {
             throw e;
         }
     }
+
 
 
     /**
