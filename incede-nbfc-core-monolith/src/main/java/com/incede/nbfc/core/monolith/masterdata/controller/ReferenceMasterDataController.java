@@ -6,10 +6,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -18,8 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Master Data", description = "Master Data Management APIs")
-public class ReferenceMasterDataController
-{
+public class ReferenceMasterDataController {
     private final ReferenceMasterDataService referenceMasterDataService;
 
     /**
@@ -29,7 +27,7 @@ public class ReferenceMasterDataController
      */
     @GetMapping("/address-types")
     @Operation(summary = "Get all address types", description = "Retrieves all address types from the system")
-    public ResponseEntity<List<AddressTypeView>> getAllAddressTypes(){
+    public ResponseEntity<List<AddressTypeView>> getAllAddressTypes() {
         log.info("Fetching all address types");
         List<AddressTypeView> addressTypes = referenceMasterDataService.getAllAddressTypes();
         log.info("Found {} address types", addressTypes.size());
@@ -43,9 +41,9 @@ public class ReferenceMasterDataController
      */
     @GetMapping("/address-proof-type")
     @Operation(summary = "Get all Address Proof Types", description = "Retrieves all Address Proof Types from the system")
-    public ResponseEntity<List<AddressProofTypeView>> getAllAddressProofTypes(){
+    public ResponseEntity<List<AddressProofTypeView>> getAllAddressProofTypes() {
         log.info("Fetching all Address Proof Types");
-        List<AddressProofTypeView> addressProofTypeView =referenceMasterDataService.getAllAddressProofTypes();
+        List<AddressProofTypeView> addressProofTypeView = referenceMasterDataService.getAllAddressProofTypes();
         log.info("Found {} Address Proof Types", addressProofTypeView.size());
         return ResponseEntity.ok(addressProofTypeView);
     }
@@ -57,9 +55,9 @@ public class ReferenceMasterDataController
      */
     @GetMapping("/residential-statuses")
     @Operation(summary = "Get all Residential Statuses", description = "Retrieves all Residential Statuses from the system")
-    public ResponseEntity<List<ResidentialStatusesView>> getAllResidentialStatuses(){
+    public ResponseEntity<List<ResidentialStatusesView>> getAllResidentialStatuses() {
         log.info("Fetching all Residential Statuses");
-        List<ResidentialStatusesView> residentialStatusesView =referenceMasterDataService.getAllResidentialStatuses();
+        List<ResidentialStatusesView> residentialStatusesView = referenceMasterDataService.getAllResidentialStatuses();
         log.info("Found {} Residential Statuses", residentialStatusesView.size());
         return ResponseEntity.ok(residentialStatusesView);
     }
@@ -80,8 +78,35 @@ public class ReferenceMasterDataController
         return ResponseEntity.ok(contactTypes);
     }
 
+    /**
+     * Get all pincodes .
+     *
+     */
+    @GetMapping("/pincodes")
+    @Operation(summary = "Get pincodes with pagination", description = "Retrieves paginated pincodes from the system")
+    public ResponseEntity<Page<PincodeDto>> getAllPincodes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
+        log.info("Fetching pincodes - page: {}, size: {}", page, size);
+        Page<PincodeDto> pincodes = referenceMasterDataService.getAllPincodes(page, size);
+        log.info("Found {} pincodes", pincodes.getNumberOfElements());
 
+        return ResponseEntity.ok(pincodes);
+    }
 
-
+    /**
+     * Fetch list of District, State, city by Pincode
+     *
+     * @param pincode pincode number
+     * @return list of PincodeDto
+     */
+    @GetMapping("/pincodes/{pincode}")
+    @Operation(summary = "Get Pincode Details",
+            description = "Fetches all post offices, district and state for given pincode")
+    public ResponseEntity<List<PincodeDto>> getPincodeByNumber(@PathVariable Integer pincode) {
+        log.info("Fetching pincode details for {}", pincode);
+        List<PincodeDto> response = referenceMasterDataService.getPincodeDetails(pincode);
+        return ResponseEntity.ok(response);
+    }
 }

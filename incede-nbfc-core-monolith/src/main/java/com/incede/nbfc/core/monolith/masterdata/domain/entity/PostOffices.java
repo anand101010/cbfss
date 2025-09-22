@@ -2,6 +2,7 @@ package com.incede.nbfc.core.monolith.masterdata.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
@@ -12,6 +13,7 @@ import java.util.UUID;
 @Table(name = "post_offices", schema = "master_data")
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
 public class PostOffices extends BaseEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -22,7 +24,7 @@ public class PostOffices extends BaseEntity implements Serializable {
     private Integer postOfficeId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pincode", nullable = false,
+    @JoinColumn(name = "pincode_id", nullable = false,
             foreignKey = @ForeignKey(name = "fk_post_offices_pincode"))
     private Pincodes pincode;
 

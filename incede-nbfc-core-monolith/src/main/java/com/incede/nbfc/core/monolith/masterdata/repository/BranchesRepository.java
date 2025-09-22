@@ -10,5 +10,5 @@ import java.util.List;
 @Repository
 public interface BranchesRepository extends JpaRepository<Branches, Integer> {
 
-    List<BranchesView> findByIsDelFalse();
+    List<Branches> findAllBranchesByIsDelFalse();
 }

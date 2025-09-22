@@ -52,7 +52,7 @@ springdoc:
     enabled: true # Enabled for development
     operations-sorter: method
     tags-sorter: alpha
-  packages-to-scan: com.incede.nbfc.core.monolith.controller
+  packages-to-scan: com.incede.nbfc.core.monolith.masterdata.controller
 # Actuator Configuration for Development
 management:
   endpoints:
