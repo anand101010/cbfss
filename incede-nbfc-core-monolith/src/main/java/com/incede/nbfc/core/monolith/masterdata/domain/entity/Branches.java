@@ -36,14 +36,16 @@ public class Branches extends BaseEntity implements  Serializable {
     @Column(name = "branch_short_name", length = 50)
     private String branchShortName;
 
-    @Column(name = "branch_type_id",nullable = false, length = 50 )
-    private Integer branchTypeId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_type", foreignKey = @ForeignKey(name = "fk_branch_type"))
+    private BranchTypes branchType;
 
-    @Column(name = "status_id", nullable = false)
-    private Integer statusId;
+    @Column(name = "status", nullable = false)
+    private Integer status;
 
-    @Column(name = "parent_branch_id", nullable = false, length = 50)
-    private Integer parentBranchId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_branch_id", foreignKey = @ForeignKey(name = "fk_parent_branch"))
+    private Branches parentBranch;
 
     @Column(name = "admin_unit_type", length = 30)
     private String adminUnitType;
@@ -75,8 +77,9 @@ public class Branches extends BaseEntity implements  Serializable {
     @Column(name = "is_main_branch_in_location")
     private Boolean isMainBranchInLocation = false;
 
-    @Column(name = "link_service_main_branch_id", nullable = false, length = 50)
-    private Integer linkServiceMainBranchId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "link_service_main_branch_id", foreignKey = @ForeignKey(name = "fk_link_service_branch"))
+    private Branches linkServiceMainBranch;
 
     @Column(name = "is_split_premises")
     private Boolean isSplitPremises = false;
@@ -159,23 +162,28 @@ public class Branches extends BaseEntity implements  Serializable {
     @Column(name = "place_name", length = 100)
     private String placeName;
 
-    @Column(name = "post_office_id", nullable = false, length = 50)
-    private Integer postOfficeId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_office_id", foreignKey = @ForeignKey(name = "fk_post_office"))
+    private PostOffices postOffice;
 
-    @Column(name = "city_id", nullable = false, length = 50)
-    private Integer cityId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "city", foreignKey = @ForeignKey(name = "fk_city"))
+    private Cities city;
 
-    @Column(name = "district_id",nullable = false, length = 50)
-    private Integer districtId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "district", foreignKey = @ForeignKey(name = "fk_district"))
+    private Districts district;
 
-    @Column(name = "state_id", nullable = false, length = 50)
-    private Integer stateId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "state_id", foreignKey = @ForeignKey(name = "fk_state"))
+    private States state;
 
-    @Column(name = "country_id", nullable = false, length = 50)
-    private Integer countryId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "country", nullable = false, foreignKey = @ForeignKey(name = "fk_country"))
+    private Countries country;
 
-    @Column(name = "pincode_id", nullable = false, length = 50)
-    private Integer pincodeId;
+    @Column(name = "pincode")
+    private Integer pincode;
 
     @Column(name = "latitude", precision = 10, scale = 7)
     private BigDecimal latitude;

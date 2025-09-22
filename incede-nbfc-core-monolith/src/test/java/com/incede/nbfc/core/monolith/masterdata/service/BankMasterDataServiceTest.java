@@ -2,29 +2,21 @@ package com.incede.nbfc.core.monolith.masterdata.service;
 
 import com.incede.nbfc.core.monolith.masterdata.domain.entity.*;
 import com.incede.nbfc.core.monolith.masterdata.dto.*;
-import com.incede.nbfc.core.monolith.masterdata.mapper.*;
 import com.incede.nbfc.core.monolith.masterdata.repository.*;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.*;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 public class BankMasterDataServiceTest {
 
     @Mock
@@ -45,44 +37,6 @@ public class BankMasterDataServiceTest {
     @InjectMocks
     private BankMasterDataService bankMasterDataService;
 
-    @Mock
-    private StatesRepository statesRepository;
-    @Mock
-    private BranchTypeRepository branchTypeRepository;
-    @Mock
-    private PostOfficesRepository postOfficesRepository;
-    @Mock
-    private CitiesRepository citiesRepository;
-    @Mock
-    private DistrictRepository districtRepository;
-
-    @Mock
-    private BranchesMapper branchesMapper;
-    @Mock
-    private StatesMapper statesMapper;
-    @Mock
-    private BranchTypeMapper branchTypeMapper;
-    @Mock
-    private PostOfficeMapper postOfficeMapper;
-    @Mock
-    private CitiesMapper citiesMapper;
-    @Mock
-    private DistrictMapper districtMapper;
-
-    private Branches branchEntity;
-
-    @BeforeEach
-    void setUp() {
-
-        branchEntity = new Branches();
-        branchEntity.setBranchId(1);
-        branchEntity.setStateId(10);
-        branchEntity.setBranchTypeId(20);
-        branchEntity.setPostOfficeId(30);
-        branchEntity.setCityId(40);
-        branchEntity.setDistrictId(50);
-    }
-
 
     @Test
     void testGetAllBranchContacts_WhenDataExists() {
@@ -93,21 +47,22 @@ public class BankMasterDataServiceTest {
         when(mockView.getRemarks()).thenReturn("Main contact");
         when(mockView.getIdentity()).thenReturn(id);
 
-        when(branchContactsRepository.findByIsDelFalse()).thenReturn(List.of(mockView));
+        when(branchContactsRepository.findByIsDelFalse())
+                .thenReturn(List.of(mockView));
 
         List<BranchContactView> result = bankMasterDataService.getAllBranchContact();
 
         assertNotNull(result);
-        assertEquals(1, result.size(), "Expected exactly 1 branch contact"); // message will show in case of failure
+        assertEquals(1, result.size());
         assertEquals("1234567890", result.get(0).getValue());
         assertEquals("Main contact", result.get(0).getRemarks());
         assertEquals(id, result.get(0).getIdentity());
     }
 
-
     @Test
     void testGetAllBranchContacts_WhenDataEmpty() {
-        when(branchContactsRepository.findByIsDelFalse()).thenReturn(Collections.emptyList());
+        when(branchContactsRepository.findByIsDelFalse())
+                .thenReturn(Collections.emptyList());
 
         List<BranchContactView> result = bankMasterDataService.getAllBranchContact();
 
@@ -117,13 +72,14 @@ public class BankMasterDataServiceTest {
 
     @Test
     void testGetAllBranchContacts_WhenRepositoryThrowsException() {
-        when(branchContactsRepository.findByIsDelFalse()).thenThrow(new RuntimeException("DB error"));
+        when(branchContactsRepository.findByIsDelFalse())
+                .thenThrow(new RuntimeException("DB error"));
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> bankMasterDataService.getAllBranchContact());
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> bankMasterDataService.getAllBranchContact());
 
         assertEquals("DB error", ex.getMessage());
     }
-
 
     @Test
     void testGetAllBranchWeekSchedules_WhenDataExists() {
@@ -133,7 +89,8 @@ public class BankMasterDataServiceTest {
         when(mockView.getDayOfWeek()).thenReturn((short) 1);
         when(mockView.getIdentity()).thenReturn(id);
 
-        when(branchWeekScheduleRepository.findByIsDelFalse()).thenReturn(List.of(mockView));
+        when(branchWeekScheduleRepository.findByIsDelFalse())
+                .thenReturn(List.of(mockView));
 
         List<BranchWeekScheduleView> result = bankMasterDataService.getAllBranchWeekSchedule();
 
@@ -145,7 +102,8 @@ public class BankMasterDataServiceTest {
 
     @Test
     void testGetAllBranchWeekSchedules_WhenDataEmpty() {
-        when(branchWeekScheduleRepository.findByIsDelFalse()).thenReturn(Collections.emptyList());
+        when(branchWeekScheduleRepository.findByIsDelFalse())
+                .thenReturn(Collections.emptyList());
 
         List<BranchWeekScheduleView> result = bankMasterDataService.getAllBranchWeekSchedule();
 
@@ -155,9 +113,11 @@ public class BankMasterDataServiceTest {
 
     @Test
     void testGetAllBranchWeekSchedules_WhenRepositoryThrowsException() {
-        when(branchWeekScheduleRepository.findByIsDelFalse()).thenThrow(new RuntimeException("DB error"));
+        when(branchWeekScheduleRepository.findByIsDelFalse())
+                .thenThrow(new RuntimeException("DB error"));
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> bankMasterDataService.getAllBranchWeekSchedule());
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> bankMasterDataService.getAllBranchWeekSchedule());
 
         assertEquals("DB error", ex.getMessage());
     }
@@ -172,7 +132,8 @@ public class BankMasterDataServiceTest {
         when(mockView.getSwiftBic()).thenReturn("SBININBB");
         when(mockView.getIdentity()).thenReturn(id);
 
-        when(banksRepository.findByIsDelFalseAndIsActiveTrue()).thenReturn(List.of(mockView));
+        when(banksRepository.findByIsDelFalseAndIsActiveTrue())
+                .thenReturn(List.of(mockView));
 
         List<BanksView> result = bankMasterDataService.getAllBanks();
 
@@ -186,7 +147,8 @@ public class BankMasterDataServiceTest {
 
     @Test
     void testGetAllBanks_WhenDataEmpty() {
-        when(banksRepository.findByIsDelFalseAndIsActiveTrue()).thenReturn(Collections.emptyList());
+        when(banksRepository.findByIsDelFalseAndIsActiveTrue())
+                .thenReturn(Collections.emptyList());
 
         List<BanksView> result = bankMasterDataService.getAllBanks();
 
@@ -196,90 +158,166 @@ public class BankMasterDataServiceTest {
 
     @Test
     void testGetAllBanks_WhenRepositoryThrowsException() {
-        when(banksRepository.findByIsDelFalseAndIsActiveTrue()).thenThrow(new RuntimeException("DB error"));
+        when(banksRepository.findByIsDelFalseAndIsActiveTrue())
+                .thenThrow(new RuntimeException("DB error"));
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> bankMasterDataService.getAllBanks());
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> bankMasterDataService.getAllBanks());
 
         assertEquals("DB error", ex.getMessage());
     }
 
     @Test
     void testGetAllBranches_WhenDataExists() {
+        UUID id = UUID.randomUUID();
 
-        when(branchesRepository.findAllBranchesByIsDelFalse()).thenReturn(List.of(branchEntity));
+        Branches mockParentBranch = mock(Branches.class);
+        Branches mockLinkServiceMainBranch = mock(Branches.class);
+        PostOffices mockPostOffice = mock(PostOffices.class);
+        Cities mockCity = mock(Cities.class);
+        Districts mockDistrict = mock(Districts.class);
+        States mockState = mock(States.class);
+        Countries mockCountry = mock(Countries.class);
+        BranchTypes mockBranchType = mock(BranchTypes.class);
 
-        States state = new States();
-        state.setStateId(10);
-        when(statesRepository.findByStateIdIn(Set.of(10))).thenReturn(List.of(state));
+        // Mock BranchesView with all fields
+        BranchesView mockView = mock(BranchesView.class);
 
-        BranchTypes branchType = new BranchTypes();
-        branchType.setBranchTypeId(20);
-        when(branchTypeRepository.findByBranchTypeIdIn(Set.of(20))).thenReturn(List.of(branchType));
+        when(mockView.getBranchCode()).thenReturn("BR001");
+        when(mockView.getBranchName()).thenReturn("Main Branch");
+        when(mockView.getBranchShortName()).thenReturn("MAIN");
+        when(mockView.getBranchType()).thenReturn(mockBranchType);
+        when(mockView.getStatus()).thenReturn(1);
+        when(mockView.getParentBranch()).thenReturn(mockParentBranch);
+        when(mockView.getAdminUnitType()).thenReturn("ZONE");
+        when(mockView.getParentAdminCode()).thenReturn("P001");
+        when(mockView.getLocationCode()).thenReturn("LOC001");
+        when(mockView.getOpeningDate()).thenReturn(LocalDate.of(2020, 1, 1));
+        when(mockView.getClosingDate()).thenReturn(LocalDate.of(2030, 1, 1));
+        when(mockView.getDateOfShift()).thenReturn(LocalDate.of(2022, 5, 10));
+        when(mockView.getNumExtensionCounters()).thenReturn(2);
+        when(mockView.getIsMainBranchInLocation()).thenReturn(true);
+        when(mockView.getLinkServiceMainBranch()).thenReturn(mockLinkServiceMainBranch);
+        when(mockView.getNumSplitPremises()).thenReturn((short) 1);
+        when(mockView.getLocalClearingMember()).thenReturn(true);
+        when(mockView.getNationalClearingMember()).thenReturn(false);
+        when(mockView.getHighValueClearingMember()).thenReturn(true);
+        when(mockView.getNumOfficersAvailable()).thenReturn((short) 5);
+        when(mockView.getMicrCode()).thenReturn("MICR123");
+        when(mockView.getIfscCode()).thenReturn("IFSC0001");
+        when(mockView.getSwiftBicCode()).thenReturn("SWBIC001");
+        when(mockView.getBsrCode()).thenReturn("BSR001");
+        when(mockView.getClearingBasedOnMicr()).thenReturn(true);
+        when(mockView.getCashMgmtBranch()).thenReturn(false);
+        when(mockView.getRtgsDepEnabled()).thenReturn(true);
+        when(mockView.getAuthDealForex()).thenReturn(false);
+        when(mockView.getAuthForeignCurrencyDeposit()).thenReturn(true);
+        when(mockView.getDdIssueAllowed()).thenReturn(true);
+        when(mockView.getTtIssueAllowed()).thenReturn(false);
+        when(mockView.getBaseCurrencyCode()).thenReturn('I');
+        when(mockView.getAuthDealerCode()).thenReturn("AD001");
+        when(mockView.getTbaMainKey()).thenReturn("TBA001");
+        when(mockView.getRegDirectoryCode()).thenReturn("REG001");
+        when(mockView.getDedicatedIssueOperations()).thenReturn("DIO001");
+        when(mockView.getDoorNumber()).thenReturn("12A");
+        when(mockView.getAddressLine1()).thenReturn("Street 1");
+        when(mockView.getAddressLine2()).thenReturn("Street 2");
+        when(mockView.getLandmark()).thenReturn("Near Park");
+        when(mockView.getPlaceName()).thenReturn("City Center");
+        when(mockView.getPostOffice()).thenReturn(mockPostOffice);
+        when(mockView.getCity()).thenReturn(mockCity);
+        when(mockView.getDistrict()).thenReturn(mockDistrict);
+        when(mockView.getState()).thenReturn(mockState);
+        when(mockView.getCountry()).thenReturn(mockCountry);
+        when(mockView.getPincode()).thenReturn(682001);
+        when(mockView.getLatitude()).thenReturn(BigDecimal.valueOf(9.9312));
+        when(mockView.getLongitude()).thenReturn(BigDecimal.valueOf(76.2673));
+        when(mockView.getTimezone()).thenReturn("Asia/Kolkata");
+        when(mockView.getIdentity()).thenReturn(id);
 
-        PostOffices postOffice = new PostOffices();
-        postOffice.setPostOfficeId(30);
-        when(postOfficesRepository.findByPostOfficeIdIn(Set.of(30))).thenReturn(List.of(postOffice));
+        when(branchesRepository.findByIsDelFalse())
+                .thenReturn(List.of(mockView));
 
-        Cities city = new Cities();
-        city.setCityId(40);
-        when(citiesRepository.findByCityIdIn(Set.of(40))).thenReturn(List.of(city));
+        List<BranchesView> result = bankMasterDataService.getAllBranches();
 
-        Districts district = new Districts();
-        district.setDistrictId(50);
-        when(districtRepository.findBydistrictIdIn(Set.of(50))).thenReturn(List.of(district));
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        BranchesView branch = result.get(0);
 
-        BranchesDto branchDto = new BranchesDto();
-        when(branchesMapper.convertToDto(branchEntity)).thenReturn(branchDto);
-
-        StatesDto stateDto = new StatesDto();
-        when(statesMapper.convertToDto(state)).thenReturn(stateDto);
-
-        BranchTypeDto branchTypeDto = new BranchTypeDto();
-        when(branchTypeMapper.convertToDto(branchType)).thenReturn(branchTypeDto);
-
-        PostOfficesDto postOfficeDto = new PostOfficesDto();
-        when(postOfficeMapper.convertToDto(postOffice)).thenReturn(postOfficeDto);
-
-        CitiesDto cityDto = new CitiesDto();
-        when(citiesMapper.convertToDto(city)).thenReturn(cityDto);
-
-        DistrictDto districtDto = new DistrictDto();
-        when(districtMapper.convertToDto(district)).thenReturn(districtDto);
-
-        List<BranchesDto> result = bankMasterDataService.getAllBranches();
-
-        assertThat(result).isNotNull();
-        assertThat(result.size()).isEqualTo(1);
-
-        BranchesDto dto = result.get(0);
-        assertThat(dto).isSameAs(branchDto);
-        assertThat(dto.getStateDto()).isSameAs(stateDto);
-        assertThat(dto.getBranchTypeDto()).isSameAs(branchTypeDto);
-        assertThat(dto.getPostOfficesDto()).isSameAs(postOfficeDto);
-        assertThat(dto.getCitiesDto()).isSameAs(cityDto);
-        assertThat(dto.getDistrictDto()).isSameAs(districtDto);
+        // Verify every field
+        assertEquals("BR001", branch.getBranchCode());
+        assertEquals("Main Branch", branch.getBranchName());
+        assertEquals("MAIN", branch.getBranchShortName());
+        assertEquals(mockBranchType, branch.getBranchType());
+        assertEquals(1, branch.getStatus());
+        assertEquals(mockParentBranch, branch.getParentBranch());
+        assertEquals("ZONE", branch.getAdminUnitType());
+        assertEquals("P001", branch.getParentAdminCode());
+        assertEquals("LOC001", branch.getLocationCode());
+        assertEquals(LocalDate.of(2020, 1, 1), branch.getOpeningDate());
+        assertEquals(LocalDate.of(2030, 1, 1), branch.getClosingDate());
+        assertEquals(LocalDate.of(2022, 5, 10), branch.getDateOfShift());
+        assertEquals(2, branch.getNumExtensionCounters());
+        assertTrue(branch.getIsMainBranchInLocation());
+        assertEquals(mockLinkServiceMainBranch, branch.getLinkServiceMainBranch());
+        assertEquals((short) 1, branch.getNumSplitPremises());
+        assertTrue(branch.getLocalClearingMember());
+        assertFalse(branch.getNationalClearingMember());
+        assertTrue(branch.getHighValueClearingMember());
+        assertEquals((short) 5, branch.getNumOfficersAvailable());
+        assertEquals("MICR123", branch.getMicrCode());
+        assertEquals("IFSC0001", branch.getIfscCode());
+        assertEquals("SWBIC001", branch.getSwiftBicCode());
+        assertEquals("BSR001", branch.getBsrCode());
+        assertTrue(branch.getClearingBasedOnMicr());
+        assertFalse(branch.getCashMgmtBranch());
+        assertTrue(branch.getRtgsDepEnabled());
+        assertFalse(branch.getAuthDealForex());
+        assertTrue(branch.getAuthForeignCurrencyDeposit());
+        assertTrue(branch.getDdIssueAllowed());
+        assertFalse(branch.getTtIssueAllowed());
+        assertEquals('I', branch.getBaseCurrencyCode());
+        assertEquals("AD001", branch.getAuthDealerCode());
+        assertEquals("TBA001", branch.getTbaMainKey());
+        assertEquals("REG001", branch.getRegDirectoryCode());
+        assertEquals("DIO001", branch.getDedicatedIssueOperations());
+        assertEquals("12A", branch.getDoorNumber());
+        assertEquals("Street 1", branch.getAddressLine1());
+        assertEquals("Street 2", branch.getAddressLine2());
+        assertEquals("Near Park", branch.getLandmark());
+        assertEquals("City Center", branch.getPlaceName());
+        assertEquals(mockPostOffice, branch.getPostOffice());
+        assertEquals(mockCity, branch.getCity());
+        assertEquals(mockDistrict, branch.getDistrict());
+        assertEquals(mockState, branch.getState());
+        assertEquals(mockCountry, branch.getCountry());
+        assertEquals(682001, branch.getPincode());
+        assertEquals(BigDecimal.valueOf(9.9312), branch.getLatitude());
+        assertEquals(BigDecimal.valueOf(76.2673), branch.getLongitude());
+        assertEquals("Asia/Kolkata", branch.getTimezone());
+        assertEquals(id, branch.getIdentity());
     }
 
-
     @Test
-    void testGetAllBranches_WhenNoBranchesExist() {
-        when(branchesRepository.findAllBranchesByIsDelFalse()).thenReturn(Collections.emptyList());
+    void testGetAllBranches_WhenDataEmpty() {
+        when(branchesRepository.findByIsDelFalse())
+                .thenReturn(Collections.emptyList());
 
-        List<BranchesDto> result = bankMasterDataService.getAllBranches();
+        List<BranchesView> result = bankMasterDataService.getAllBranches();
 
-        assertThat(result).isNotNull();
-        assertThat(result).isEmpty();
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
     }
 
     @Test
     void testGetAllBranches_WhenRepositoryThrowsException() {
-        when(branchesRepository.findAllBranchesByIsDelFalse()).thenThrow(new RuntimeException("DB error"));
+        when(branchesRepository.findByIsDelFalse())
+                .thenThrow(new RuntimeException("DB error"));
 
-        try {
-            bankMasterDataService.getAllBranches();
-        } catch (RuntimeException ex) {
-            assertThat(ex.getMessage()).isEqualTo("DB error");
-        }
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> bankMasterDataService.getAllBranches());
+
+        assertEquals("DB error", ex.getMessage());
     }
 
     @Test
@@ -291,7 +329,8 @@ public class BankMasterDataServiceTest {
         when(mockView.getCode()).thenReturn("ACT");
         when(mockView.getIdentity()).thenReturn(id);
 
-        when(accountStatusesRepository.findByIsDelFalseAndIsActiveTrue()).thenReturn(List.of(mockView));
+        when(accountStatusesRepository.findByIsDelFalseAndIsActiveTrue())
+                .thenReturn(List.of(mockView));
 
         List<AccountStatusesView> result = bankMasterDataService.getAllAccountStatuses();
 
@@ -304,7 +343,8 @@ public class BankMasterDataServiceTest {
 
     @Test
     void testGetAllAccountStatuses_WhenDataEmpty() {
-        when(accountStatusesRepository.findByIsDelFalseAndIsActiveTrue()).thenReturn(Collections.emptyList());
+        when(accountStatusesRepository.findByIsDelFalseAndIsActiveTrue())
+                .thenReturn(Collections.emptyList());
 
         List<AccountStatusesView> result = bankMasterDataService.getAllAccountStatuses();
 
@@ -314,13 +354,14 @@ public class BankMasterDataServiceTest {
 
     @Test
     void testGetAllAccountStatuses_WhenRepositoryThrowsException() {
-        when(accountStatusesRepository.findByIsDelFalseAndIsActiveTrue()).thenThrow(new RuntimeException("DB error")); // Make sure this is the only stubbing
+        when(accountStatusesRepository.findByIsDelFalseAndIsActiveTrue())
+                .thenThrow(new RuntimeException("DB error"));
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> bankMasterDataService.getAllAccountStatuses());
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> bankMasterDataService.getAllAccountStatuses());
 
         assertEquals("DB error", ex.getMessage());
     }
-
     @Test
     void testGetAllAccountTypes_WhenDataExists() {
         UUID id = UUID.randomUUID();
@@ -328,7 +369,8 @@ public class BankMasterDataServiceTest {
         when(mockView.getAccountType()).thenReturn("Savings");
         when(mockView.getIdentity()).thenReturn(id);
 
-        when(accountTypeMasterRepository.findByIsDelFalse()).thenReturn(List.of(mockView));
+        when(accountTypeMasterRepository.findByIsDelFalse())
+                .thenReturn(List.of(mockView));
 
         List<AccountTypeMasterView> result = bankMasterDataService.getAllAccountTypes();
 
@@ -340,7 +382,8 @@ public class BankMasterDataServiceTest {
 
     @Test
     void testGetAllAccountTypes_WhenDataEmpty() {
-        when(accountTypeMasterRepository.findByIsDelFalse()).thenReturn(Collections.emptyList());
+        when(accountTypeMasterRepository.findByIsDelFalse())
+                .thenReturn(Collections.emptyList());
 
         List<AccountTypeMasterView> result = bankMasterDataService.getAllAccountTypes();
 
@@ -350,13 +393,14 @@ public class BankMasterDataServiceTest {
 
     @Test
     void testGetAllAccountTypes_WhenRepositoryThrowsException() {
-        when(accountTypeMasterRepository.findByIsDelFalse()).thenThrow(new RuntimeException("DB error"));
+        when(accountTypeMasterRepository.findByIsDelFalse())
+                .thenThrow(new RuntimeException("DB error"));
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> bankMasterDataService.getAllAccountTypes());
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> bankMasterDataService.getAllAccountTypes());
 
         assertEquals("DB error", ex.getMessage());
     }
-
     @Test
     void testGetAllCustomerStatuses_WhenDataExists() {
         UUID id = UUID.randomUUID();
@@ -366,7 +410,8 @@ public class BankMasterDataServiceTest {
         when(mockView.getIsActive()).thenReturn(true);
         when(mockView.getIdentity()).thenReturn(id);
 
-        when(customerStatusRepository.findByIsDelFalseAndIsActiveTrue()).thenReturn(List.of(mockView));
+        when(customerStatusRepository.findByIsDelFalseAndIsActiveTrue())
+                .thenReturn(List.of(mockView));
 
         List<CustomerStatusView> result = bankMasterDataService.getAllCustomerStatuses();
 
@@ -379,7 +424,8 @@ public class BankMasterDataServiceTest {
 
     @Test
     void testGetAllCustomerStatuses_WhenDataEmpty() {
-        when(customerStatusRepository.findByIsDelFalseAndIsActiveTrue()).thenReturn(Collections.emptyList());
+        when(customerStatusRepository.findByIsDelFalseAndIsActiveTrue())
+                .thenReturn(Collections.emptyList());
 
         List<CustomerStatusView> result = bankMasterDataService.getAllCustomerStatuses();
 
@@ -389,9 +435,11 @@ public class BankMasterDataServiceTest {
 
     @Test
     void testGetAllCustomerStatuses_WhenRepositoryThrowsException() {
-        when(customerStatusRepository.findByIsDelFalseAndIsActiveTrue()).thenThrow(new RuntimeException("DB error"));
+        when(customerStatusRepository.findByIsDelFalseAndIsActiveTrue())
+                .thenThrow(new RuntimeException("DB error"));
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> bankMasterDataService.getAllCustomerStatuses());
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> bankMasterDataService.getAllCustomerStatuses());
 
         assertEquals("DB error", ex.getMessage());
     }

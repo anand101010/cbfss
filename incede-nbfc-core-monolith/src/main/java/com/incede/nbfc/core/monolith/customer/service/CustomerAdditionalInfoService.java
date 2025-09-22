@@ -134,6 +134,7 @@ public class CustomerAdditionalInfoService {
             customerAdditionalInfoMapper.updatePep(pep, dto.getAdditional().getPep(), customer);
             pepRepository.save(pep);
 
+
             CustomerProfileExtra profileExtra = profileExtraRepository.findByCustomer(customer)
                     .orElseThrow(() -> new BusinessException(CommonConstants.PROFILE_EXTRA_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
             customerAdditionalInfoMapper.updateProfileExtra(profileExtra, dto.getAdditional().getProfileExtra(), customer);

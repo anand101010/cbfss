@@ -80,15 +80,7 @@ public class ReferenceMasterDataController
         return ResponseEntity.ok(contactTypes);
     }
 
-    @GetMapping("/pincodes")
-    @Operation(summary = "Get all pincodes", description = "Retrieves all pincodes from the system")
-    public ResponseEntity<List<PincodesView>> getAllPincodes() {
-        log.info("Fetching all pincodes");
-        List<PincodesView> pincodes = referenceMasterDataService.getAllPincodes();
-        log.info("Found {} pincodes", pincodes.size());
 
-        return ResponseEntity.ok(pincodes);
-    }
 
 
 

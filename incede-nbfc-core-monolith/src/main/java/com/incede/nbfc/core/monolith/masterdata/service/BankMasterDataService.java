@@ -1,18 +1,14 @@
 package com.incede.nbfc.core.monolith.masterdata.service;
 
-import com.incede.nbfc.core.monolith.masterdata.domain.entity.*;
 import com.incede.nbfc.core.monolith.masterdata.dto.*;
-import com.incede.nbfc.core.monolith.masterdata.mapper.*;
 import com.incede.nbfc.core.monolith.masterdata.repository.*;
-import com.incede.nbfc.core.monolith.masterdata.repository.StatesRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -27,17 +23,7 @@ public class BankMasterDataService {
     private final AccountStatusesRepository accountStatusesRepository;
     private final AccountTypeMasterRepository accountTypeMasterRepository;
     private final CustomerStatusRepository customerStatusRepository;
-    private final BranchesMapper branchesMapper;
-    private final StatesRepository statesRepository;
-    private final StatesMapper statesMapper;
-    private final BranchTypeRepository branchTypeRepository;
-    private final BranchTypeMapper branchTypeMapper;
-    private final PostOfficesRepository postOfficesRepository;
-    private final PostOfficeMapper postOfficeMapper;
-    private final CitiesRepository citiesRepository;
-    private final CitiesMapper citiesMapper;
-    private final DistrictRepository districtRepository;
-    private final DistrictMapper districtMapper;
+
 
     /**
      * Retrieves all active branch contact
@@ -86,120 +72,21 @@ public class BankMasterDataService {
         return Collections.unmodifiableList(banks);
     }
 
-
     /**
      * Retrieves all active branches
      *
      */
     @Transactional(readOnly = true)
-    public List<BranchesDto> getAllBranches() {
-        List<Branches> branches = branchesRepository.findAllBranchesByIsDelFalse();
+    public List<BranchesView> getAllBranches() {
+        List<BranchesView> branches = branchesRepository.findByIsDelFalse();
 
         if (branches.isEmpty()) {
-            log.warn("No branches found ");
-            return Collections.emptyList();
+            log.warn("No branches found");
+            return branches;
         }
 
-        /**
-         * Retrieves all branches foreign key IDs
-         *
-         */
-        Set<Integer> stateIds = branches.stream()
-                .map(Branches::getStateId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-        Set<Integer> branchTypeIds = branches.stream()
-                .map(Branches::getBranchTypeId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-        Set<Integer> postOfficesIds = branches.stream()
-                .map(Branches::getPostOfficeId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-        Set<Integer> cityIds = branches.stream()
-                .map(Branches::getCityId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-        Set<Integer> districtIds = branches.stream()
-                .map(Branches::getDistrictId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-
-
-        /**
-         * Bulk fetch entities from repositories
-         *
-         */
-        Map<Integer, States> stateMap = statesRepository.findByStateIdIn(stateIds).stream()
-                .collect(Collectors.toMap(States::getStateId, Function.identity()));
-
-        Map<Integer, BranchTypes> branchTypeMap = branchTypeRepository.findByBranchTypeIdIn(branchTypeIds).stream()
-                .collect(Collectors.toMap(BranchTypes::getBranchTypeId, Function.identity()));
-
-        Map<Integer, PostOffices> postOfficesMap = postOfficesRepository.findByPostOfficeIdIn(postOfficesIds).stream()
-                .collect(Collectors.toMap(PostOffices::getPostOfficeId, Function.identity()));
-
-        Map<Integer, Cities> citiesMap = citiesRepository.findByCityIdIn(postOfficesIds).stream()
-                .collect(Collectors.toMap(Cities::getCityId, Function.identity()));
-
-        Map<Integer, Districts> districtMap = districtRepository.findBydistrictIdIn(districtIds).stream()
-                .collect(Collectors.toMap(Districts::getDistrictId, Function.identity()));
-
-
-
-        /**
-         * Convert to branches DTOs
-         *
-         */
-        List<BranchesDto> branchDtos = branches.stream()
-                .map(branch -> {
-                    BranchesDto dto = branchesMapper.convertToDto(branch);
-
-                    if (branch.getStateId() != null) {
-                        States states = stateMap.get(branch.getStateId());
-                        if (states != null) {
-                            dto.setStateDto(statesMapper.convertToDto(states));
-                        }
-                    }
-
-                    if(branch.getBranchTypeId() != null){
-                        BranchTypes branchTypes = branchTypeMap.get(branch.getBranchTypeId());
-                        if(branchTypes!=null){
-                            dto.setBranchTypeDto(branchTypeMapper.convertToDto(branchTypes));
-                        }
-                    }
-
-                    if(branch.getPostOfficeId() != null){
-                        PostOffices postOffices = postOfficesMap.get(branch.getPostOfficeId());
-                        if(postOffices!=null){
-                            dto.setPostOfficesDto(postOfficeMapper.convertToDto(postOffices));
-                        }
-                    }
-                    if(branch.getCityId() != null){
-                        Cities cties = citiesMap.get(branch.getCityId());
-                        if(cties!=null){
-                            dto.setCitiesDto(citiesMapper.convertToDto(cties));
-                        }
-                    }
-
-                    if(branch.getDistrictId() != null){
-                        Districts districts = districtMap.get(branch.getDistrictId());
-                        if(districts!=null){
-                            dto.setDistrictDto(districtMapper.convertToDto(districts));
-                        }
-                    }
-
-                    return dto;
-                })
-                .toList();
-
-        log.info("Fetched {} branches with related entities", branches.size());
-        return Collections.unmodifiableList(branchDtos);
+        log.info("Fetched {} branches", branches.size());
+        return Collections.unmodifiableList(branches);
     }
 
     /**

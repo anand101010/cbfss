@@ -2,7 +2,6 @@ package com.incede.nbfc.core.monolith.masterdata.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
@@ -12,7 +11,6 @@ import java.util.UUID;
 @Table(name = "states", schema = "master_data")
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 public class States extends BaseEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -20,7 +18,7 @@ public class States extends BaseEntity implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "state_id")
-    private Integer stateId;
+    private Integer StateId;
 
     @Column(name = "state", nullable = false, unique = true, length = 100)
     private String state;

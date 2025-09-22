@@ -11,9 +11,9 @@ public interface BranchesView {
     String getBranchCode();
     String getBranchName();
     String getBranchShortName();
-    BranchTypeView getBranchType();
+    BranchTypes getBranchType();
     Integer getStatus();
-    BranchesView getParentBranch();
+    Branches getParentBranch();
     String getAdminUnitType();
     String getParentAdminCode();
     String getLocationCode();
@@ -49,11 +49,11 @@ public interface BranchesView {
     String getAddressLine2();
     String getLandmark();
     String getPlaceName();
-    PostOfficesView getPostOffice();
-    CitiesView getCity();
-    DistrictsView getDistrict();
-    StatesView getState();
-    CountriesView getCountry();
+    PostOffices getPostOffice();
+    Cities getCity();
+    Districts getDistrict();
+    States getState();
+    Countries getCountry();
     Integer getPincode();
     BigDecimal getLatitude();
     BigDecimal getLongitude();
