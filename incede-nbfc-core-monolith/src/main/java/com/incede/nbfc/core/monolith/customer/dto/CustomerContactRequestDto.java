@@ -13,7 +13,7 @@ import java.util.UUID;
 public class CustomerContactRequestDto {
 
     @NotNull(message = "contactType should not be null")
-    private Integer contactType;
+    private UUID contactType;
 
     @NotBlank(message = "contactDetails should not be null")
     @ToString.Exclude

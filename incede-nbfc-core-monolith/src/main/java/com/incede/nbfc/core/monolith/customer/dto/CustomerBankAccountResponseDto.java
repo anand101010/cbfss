@@ -36,8 +36,8 @@ public class CustomerBankAccountResponseDto {
         @ToString.Exclude
         private String maskedAccountNumber;
         private String accountHolderName;
-        private Integer accountType;
-        private String accountStatus;
+        private UUID accountType;
+        private UUID accountStatus;
         private Boolean isPrimary;
         private String pdStatus;
         private Boolean upiVerified;
@@ -48,3 +48,5 @@ public class CustomerBankAccountResponseDto {
     }
 
 }
+
+

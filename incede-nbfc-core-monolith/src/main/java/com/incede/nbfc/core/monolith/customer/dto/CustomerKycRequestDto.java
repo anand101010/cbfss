@@ -5,6 +5,7 @@ import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor
@@ -13,9 +14,11 @@ import java.time.LocalDate;
 public class CustomerKycRequestDto {
 
     @NotNull(message = "ID type is required")
-    @Min(value = 1, message = "ID type must be a positive integer")
-    private Integer idType;
+    private UUID idType;
 
+    @NotNull(message = "branchId  is required")
+
+    private UUID branchId;
     @NotBlank(message = "ID number must not be blank")
     @ToString.Exclude
     @Size(max = 50, message = "ID number must not exceed 50 characters")

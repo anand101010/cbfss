@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -18,10 +19,10 @@ public class BasicInformationRequestDto {
     private Integer tenantId;
 
     @NotNull(message = "Salutation is required")
-    private Integer salutation;
+    private UUID salutation;
 
     @NotNull(message = "BranchId is required")
-    private Integer branchId;
+    private UUID branchId;
 
     @ToString.Exclude
     @NotBlank(message = "First name is required")
@@ -39,17 +40,17 @@ public class BasicInformationRequestDto {
     private String lastName;
 
     @NotNull(message = "Gender is required")
-    private Integer gender;
+    private UUID gender;
 
     @ToString.Exclude
     @NotNull(message = "Date of birth is required")
     private LocalDate dob;
 
     @NotNull(message = "Marital status is required")
-    private Integer maritalStatus;
+    private UUID maritalStatus;
 
     @NotNull(message = "Tax category is required")
-    private Integer taxCategory;
+    private UUID taxCategory;
 
     @NotNull(message = " aadharVaultId is required")
     @ToString.Exclude
@@ -60,7 +61,7 @@ public class BasicInformationRequestDto {
     private String crmReferenceId;
 
     @NotNull(message = "Occupation is required")
-    private Integer occupation;
+    private UUID occupation;
 
     @ToString.Exclude
     private String employer;
@@ -68,7 +69,7 @@ public class BasicInformationRequestDto {
     @ToString.Exclude
     private BigDecimal annualIncome;
 
-    private Integer customerListTypeId;
+    private UUID customerListTypeId;
 
     @NotNull(message = "IsBusiness cannot be null")
     private Boolean isBusiness;
@@ -89,7 +90,7 @@ public class BasicInformationRequestDto {
     private Boolean isMinor;
 
     @NotNull(message = "Customer status is required")
-    private Integer customerStatus;
+    private UUID customerStatus;
 
     private Integer visualScore;
 
@@ -103,7 +104,7 @@ public class BasicInformationRequestDto {
 
 
 
-    private Integer guardianCustomerId;
+    private UUID guardianCustomerId;
 
 
 

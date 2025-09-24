@@ -25,7 +25,6 @@ public class CustomerContactMapper {
         Objects.requireNonNull(dto, "CustomerContactRequestDto must not be null");
 
         CustomerContact contact = new CustomerContact();
-        contact.setContactType(Objects.requireNonNull(dto.getContactType(), "contactType must not be null"));
         contact.setContactValue(Objects.requireNonNull(dto.getContactDetails(), "contactDetails must not be null"));
         contact.setIsPrimary(Objects.requireNonNull(dto.getIsPrimary(), "isPrimary must not be null"));
         contact.setIsActive(Objects.requireNonNull(dto.getIsActive(), "isActive must not be null"));
@@ -46,7 +45,6 @@ public class CustomerContactMapper {
         Objects.requireNonNull(contact, "CustomerContact must not be null");
         Objects.requireNonNull(dto, "CustomerContactRequestDto must not be null");
 
-        contact.setContactType(Objects.requireNonNull(dto.getContactType(), "contactType must not be null"));
         contact.setContactValue(Objects.requireNonNull(dto.getContactDetails(), "contactDetails must not be null"));
         contact.setIsPrimary(Objects.requireNonNull(dto.getIsPrimary(), "isPrimary must not be null"));
         contact.setIsActive(Objects.requireNonNull(dto.getIsActive(), "isActive must not be null"));
@@ -64,7 +62,7 @@ public class CustomerContactMapper {
         Objects.requireNonNull(entity, "CustomerContact entity must not be null");
 
         return CustomerContactResponseDto.Contact.builder()
-                .contactType(entity.getContactType())
+                .contactType(entity.getContactType().getIdentity())
                 .contactDetails(entity.getContactValue())
                 .isPrimary(entity.getIsPrimary())
                 .isActive(entity.getIsActive())

@@ -43,7 +43,7 @@ public class CustomerBankAccountController {
     @PutMapping("/{customerIdentity}/bank-accounts/{bankAccountId}")
     public ResponseEntity<CustomerBankAccountResponseDto> updateBankAccount(
             @PathVariable UUID customerIdentity,
-            @PathVariable Integer bankAccountId,
+            @PathVariable UUID bankAccountId,
             @RequestBody @Valid CustomerBankAccountRequestDto requestDto) {
 
         CustomerBankAccountResponseDto response = customerBankAccountService.updateBankAccount(customerIdentity, bankAccountId, requestDto);

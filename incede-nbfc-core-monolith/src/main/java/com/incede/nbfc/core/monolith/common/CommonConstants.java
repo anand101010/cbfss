@@ -101,6 +101,7 @@ public final class CommonConstants {
     public static  String CUSTOMER_BANK_UPI_CONFLICT = "UPI-id already exists";
     public static final String CONTACT_ALREADY_EXIST ="A primary contact with this contact value already exists for another customer" ;
     public static final String CONTACT_EXISTS = "A contact with the given value already exists";
+    public static final String DOCUMENT_ALREADY_EXISTS = "Document already exists";
 
 
 

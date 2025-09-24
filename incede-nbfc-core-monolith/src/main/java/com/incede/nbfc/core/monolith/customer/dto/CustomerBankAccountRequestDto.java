@@ -3,6 +3,8 @@ package com.incede.nbfc.core.monolith.customer.dto;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,11 +27,11 @@ public class CustomerBankAccountRequestDto {
         private String upiId;
 
         @NotNull(message = "Account type is required")
-        @Min(value = 1, message = "Account type must be a positive integer")
-        private Integer accountType;
+        private UUID accountType;
 
-        @NotBlank(message="accountStatus must not be blank ")
-        private String accountStatus;
+        @NotNull(message = "accountStatus type is required")
+
+        private UUID accountStatus;
 
         @NotBlank(message = "Account holder name must not be blank")
         @Size(max = 100, message = "Account holder name must not exceed 100 characters")
@@ -61,6 +63,6 @@ public class CustomerBankAccountRequestDto {
         @ToString.Exclude
         private String customerCode;
 
-    }
+}
 
 

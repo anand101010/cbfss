@@ -1,6 +1,8 @@
 package com.incede.nbfc.core.monolith.customer.domain.entity;
 
 import com.incede.nbfc.core.monolith.customer.enums.PdStatus;
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.AccountStatuses;
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.AccountTypeMaster;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -51,14 +53,16 @@ public class CustomerBankAccount extends CustomerBaseEntity implements Serializa
     @Size(max = 50, message = "UPI ID must not exceed 50 characters")
     private String upiId;
 
-    @Column(name = "account_type", nullable = false)
-    @NotNull(message = "Account type is required")
-    @Min(value = 1,message="Account Type must be a positive Integer")
-    private Integer accountType;
+    @NotNull(message = "Account Type  is required")
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "account_type", nullable = false, referencedColumnName = "account_type_id")
+    private AccountTypeMaster accountType;
 
-    @Column(name = "account_status")
-    @NotBlank(message="accountStatus cannot be blank")
-    private String accountStatus;
+
+    @NotNull(message = "Account status  is required")
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "account_status", nullable = false, referencedColumnName = "account_status_id")
+    private AccountStatuses accountStatus;
 
     @Column(name = "is_active")
     @NotNull(message = "Active status must be specified")

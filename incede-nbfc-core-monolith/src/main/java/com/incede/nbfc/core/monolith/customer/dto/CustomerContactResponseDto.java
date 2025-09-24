@@ -20,7 +20,7 @@ public class CustomerContactResponseDto {
     @AllArgsConstructor
     @Builder
     public static class Contact {
-        private Integer contactType;
+        private UUID contactType;
 
         @ToString.Exclude
         private String contactDetails;

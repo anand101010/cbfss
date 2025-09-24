@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.domain.entity;
 
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.DocumentType;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -38,10 +39,10 @@ public class CustomerKyc extends CustomerBaseEntity implements Serializable {
     @NotNull(message = "Customer reference must not be null")
     private Customer customer;
 
-    @Column(name = "id_type", nullable = false)
     @NotNull(message = "ID type is required")
-    @Min(value = 1, message = "ID type must be a positive integer")
-    private Integer idType;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "id_type", nullable = false, referencedColumnName = "document_type_id")
+    private DocumentType idType;
 
     @Column(name = "id_number", nullable = false, length = 50)
     @NotBlank(message = "ID number must not be blank")

@@ -1,6 +1,7 @@
 package com.incede.nbfc.core.monolith.customer.domain.entity;
 
 
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.ContactTypes;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -40,10 +41,10 @@ public class CustomerContact extends CustomerBaseEntity implements Serializable 
     @NotNull(message = "Customer reference is required")
     private Customer customer;
 
-    @Column(name = "contact_type", nullable = false)
     @NotNull(message = "Contact type is required")
-    @Min(value=1,message = "Contact Type must be a Positive integer")
-    private Integer contactType;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "contact_type", nullable = false, referencedColumnName = "contact_type_id")
+    private ContactTypes contactType;
 
     @Column(name = "contact_value", nullable = false, unique = true, length = 100)
     @NotBlank(message = "Contact value must not be blank")

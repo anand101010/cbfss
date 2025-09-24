@@ -39,23 +39,23 @@ public class BasicInformationResponseDto {
 
         private LocalDate dob;
 
-        private Integer gender;
+        private UUID gender;
 
-        private Integer maritalStatus;
-
-
-        private Integer taxCategory;
+        private UUID maritalStatus;
 
 
-        private Integer salutation;
+        private UUID taxCategory;
 
-        private Integer branchId;
+
+        private UUID salutation;
+
+        private UUID branchId;
 
         private String middleName;
 
         private String crmReferenceId;
 
-        private Integer occupation;
+        private UUID occupation;
 
         private String employer;
 
@@ -68,7 +68,7 @@ public class BasicInformationResponseDto {
         private Boolean isFirm;
 
 
-        private Integer guardianCustomerId;
+        private UUID guardianCustomerId;
 
         private String spouseName;
 
@@ -78,9 +78,9 @@ public class BasicInformationResponseDto {
 
         private Boolean isMinor;
 
-        private Integer customerStatus;
+        private UUID customerStatus;
 
-        private Integer visualScore;
+        private UUID visualScore;
 
         private String mobileNumber;
 

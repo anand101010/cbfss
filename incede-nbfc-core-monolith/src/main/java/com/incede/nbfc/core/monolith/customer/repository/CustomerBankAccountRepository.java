@@ -2,6 +2,7 @@ package com.incede.nbfc.core.monolith.customer.repository;
 
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerBankAccount;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerBankAccountResponseDto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -27,7 +28,9 @@ public interface CustomerBankAccountRepository extends JpaRepository<CustomerBan
     boolean existsByUpiIdAndIsDelFalse(String upiId);
 
 
-    boolean existsByAccountNumberAndCustomerAndBankAccountIdNot( String accountNumber, Customer customer, Integer bankAccountId);
+    boolean existsByAccountNumberAndCustomerAndIdentityNot( String accountNumber, Customer customer, UUID bankAccountId);
 
-    boolean existsByUpiIdAndIsDelFalseAndBankAccountIdNot(String upiId, Integer bankAccountId);
+    boolean existsByUpiIdAndIsDelFalseAndIdentityNot(String upiId, UUID bankAccountId);
+
+    Optional<CustomerBankAccount> findByIdentity(UUID bankAccountId);
 }

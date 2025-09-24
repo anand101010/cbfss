@@ -33,8 +33,6 @@ public class CustomerBankAccountMapper {
         customerBankAccount.setIfscCode(dto.getIfscCode());
         customerBankAccount.setAccountNumber(dto.getAccountNumber());
         customerBankAccount.setUpiId(dto.getUpiId());
-        customerBankAccount.setAccountType(dto.getAccountType());
-        customerBankAccount.setAccountStatus(dto.getAccountStatus() != null ? String.valueOf(dto.getAccountStatus()) : null);
         customerBankAccount.setAccountHolderName(dto.getAccountHolderName());
         customerBankAccount.setBranchName(dto.getBranchName());
 
@@ -62,8 +60,6 @@ public class CustomerBankAccountMapper {
         customerBankAccount.setBranchName(dto.getBranchName());
         customerBankAccount.setAccountNumber(dto.getAccountNumber());
         customerBankAccount.setUpiId(dto.getUpiId());
-        customerBankAccount.setAccountType(dto.getAccountType());
-        customerBankAccount.setAccountStatus(dto.getAccountStatus());
         customerBankAccount.setAccountHolderName(dto.getAccountHolderName());
         customerBankAccount.setBranchName(dto.getBranchName());
         customerBankAccount.setBankProofDocumentRefId(dto.getBankProofDocumentRefId());
@@ -81,11 +77,11 @@ public class CustomerBankAccountMapper {
                 .bankName(account.getBankName())
                 .branchName(account.getBranchName())
                 .ifscCode(account.getIfscCode())
+                .accountType(account.getAccountType().getIdentity())
+                .accountStatus(account.getAccountStatus().getIdentity())
                 .accountNumber(account.getAccountNumber())
                 .maskedAccountNumber(maskAccountNumber(account.getAccountNumber()))
                 .upiId(account.getUpiId())
-                .accountType(account.getAccountType())
-                .accountStatus(account.getAccountStatus())
                 .accountHolderName(account.getAccountHolderName())
                 .isPrimary(account.getIsPrimary())
                 .upiVerified(account.getUpiVerified())

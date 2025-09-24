@@ -19,7 +19,7 @@ public class CustomerKycResponseDto {
     private String customerCode;
     private String status;
 
-    private Integer idType;
+    private UUID idType;
     private String idNumber;
     private String placeOfIssue;
     private String issuingAuthority;
