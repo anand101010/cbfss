@@ -25,7 +25,8 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CustomerGroup extends CustomerBaseEntity implements  Serializable {
+public class
+CustomerGroup extends CustomerBaseEntity implements  Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -33,6 +34,16 @@ public class CustomerGroup extends CustomerBaseEntity implements  Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "group_id")
     private Integer groupId;
+
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE})
+    @JoinColumn(name = "customer_id", nullable = false, referencedColumnName = "customer_id")
+    @NotNull(message = "Customer reference is required")
+    private Customer customer;
+
+    @Column(name = "customer_group_id")
+    private Integer customerGroupId;
+
 
     @Column(name = "tenant_id", nullable = false)
     @NotNull(message = "Tenant ID is required")

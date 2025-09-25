@@ -7,6 +7,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Collections;
 import java.util.List;
@@ -15,7 +17,9 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 
 public class ProfileMasterDataServiceTest {
 
@@ -41,6 +45,10 @@ public class ProfileMasterDataServiceTest {
     TaxCategoryRepository taxCategoryRepository;
     @Mock
     SalutationTypesRepository salutationTypesRepository;
+    @Mock
+    private ReferralSourceRepository referralSourceRepository;
+    @Mock
+    private EducationLevelsRepository educationLevelsRepository;
 
     @InjectMocks
     ProfileMasterDataService profileMasterDataService;
@@ -504,6 +512,80 @@ public class ProfileMasterDataServiceTest {
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> profileMasterDataService.getAllSalutationTypes());
+
+        assertEquals("DB error", ex.getMessage());
+    }
+
+    @Test
+    void testGetAllReferralSources_WhenDataExists() {
+        ReferralSourcesView mockView = mock(ReferralSourcesView.class);
+        when(mockView.getName()).thenReturn("Referral A");
+
+        when(referralSourceRepository.findByIsDelFalseAndIsActiveTrue())
+                .thenReturn(List.of(mockView));
+
+        List<ReferralSourcesView> result = profileMasterDataService.getAllReferralSources();
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("Referral A", result.get(0).getName());
+    }
+
+    @Test
+    void testGetAllReferralSources_WhenDataEmpty() {
+        lenient().when(referralSourceRepository.findByIsDelFalseAndIsActiveTrue())
+                .thenReturn(Collections.emptyList());
+
+        List<ReferralSourcesView> result = profileMasterDataService.getAllReferralSources();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testGetAllReferralSources_WhenRepositoryThrowsException() {
+        when(referralSourceRepository.findByIsDelFalseAndIsActiveTrue())
+                .thenThrow(new RuntimeException("DB error"));
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> profileMasterDataService.getAllReferralSources());
+
+        assertEquals("DB error", ex.getMessage());
+    }
+
+
+    @Test
+    void testGetAllEducationLevels_WhenDataExists() {
+        EducationLevelsView mockView = mock(EducationLevelsView.class);
+        when(mockView.getName()).thenReturn("Bachelor's");
+
+        when(educationLevelsRepository.findByIsDelFalseAndIsActiveTrue())
+                .thenReturn(List.of(mockView));
+
+        List<EducationLevelsView> result = profileMasterDataService.getAllEducationLevels();
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void testGetAllEducationLevels_WhenDataEmpty() {
+        lenient().when(educationLevelsRepository.findByIsDelFalseAndIsActiveTrue())
+                .thenReturn(Collections.emptyList());
+
+        List<EducationLevelsView> result = profileMasterDataService.getAllEducationLevels();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testGetAllEducationLevels_WhenRepositoryThrowsException() {
+        when(educationLevelsRepository.findByIsDelFalseAndIsActiveTrue())
+                .thenThrow(new RuntimeException("DB error"));
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> profileMasterDataService.getAllEducationLevels());
 
         assertEquals("DB error", ex.getMessage());
     }

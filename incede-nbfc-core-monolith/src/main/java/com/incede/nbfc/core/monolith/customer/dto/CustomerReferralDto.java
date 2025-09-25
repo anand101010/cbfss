@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.UUID;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -15,14 +17,11 @@ import lombok.ToString;
 public class CustomerReferralDto {
 
     @NotNull(message = "Referral source is required")
-    @Min(value = 1, message = "Referral source ID must be a positive number")
-    private Integer referralSourceId;
+    private UUID referralSourceId;
 
     @NotNull(message = "Canvassed type is required")
-    @Min(value = 1, message = "Canvassed type ID must be a positive number")
-    private Integer canvassedTypeId;
+    private UUID canvassedTypeId;
 
-    @Min(value = 1, message = "Canvasser staff ID must be a positive number")
     private Integer canvasserStaffId;
 
 

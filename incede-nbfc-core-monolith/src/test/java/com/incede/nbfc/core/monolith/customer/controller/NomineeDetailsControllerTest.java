@@ -37,7 +37,7 @@ class NomineeDetailsControllerTest {
 
         requestDto = new NomineeDetailsRequestDto();
         requestDto.setFullName("Anu");
-        requestDto.setRelationship(2);
+        requestDto.setRelationship(UUID.randomUUID());
         requestDto.setPercentageShare(null);
 
         responseDto = NomineeDetailsResponseDto.builder()

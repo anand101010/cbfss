@@ -65,6 +65,7 @@ public class BranchesDto {
     private Integer stateId;
     private Integer countryId;
     private Integer pincodeId;
+    private Integer pincode;
     private BigDecimal latitude;
     private BigDecimal longitude;
     private String timezone = "Asia/Kolkata";
@@ -75,5 +76,6 @@ public class BranchesDto {
     private PostOfficesDto postOfficesDto;
     private CitiesDto CitiesDto;
     private DistrictDto DistrictDto;
+    private CountryDto countryDto;
 
 }

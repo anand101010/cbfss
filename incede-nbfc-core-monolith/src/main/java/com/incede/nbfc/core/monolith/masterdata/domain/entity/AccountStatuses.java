@@ -10,9 +10,9 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "account_statuses", schema = "master_data")
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 public class AccountStatuses extends BaseEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;

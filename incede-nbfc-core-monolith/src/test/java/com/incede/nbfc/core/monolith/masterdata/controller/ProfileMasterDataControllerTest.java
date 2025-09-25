@@ -246,4 +246,58 @@ public class ProfileMasterDataControllerTest {
         assertThat(result.getCode()).isEqualTo("SAL");
         assertThat(result.getIdentity()).isEqualTo(id);
     }
+
+    @Test
+    void testGetAllReferralSource() {
+        ReferralSourcesView mockView = mock(ReferralSourcesView.class);
+        UUID id = UUID.randomUUID();
+
+        given(mockView.getName()).willReturn("Referral A");
+
+        given(profileMasterDataService.getAllReferralSources()).willReturn(List.of(mockView));
+
+        ResponseEntity<List<ReferralSourcesView>> response = profileMasterDataController.getAllReferralSource();
+
+        assertThat(response).isNotNull();
+        assertThat(response.getBody()).hasSize(1);
+
+        ReferralSourcesView result = response.getBody().get(0);
+        assertThat(result.getName()).isEqualTo("Referral A");
+    }
+
+    @Test
+    void testGetAllReferralSource_WhenEmpty() {
+        given(profileMasterDataService.getAllReferralSources()).willReturn(List.of());
+
+        ResponseEntity<List<ReferralSourcesView>> response = profileMasterDataController.getAllReferralSource();
+
+        assertThat(response).isNotNull();
+        assertThat(response.getBody()).isEmpty();
+    }
+
+    @Test
+    void testGetAllEducationLevels() {
+        EducationLevelsView mockView = mock(EducationLevelsView.class);
+        given(mockView.getName()).willReturn("Bachelor's");
+
+        given(profileMasterDataService.getAllEducationLevels()).willReturn(List.of(mockView));
+
+        ResponseEntity<List<EducationLevelsView>> response = profileMasterDataController.getAllEducationLevels();
+
+        assertThat(response).isNotNull();
+        assertThat(response.getBody()).hasSize(1);
+
+        EducationLevelsView result = response.getBody().get(0);
+        assertThat(result.getName()).isEqualTo("Bachelor's");
+    }
+
+    @Test
+    void testGetAllEducationLevels_WhenEmpty() {
+        given(profileMasterDataService.getAllEducationLevels()).willReturn(List.of());
+
+        ResponseEntity<List<EducationLevelsView>> response = profileMasterDataController.getAllEducationLevels();
+
+        assertThat(response).isNotNull();
+        assertThat(response.getBody()).isEmpty();
+    }
 }

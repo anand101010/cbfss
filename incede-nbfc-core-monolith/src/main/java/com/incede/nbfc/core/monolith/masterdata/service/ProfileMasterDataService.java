@@ -27,6 +27,8 @@ public class ProfileMasterDataService {
     private final SourceOfIncomeTypeRepository sourceOfIncomeTypeRepository;
     private final TaxCategoryRepository taxCategoryRepository;
     private final SalutationTypesRepository salutationTypesRepository;
+    private final ReferralSourceRepository referralSourceRepository;
+    private  final EducationLevelsRepository educationLevelsRepository;
     /**
      * Retrieves all active nationalities
      *
@@ -210,5 +212,29 @@ public class ProfileMasterDataService {
         log.info("Fetched {} salutation types", salutationTypes.size());
         return Collections.unmodifiableList(salutationTypes);
     }
+    @Transactional(readOnly = true)
+    public List<ReferralSourcesView> getAllReferralSources() {
+        List<ReferralSourcesView> referralSource = referralSourceRepository.findByIsDelFalseAndIsActiveTrue();
 
+        if (referralSource.isEmpty()) {
+            log.warn("No referral source found");
+            return referralSource;
+        }
+
+        log.info("Fetched {}  referral source", referralSource.size());
+        return Collections.unmodifiableList(referralSource);
+    }
+
+    @Transactional(readOnly = true)
+    public List<EducationLevelsView> getAllEducationLevels() {
+        List<EducationLevelsView> educationLevel = educationLevelsRepository.findByIsDelFalseAndIsActiveTrue();
+
+        if (educationLevel.isEmpty()) {
+            log.warn("No education level found");
+            return educationLevel;
+        }
+
+        log.info("Fetched {} education level", educationLevel.size());
+        return Collections.unmodifiableList(educationLevel);
+    }
 }

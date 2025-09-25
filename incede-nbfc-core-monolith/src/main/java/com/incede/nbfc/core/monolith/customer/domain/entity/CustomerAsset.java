@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.domain.entity;
 
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.AssetTypes;
 import lombok.*;
 
 import jakarta.persistence.*;
@@ -32,9 +33,10 @@ public class CustomerAsset extends CustomerBaseEntity implements Serializable {
     @NotNull(message = "Customer reference is required")
     private Customer customer;
 
-    @Column(name = "asset_type_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "asset_type_id", nullable = false, referencedColumnName = "asset_type_id")
     @NotNull(message = "Asset type ID is required")
-    private Integer assetTypeId;
+    private AssetTypes assetTypeId;
 
     @Column(name = "description", length = 150)
     @Size(max = 150, message = "Description must not exceed 150 characters")

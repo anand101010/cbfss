@@ -1,8 +1,10 @@
 package com.incede.nbfc.core.monolith.client;
 import com.incede.nbfc.core.monolith.client.dto.BankValidationRequestDto;
 import com.incede.nbfc.core.monolith.client.dto.BankValidationResponseDto;
+import com.incede.nbfc.core.monolith.client.dto.UpiAccountDetailsResponseDto;
 import com.incede.nbfc.core.monolith.client.fallback.FallBackHelper;
 import com.incede.nbfc.core.monolith.config.interceptors.DecentroClientInterceptorConfig;
+import com.incede.nbfc.core.monolith.domain.dto.UpiAccountDetailsRequestDto;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,23 +31,18 @@ public interface PennydropClient {
      * @return
      */
     @PostMapping("${decentro.api.Validate-Bank}")
-    @CircuitBreaker(name = "post-api",fallbackMethod = "validateBankAccount")
     BankValidationResponseDto validateBankAccount(@RequestBody BankValidationRequestDto bankvalidationrequestdto);
 
     /**
-     * Fallback method for {@link #validateBankAccount(BankValidationRequestDto)}.
-     * <p>
-     * This method is triggered when the API call fails or when the circuit breaker is open.
-     * It returns a fallback response with a default message.
-     * </p>
      *
-     * @param bankvalidationrequestdto the request DTO (used for logging/tracking).
-     * @param throwable                the exception that triggered the fallback.
-     * @return {@link BankValidationResponseDto} with fallback details.
+     * @param BankValidationRequestDto handle the exception
+     * @param throwable
+     * @return
      */
-
-    default BankValidationResponseDto validateBankAccount(BankValidationRequestDto bankvalidationrequestdto,Throwable throwable){
+    default BankValidationResponseDto getValidatedUpiIdDetailsFallBack(BankValidationRequestDto bankValidationRequestDto, Throwable throwable){
         return FallBackHelper.FallbackResponse( new BankValidationResponseDto(),throwable);
     }
+
+
 
 }

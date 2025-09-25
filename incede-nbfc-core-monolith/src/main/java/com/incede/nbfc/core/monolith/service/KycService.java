@@ -13,6 +13,7 @@ import com.incede.nbfc.core.monolith.domain.dto.*;
 import com.incede.nbfc.core.monolith.enums.KycType;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.exception.ErrorCodes;
+import com.incede.nbfc.core.monolith.exception.FeignCustomException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +50,9 @@ public class KycService
             AadhaarOtpResponse  response=KycClient.generateAadhaarOtp(aadhaarOtpRequestDto);
             log.info("Successfully triggered OTP: {}", response.getStatus());
             return response;
+        }  catch (FeignCustomException exception)
+        {
+            throw exception;
         }
         catch (Exception exception)
         {
@@ -76,6 +80,9 @@ public class KycService
             AadhaarOtpValidatedResponseDto  response=KycClient.validateAadhaarOtp(aadhaarOtpValidateRequestDto);
             log.info("Successfully Validated OTP: {}", response.getStatus());
             return response;
+        } catch (FeignCustomException exception)
+        {
+            throw exception;
         }
         catch (Exception exception)
         {
@@ -103,6 +110,9 @@ public class KycService
             AadhaarMaskingResponseDto  response=AadhaarMaskingClient.generateAadhaarMasked(aadhaarMaskingRequestDto);
             log.info("Aadhaar Successfully masked");
             return response;
+        }  catch (FeignCustomException exception)
+        {
+            throw exception;
         }
         catch (Exception exception)
         {
@@ -128,6 +138,9 @@ public class KycService
             NameMatchResponseDto  response= KycClient.getNameMatchingpercentage(nameMatchRequestDto);
             log.info("Name matching Successfully done");
             return response;
+        }  catch (FeignCustomException exception)
+        {
+            throw exception;
         }
         catch (Exception exception)
         {
@@ -183,7 +196,12 @@ public class KycService
             log.info("KYC validation response received for IdNumber");
 
             return response;
-        } catch (Exception exception) {
+        }
+        catch (FeignCustomException exception)
+        {
+            throw exception;
+        }
+        catch (Exception exception) {
             log.error("Error validating KYC for IdNumber: {}", exception);
 
             throw new RuntimeException("Failed to validating KYC", exception);
@@ -209,6 +227,10 @@ public class KycService
             UpiAccountDetailsResponseDto  response= UpiIdValidationClient.getValidatedUpiIdDetails(UpiRequestDto);
             log.info("UpiId Validation Successfully done");
             return response;
+        }
+        catch (FeignCustomException exception)
+        {
+            throw exception;
         }
         catch (Exception exception)
         {

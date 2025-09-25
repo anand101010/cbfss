@@ -3,6 +3,7 @@ package com.incede.nbfc.core.monolith.customer.dto;
 import lombok.*;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -11,11 +12,13 @@ import java.math.BigDecimal;
 public class CustomerAddressRequestDto {
 
     @NotNull(message = "Address typeId is required")
-    private Integer addressTypeId;
+    private UUID addressType;
 
+    @NotBlank(message = "Door number must not be blank")
     @Size(max = 50, message = "Door number must not exceed 50 characters")
     private String doorNumber;
 
+    @NotBlank(message = "Address line 1 must not be blank")
     @Size(max = 100, message = "Address line 1 must not exceed 100 characters")
     private String addressLine1;
 
@@ -25,26 +28,27 @@ public class CustomerAddressRequestDto {
     @Size(max = 100, message = "Landmark must not exceed 100 characters")
     private String landmark;
 
+    @NotBlank(message = "Place name must not be blank")
     @Size(max = 100, message = "Place name must not exceed 100 characters")
     private String placeName;
 
-    @Min(value = 1, message = "City ID must be a positive number")
-    private Integer cityId;
+    @NotBlank(message = "City must not be blank")
+    private String city;
 
-    @Min(value = 1, message = "District ID must be a positive number")
-    private Integer districtId;
+    @NotBlank(message = "District must not be blank")
+    private String district;
 
-    @Min(value = 1, message = "State ID must be a positive number")
-    private Integer stateId;
+    @NotBlank(message = "State must not be blank")
+    private String state;
 
-    @Min(value = 1, message = "Country ID must be a positive number")
-    private Integer countryId;
+    @NotBlank(message = "Country must not be blank")
+    private String country;
 
-    @Min(value = 100000, message = "Pincode must be 6 digits")
-    @Max(value = 999999, message = "Pincode must be 6 digits")
-    private Integer pincode;
+    @Pattern(regexp = "^[0-9]{6}$", message = "Pincode must be exactly 6 digits")
+    private String pincode;
 
-    private Integer postOfficeId;
+    @NotNull(message = "Post office ID is required")
+    private UUID postOfficeId;
 
     @Digits(integer = 3, fraction = 6, message = "Latitude must be valid")
     private BigDecimal latitude;
@@ -57,15 +61,15 @@ public class CustomerAddressRequestDto {
     @Digits(integer = 5, fraction = 2, message = "Geo accuracy must be valid")
     private BigDecimal geoAccuracy;
 
-    private Integer addressProofType;
+    @NotNull(message = "Address proof type is required")
+    private UUID addressProofType;
 
     private Boolean isActive;
-
-
 
     private Boolean isDel;
 
     @ToString.Exclude
+    @Size(max = 30, message = "Digipin must not exceed 30 characters")
     private String digipin;
 
     @ToString.Exclude

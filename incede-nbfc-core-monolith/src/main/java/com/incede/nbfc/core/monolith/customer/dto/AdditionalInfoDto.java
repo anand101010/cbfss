@@ -14,10 +14,10 @@ public class AdditionalInfoDto{
 
     CustomerEmploymentDto employment;
     CustomerReferralDto referrals;
-    CustomerPepDto pep;
     CustomerProfileExtraDto profileExtra;
     CustomerAssetDto customerAsset;
     AdditionalInfoCustomerDto customer;
+    AdditionalReferenceValueDto additionalReferenceValueDto;
 
 
 

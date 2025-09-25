@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.domain.entity;
 
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -33,9 +34,11 @@ public class CustomerAddress extends CustomerBaseEntity implements Serializable 
     @NotNull(message = "Customer reference is required")
     private Customer customer;
 
-    @Column(name = "address_type", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "address_type", nullable = false, referencedColumnName = "address_type_id")
     @NotNull(message = "Address type must not be null")
-    private Integer addressTypeId;
+    private AddressType addressType;
+
 
 
     @Column(name = "door_number", length = 50)
@@ -58,29 +61,30 @@ public class CustomerAddress extends CustomerBaseEntity implements Serializable 
     @Size(max = 100, message = "Place name must not exceed 100 characters")
     private String placeName;
 
-    @Column(name = "city_id")
-    @Min(value = 1,message = "city Id must be a positive Number")
-    private Integer cityId;
+    @Column(name = "city")
+    @NotNull(message = "city must not be null")
+    private String city;
 
-    @Column(name = "district_id")
-    @Min(value = 1,message = " District Id must be a positive Number")
-    private Integer districtId;
+    @Column(name = "district")
+    @NotNull(message = "district must not be null")
+    private String district;
 
-    @Column(name = "state_id")
-    @Min(value = 1,message = "State Id must be a positive Number")
-    private Integer stateId;
+    @Column(name = "state")
+    @NotNull(message = "state must not be null")
+    private String state;
 
-    @Column(name = "country_id")
-    @Min(value = 1,message = "Country Id must be a positive Number")
-    private Integer countryId;
+    @Column(name = "country")
+    @NotNull(message = "country must not be null")
+    private String country;
 
-    @Column(name = "pincode")
-    @Min(value = 100000, message = "Pincode must be at least 6 digits")
-    @Max(value = 999999, message = "Pincode must be at most 6 digits")
-    private Integer pincode;
+    @Column(name = "pincode", length = 6)
+    @Pattern(regexp = "^[0-9]{6}$", message = "Pincode must be exactly 6 digits")
+    private String pincode;
 
-    @Column(name = "post_office_id")
-    private Integer postOfficeId;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "post_office_id", nullable = false, referencedColumnName = "post_office_id")
+    private PostOffices postOffice;
+
 
     @Column(name = "latitude", precision = 9, scale = 6)
     @Digits(integer = 3, fraction = 6, message = "Latitude must be a valid coordinate")
@@ -99,8 +103,9 @@ public class CustomerAddress extends CustomerBaseEntity implements Serializable 
     @ToString.Exclude
     private String digipin;
 
-    @Column(name = "address_proof_type")
-    private Integer addressProofTypes;
+    @ManyToOne
+    @JoinColumn(name = "address_proof_type", nullable = false, referencedColumnName = "address_proof_type_id")
+    private AddressProofType addressProofType;
 
     @Column(name = "is_sameAs_permanent")
     private Boolean isSameAsPermanent = false;

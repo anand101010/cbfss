@@ -3,6 +3,7 @@ package com.incede.nbfc.core.monolith.service;
 import com.incede.nbfc.core.monolith.client.FinaVaultClient;
 import com.incede.nbfc.core.monolith.client.dto.FinaVaultRequestDto;
 import com.incede.nbfc.core.monolith.client.dto.FinaVaultResponseDto;
+import com.incede.nbfc.core.monolith.exception.FeignCustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +29,9 @@ public class VaultService {
             finaVaultRequest.setUid(uid);
             finaVaultRequest.setSecurityTokenVault(securityToken);
             return finaVaultClient.generateVaultIdAndMaskAadhaar(finaVaultRequest);
+        }  catch (FeignCustomException exception)
+        {
+            throw exception;
         }
         catch (Exception exception){
             log.error("Some errors in fine Vault", exception);

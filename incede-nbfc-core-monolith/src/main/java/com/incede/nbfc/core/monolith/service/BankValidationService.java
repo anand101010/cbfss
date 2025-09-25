@@ -4,6 +4,7 @@ import com.incede.nbfc.core.monolith.client.dto.BankValidationRequestDto;
 import com.incede.nbfc.core.monolith.client.dto.BankValidationResponseDto;
 import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.domain.dto.BankValidateRequestDto;
+import com.incede.nbfc.core.monolith.exception.FeignCustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,11 @@ public class BankValidationService {
             validationRequest.setBeneficiaryDetails(beneficiaryDetails);
             return pennydropclient.validateBankAccount(validationRequest);
 
-        } catch (Exception e) {
+        } catch (FeignCustomException exception)
+        {
+            throw exception;
+        }
+        catch (Exception e) {
             // Log and rethrow exception with context for debugging
             log.error("Bank account validation failed for Account:{}", e);
 

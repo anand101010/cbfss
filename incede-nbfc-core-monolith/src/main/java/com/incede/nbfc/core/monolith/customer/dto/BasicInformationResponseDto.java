@@ -61,7 +61,7 @@ public class BasicInformationResponseDto {
 
         private BigDecimal annualIncome;
 
-        private Integer customerListTypeId;
+        private UUID customerListTypeId;
 
         private Boolean isBusiness;
 

@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.masterdata.controller;
 
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.ReferralSources;
 import com.incede.nbfc.core.monolith.masterdata.dto.*;
 import com.incede.nbfc.core.monolith.masterdata.service.ProfileMasterDataService;
 import com.incede.nbfc.core.monolith.masterdata.service.ReferenceMasterDataService;
@@ -171,6 +172,24 @@ public class ProfileMasterDataController
         List<SourceOfIncomeTypeView> sourceOfIncomeTypeView =profileMasterDataService.getAllSourceOfIncomeType();
         log.info("Found {} Source Of Income Type", sourceOfIncomeTypeView.size());
         return ResponseEntity.ok(sourceOfIncomeTypeView);
+    }
+
+    @GetMapping("/referral_source")
+    @Operation(summary = "Get all referral source", description = "Retrieves all referral source from the system")
+    public ResponseEntity<List<ReferralSourcesView>> getAllReferralSource(){
+        log.info("Fetching all referral source");
+        List<ReferralSourcesView> referralSourcesView =profileMasterDataService.getAllReferralSources();
+        log.info("Found {} referral source", referralSourcesView.size());
+        return ResponseEntity.ok(referralSourcesView);
+    }
+
+    @GetMapping("/education-level")
+    @Operation(summary = "Get all education level", description = "Retrieves all education level from the system")
+    public ResponseEntity<List<EducationLevelsView>> getAllEducationLevels(){
+        log.info("Fetching all education level");
+        List<EducationLevelsView> educationLevelsView =profileMasterDataService.getAllEducationLevels();
+        log.info("Found {}  education level", educationLevelsView.size());
+        return ResponseEntity.ok(educationLevelsView);
     }
 
 

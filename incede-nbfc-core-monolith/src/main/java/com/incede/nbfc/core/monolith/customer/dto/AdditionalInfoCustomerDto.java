@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -13,10 +15,13 @@ import lombok.NoArgsConstructor;
 public class AdditionalInfoCustomerDto {
 
     @NotNull(message = "nationality cannot be null")
-    private Integer nationality;
+    private UUID nationality;
     @NotNull(message = "preferredLanguageId cannot be null")
-    private Integer preferredLanguageId;
+    private UUID preferredLanguageId;
     @NotNull(message = "residentialStatusId cannot be null")
-    private Integer residentialStatusId;
+    private UUID residentialStatusId;
+    private UUID customerGroupId;
+    private UUID riskCategory;
+    private UUID categoryId;
 
 }

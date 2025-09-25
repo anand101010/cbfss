@@ -83,7 +83,7 @@ public interface KycClient
 
 
         @PostMapping("${decentro.api.kyc-validate}")
-       // @CircuitBreaker(name = "post-api", fallbackMethod = "validateKycFallback")
+        @CircuitBreaker(name = "post-api", fallbackMethod = "validateKycFallback")
         KycResponseDto validateKyc (@RequestBody KycRequestDto kycrequestdto);
 
 

@@ -30,6 +30,8 @@ public class BankMasterDataService {
     private final BranchesMapper branchesMapper;
     private final StatesRepository statesRepository;
     private final StatesMapper statesMapper;
+    private final CountryMapper countryMapper;
+    private final PincodeMapper pincodeMapper;
     private final BranchTypeRepository branchTypeRepository;
     private final BranchTypeMapper branchTypeMapper;
     private final PostOfficesRepository postOfficesRepository;
@@ -38,6 +40,9 @@ public class BankMasterDataService {
     private final CitiesMapper citiesMapper;
     private final DistrictRepository districtRepository;
     private final DistrictMapper districtMapper;
+    private final CustomerCategoryRepository customerCategoryRepository;
+    private final CountryRepository countryRepository;
+    private final PincodesRepository pincodesRepository;
 
     /**
      * Retrieves all active branch contact
@@ -129,7 +134,10 @@ public class BankMasterDataService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-
+        Set<Integer> countryIds = branches.stream()
+                .map(Branches::getCountryId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
 
         /**
          * Bulk fetch entities from repositories
@@ -150,7 +158,8 @@ public class BankMasterDataService {
         Map<Integer, Districts> districtMap = districtRepository.findBydistrictIdIn(districtIds).stream()
                 .collect(Collectors.toMap(Districts::getDistrictId, Function.identity()));
 
-
+        Map<Integer, Countries> countryMap = countryRepository.findByCountryIdIn(countryIds).stream()
+                .collect(Collectors.toMap(Countries::getCountryId, Function.identity()));
 
         /**
          * Convert to branches DTOs
@@ -193,6 +202,14 @@ public class BankMasterDataService {
                             dto.setDistrictDto(districtMapper.convertToDto(districts));
                         }
                     }
+
+                    if(branch.getCountryId() != null){
+                        Countries countries = countryMap.get(branch.getCountryId());
+                        if(countries != null){
+                            dto.setCountryDto(countryMapper.convertToDto(countries));
+                        }
+                    }
+
 
                     return dto;
                 })
@@ -256,4 +273,16 @@ public class BankMasterDataService {
         return Collections.unmodifiableList(customerStatuses);
     }
 
+    @Transactional(readOnly = true)
+    public List<CustomerCategoryView> getCustomerCategoryView() {
+        List<CustomerCategoryView> customerCategory = customerCategoryRepository.findByIsDelFalseAndIsActiveTrue();
+
+        if (customerCategory.isEmpty()) {
+            log.warn("No customer category found");
+            return customerCategory;
+        }
+
+        log.info("Fetched {} customer category", customerCategory.size());
+        return Collections.unmodifiableList(customerCategory);
+    }
 }

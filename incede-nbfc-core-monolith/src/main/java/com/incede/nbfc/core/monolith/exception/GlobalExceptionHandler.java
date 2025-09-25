@@ -1,6 +1,8 @@
 package com.incede.nbfc.core.monolith.exception;
 
+import com.incede.nbfc.core.monolith.client.dto.GenericFeignErrorDto;
 import feign.FeignException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -30,7 +32,9 @@ import java.util.UUID;
  * @author Incede NBFC Development Team
  * @version 1.0.0
  */
+
 @ControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     /**
@@ -303,6 +307,16 @@ public class GlobalExceptionHandler {
                 .build();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
+    @ExceptionHandler(FeignCustomException.class)
+    public ResponseEntity<Map<String, Object>> handleFeignCustomException(FeignCustomException ex) {
+        log.error("Handling FeignCustomException: {}", ex.getErrorResponse());
+        Map<String, Object> errorResponse = ex.getErrorResponse();
+        if (errorResponse == null) {
+            errorResponse = Map.of("message", "Unknown error"); // fallback
+        }
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(errorResponse);
+    }
+
 
 
 

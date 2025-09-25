@@ -1,5 +1,8 @@
 package com.incede.nbfc.core.monolith.customer.domain.entity;
 
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.Designations;
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.Occupation;
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.SourceOfIncomeType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -31,21 +34,21 @@ public class CustomerEmployment extends CustomerBaseEntity implements Serializab
     @NotNull(message = "Customer reference is required")
     private Customer customer;
 
-    @Column(name = "occupation_id")
-    @Min(value = 1, message = "Occupation ID must be a positive Integer")
-    private Integer occupationId;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "occupation_id", referencedColumnName = "occupation_id")
+    private Occupation occupationId;
 
-    @Column(name = "designation_id")
-    @Min(value = 1, message = "designationId must be a positive Integer")
-    private Integer designationId;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "designation_id", referencedColumnName = "designation_id")
+    private Designations designationId;
 
     @Column(name = "employer", length = 100)
     @Size(max = 100, message = "Employer name must not exceed 100 characters")
     private String employer;
 
-    @Column(name = "income_source_id")
-    @Min(value=1,message ="IncomeSource Id must be a positive Integer" )
-    private Integer incomeSourceId;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "income_source_id", referencedColumnName = "source_of_income_type_id")
+    private SourceOfIncomeType incomeSourceId;
 
     @Column(name = "monthly_salary", precision = 15, scale = 2)
     @DecimalMin(value = "0.00", inclusive = true, message = "Monthly salary must be non-negative")

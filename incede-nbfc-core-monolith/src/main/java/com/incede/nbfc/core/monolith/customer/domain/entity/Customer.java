@@ -8,6 +8,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 /**
  * Customer entity for the NBFC system.
@@ -148,4 +149,16 @@ public class Customer extends CustomerBaseEntity implements Serializable {
 
     @Column(name = "otp_is_verified")
     private Boolean otpIsVerified;
+
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "customer_group_id", referencedColumnName = "customer_group_id")
+    private CustomerGroup customerGroupId;
+
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "risk_category", nullable = false, referencedColumnName = "risk_category")
+    private CustomerRiskProfile riskCategory;
+
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "category_id", nullable = false, referencedColumnName = "category_id")
+    private CustomerCategoryMapping categoryId;
 }

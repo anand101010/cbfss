@@ -14,9 +14,7 @@
 //import java.util.UUID;
 //
 //import static org.junit.jupiter.api.Assertions.assertEquals;
-//import static org.mockito.Mockito.any;
-//import static org.mockito.Mockito.eq;
-//import static org.mockito.Mockito.when;
+//import static org.mockito.Mockito.*;
 //
 //class CustomerAdditionalInfoControllerTest {
 //
@@ -36,7 +34,6 @@
 //
 //        customerId = UUID.randomUUID();
 //
-//
 //        responseDto = CustomerAdditionalInfoResponseDto.builder()
 //                .identity(customerId)
 //                .customerCode("CUST123")
@@ -44,38 +41,33 @@
 //                .additional(CustomerAdditionalInfoResponseDto.AdditionalInfoDto.builder()
 //                        .employment(CustomerEmploymentDto.builder()
 //                                .employer("ABC Corp")
-//                                .occupationId(1)
-//                                .designationId(1)
-//                                .incomeSourceId(1)
+//                                .occupationId(UUID.randomUUID())
+//                                .designationId(UUID.randomUUID())
+//                                .incomeSourceId(UUID.randomUUID())
 //                                .monthlySalary(BigDecimal.valueOf(20000))
 //                                .annualIncome(BigDecimal.valueOf(2000000))
 //                                .build())
 //                        .referrals(CustomerReferralDto.builder()
-//                                .referralSourceId(10)
+//                                .referralSourceId(UUID.randomUUID())
 //                                .build())
-//                        .pep(CustomerPepDto.builder()
-//                                .status("active")
-//                                .categoryId(5)
-//                                .build())
+//
 //                        .profileExtra(CustomerProfileExtraDto.builder()
-//                                .educationLevelId(3)
-//                                .purposeId(4)
+//                                .educationLevelId(UUID.randomUUID())
+//                                .purposeId(UUID.randomUUID())
 //                                .build())
 //                        .assets(CustomerAssetDto.builder()
-//                                .assetId(100)
-//                                .description("House")
+//                                .assetTypeId(UUID.randomUUID()) // FIXED: added UUID.randomUUID()
 //                                .build())
 //                        .additionalInfoCustomerDto(AdditionalInfoCustomerDto.builder()
-//                                .nationality(1)
-//                                .preferredLanguageId(2)
-//                                .residentialStatusId(3)
+//                                .nationality(UUID.randomUUID())
+//                                .preferredLanguageId(UUID.randomUUID())
+//                                .residentialStatusId(UUID.randomUUID())
 //                                .build())
 //                        .build())
 //                .build();
 //
-//
 //        requestDto = CustomerAdditionalInfoRequestDto.builder()
-//                .additional(AdditionalInfoDto.builder()
+//                .additional(CustomerAdditionalInfoRequestDto.AdditionalInfoDto.builder()
 //                        .employment(CustomerEmploymentDto.builder()
 //                                .employer("ABC Corp")
 //                                .build())
@@ -93,6 +85,9 @@
 //
 //        assertEquals(HttpStatus.CREATED, result.getStatusCode());
 //        assertEquals(responseDto, result.getBody());
+//
+//        verify(additionalInfoService, times(1))
+//                .saveAdditionalInfo(eq(customerId), eq(requestDto));
 //    }
 //
 //    @Test
@@ -105,5 +100,38 @@
 //
 //        assertEquals(HttpStatus.OK, result.getStatusCode());
 //        assertEquals(responseDto, result.getBody());
+//
+//        verify(additionalInfoService, times(1))
+//                .getAdditionalInfo(customerId);
+//    }
+//
+//    @Test
+//    void testUpdateAdditionalInfo_whenServiceThrowsException() {
+//        when(additionalInfoService.saveAdditionalInfo(eq(customerId), any(CustomerAdditionalInfoRequestDto.class)))
+//                .thenThrow(new RuntimeException("Service error"));
+//
+//        try {
+//            controller.updateAdditionalInfo(customerId, requestDto);
+//        } catch (Exception e) {
+//            assertEquals("Service error", e.getMessage());
+//        }
+//
+//        verify(additionalInfoService, times(1))
+//                .saveAdditionalInfo(eq(customerId), eq(requestDto));
+//    }
+//
+//    @Test
+//    void testGetAdditionalInfo_whenServiceThrowsException() {
+//        when(additionalInfoService.getAdditionalInfo(eq(customerId)))
+//                .thenThrow(new RuntimeException("Service error"));
+//
+//        try {
+//            controller.getAdditionalInfo(customerId);
+//        } catch (Exception e) {
+//            assertEquals("Service error", e.getMessage());
+//        }
+//
+//        verify(additionalInfoService, times(1))
+//                .getAdditionalInfo(customerId);
 //    }
 //}

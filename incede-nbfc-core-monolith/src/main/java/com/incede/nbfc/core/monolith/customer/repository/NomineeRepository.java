@@ -2,6 +2,7 @@ package com.incede.nbfc.core.monolith.customer.repository;
 
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Nominee;
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.Relationships;
 import feign.Param;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -19,5 +20,5 @@ public interface NomineeRepository extends JpaRepository<Nominee, Integer> {
     Optional<Nominee> findByIdentityAndCustomer(UUID identity, Customer customer);
     @Query("SELECT n FROM Nominee n WHERE n.customer.identity = :customerIdentity AND n.isDel = false")
     List<Nominee> findByCustomerIdentityAndIsDelFalse(UUID customerIdentity);
-    boolean existsByCustomerAndFullNameAndRelationshipAndIsDelFalse(Customer customer, @NotBlank(message = "Full name is required") String fullName, @NotNull(message = "Relationship is required") Integer relationship);
+    boolean existsByCustomerAndFullNameAndRelationshipAndIsDelFalse(Customer customer, String fullName, Relationships relationship);
 }

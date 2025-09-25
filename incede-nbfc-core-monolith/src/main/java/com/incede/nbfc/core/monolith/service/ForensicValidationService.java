@@ -6,6 +6,7 @@ import com.incede.nbfc.core.monolith.client.dto.PhotoLivenessCheckResponseDto;
 import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.domain.dto.FaceMatchingRequestDto;
 import com.incede.nbfc.core.monolith.domain.dto.PhotoLivenessRequestDto;
+import com.incede.nbfc.core.monolith.exception.FeignCustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,6 +41,9 @@ public class ForensicValidationService
             FaceMatchingResponseDto  response=KycClient.getFaceMatchingPercentage(faceMatchingRequestDto.getImage1(),faceMatchingRequestDto.getImage2(),faceMatchingRequestDto.getReferenceId(),faceMatchingRequestDto.getConsent(),faceMatchingRequestDto.getConsentPurpose());
             log.info("Face Matching Percentage Fetched Successfully ");
             return response;
+        }  catch (FeignCustomException exception)
+        {
+            throw exception;
         }
         catch (Exception exception)
         {
@@ -68,6 +72,9 @@ public class ForensicValidationService
             PhotoLivenessCheckResponseDto  response=ForensicPhotoLivenessClient.generatePhotoLivenessPercentage(photoLivenessRequestDto);
             log.info("photo Liveness Percentage Fetched Successfully ");
             return response;
+        }  catch (FeignCustomException exception)
+        {
+            throw exception;
         }
         catch (Exception exception)
         {

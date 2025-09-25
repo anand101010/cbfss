@@ -4,6 +4,7 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -12,20 +13,17 @@ import java.math.BigDecimal;
 public class CustomerEmploymentDto {
 
     @NotNull(message = "Occupation ID is required")
-    @Min(value = 1, message = "Occupation ID must be a positive number")
-    private Integer occupationId;
+    private UUID occupationId;
 
     @NotNull(message = "Designation ID is required")
-    @Min(value = 1, message = "Designation ID must be a positive number")
-    private Integer designationId;
+    private UUID designationId;
 
     @NotBlank(message = "Employer name cannot be blank")
     @Size(max = 255, message = "Employer name must not exceed 255 characters")
     private String employer;
 
     @NotNull(message = "Income Source ID is required")
-    @Min(value = 1, message = "Income Source ID must be a positive number")
-    private Integer incomeSourceId;
+    private UUID incomeSourceId;
 
     @NotNull(message = "Monthly salary is required")
     @DecimalMin(value = "0.0", inclusive = false, message = "Monthly salary must be greater than 0")

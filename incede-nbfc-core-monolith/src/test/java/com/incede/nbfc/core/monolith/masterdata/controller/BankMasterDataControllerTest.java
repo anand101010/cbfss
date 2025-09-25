@@ -173,4 +173,6 @@ public class BankMasterDataControllerTest {
         assertThat(result.getDayOfWeek()).isEqualTo((short) 1);
         assertThat(result.getIdentity()).isEqualTo(id);
     }
+
+
 }

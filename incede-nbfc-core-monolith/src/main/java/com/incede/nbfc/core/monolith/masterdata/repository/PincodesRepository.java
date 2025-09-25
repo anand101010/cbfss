@@ -17,4 +17,5 @@ public interface PincodesRepository extends JpaRepository<Pincodes, Integer> {
 
     @Query("SELECT p FROM Pincodes p WHERE p.pincode = :pincode")
     List<Pincodes> findByDetailsThroughPincode(@Param("pincode") Integer pincode);
+
 }

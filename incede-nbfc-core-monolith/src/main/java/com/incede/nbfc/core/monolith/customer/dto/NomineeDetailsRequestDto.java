@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -21,7 +22,7 @@ public class NomineeDetailsRequestDto {
     private String fullName;
 
     @NotNull(message = "Relationship is required")
-    private Integer relationship;
+    private UUID relationship;
 
     @Past(message = "Date of birth must be in the past")
     private LocalDate dob;
@@ -50,7 +51,7 @@ public class NomineeDetailsRequestDto {
 
 
 
-    private Integer addressTypeId;
+    private UUID addressTypeId;
 
     private String doorNumber;
 
@@ -61,21 +62,21 @@ public class NomineeDetailsRequestDto {
 
     private String placeName;
 
-    private Integer cityId;
+    private String  city;
 
-    private Integer districtId;
-
-
-    private Integer stateId;
+    private String   district;
 
 
-    private Integer countryId;
+    private String   state;
 
 
-    private Integer pincode;
+    private String  country;
 
 
-    private Integer postOfficeId;
+    private String  pincode;
+
+
+    private UUID  postOfficeId;
 
     @ToString.Exclude
     private BigDecimal latitude;

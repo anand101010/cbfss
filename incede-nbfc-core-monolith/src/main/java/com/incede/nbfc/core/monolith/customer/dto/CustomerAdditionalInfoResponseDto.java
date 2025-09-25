@@ -31,10 +31,11 @@ public class CustomerAdditionalInfoResponseDto {
 
         private CustomerEmploymentDto employment;
         private CustomerReferralDto referrals;
-        private CustomerPepDto pep;
         private CustomerProfileExtraDto profileExtra;
         private CustomerAssetDto assets;
         private AdditionalInfoCustomerDto additionalInfoCustomerDto;
+        private AdditionalReferenceValueDto additionalReferenceValueDto;
+
 
 
     }

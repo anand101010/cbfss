@@ -66,7 +66,6 @@ public class CustomerKycService {
                 throw new BusinessException(errorMsg, ErrorCodes.VALIDATION_FAILED);
             }
 
-            // generate customer code + entity
             String customerCode = customerKycMapper.generateCustomerCode(
                     request.getBranchCode(),
                     request.getCustomerType()
@@ -80,7 +79,6 @@ public class CustomerKycService {
             customer.setBranchId(branch);
             Customer savedCustomer = customerRepository.save(customer);
 
-            // resolve document type by UUID
             DocumentType documentType = documentTypeRepository.findByIdentity(request.getIdType())
                     .orElseThrow(() -> new BusinessException("Document type not found", ErrorCodes.RESOURCE_NOT_FOUND));
 

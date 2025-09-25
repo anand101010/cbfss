@@ -17,7 +17,7 @@ public class NomineeDetailsResponseDto {
     private UUID identity;             // From Customer
     private String customerCode;       // From Customer
     private String status;
-private List<NomineeResponseDto> nominees;
+    private List<NomineeResponseDto> nominees;
 
 
     @Data
@@ -27,7 +27,7 @@ private List<NomineeResponseDto> nominees;
     public  static  class  NomineeResponseDto{
         private UUID nomineeIdentity;
         private String fullName;
-        private Integer relationship;
+        private UUID relationship;
         private LocalDate dob;
         private String contactNumber;
         private Boolean isSameAddress;
@@ -37,17 +37,17 @@ private List<NomineeResponseDto> nominees;
         private LocalDate guardianDob;
         private String guardianEmail;
         private String guardianContactNumber;
-        private Integer addressTypeId;
+        private UUID addressTypeId;
         private String doorNumber;
         private String addressLine1;
         private String landmark;
         private String placeName;
-        private Integer cityId;
-        private Integer districtId;
-        private Integer stateId;
-        private Integer countryId;
-        private Integer pincode;
-        private Integer postOfficeId;
+        private String city;
+        private String district;
+        private String state;
+        private String country;
+        private String pincode;
+        private UUID postOfficeId;
         @ToString.Exclude
         private BigDecimal latitude;
         @ToString.Exclude

@@ -4,7 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.server.ResponseStatusException;
 
 @Slf4j
+
 public class FallBackHelper {
+
     /**
      * Helper method to create a fallback response for any DTO type.
      *
@@ -34,6 +36,4 @@ public class FallBackHelper {
 
         return dtoInstance;
     }
-
-
 }

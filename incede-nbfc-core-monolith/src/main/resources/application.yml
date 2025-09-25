@@ -11,7 +11,7 @@ decentro:
     validate-bank: core_banking/money_transfer/validate_account
     face-match: v2/kyc/forensics/face_match
     name-match: v2/kyc/match/name
-    upiId-validate: /v2/banking/verify_pay
+    upiId-validate: v2/banking/verify_pay
 
 
   client:

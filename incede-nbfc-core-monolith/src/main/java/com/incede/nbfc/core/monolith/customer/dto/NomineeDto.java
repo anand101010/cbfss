@@ -16,7 +16,7 @@ import java.util.UUID;
 public class NomineeDto {
     private UUID nomineeIdentity;
     private String fullName;
-    private Integer relationship;
+    private UUID  relationship;
     private LocalDate dob;
     private String contactNumber;
     private Boolean isSameAddress;
@@ -26,17 +26,17 @@ public class NomineeDto {
     private LocalDate guardianDob;
     private String guardianEmail;
     private String guardianContactNumber;
-    private Integer addressTypeId;
+    private UUID  addressTypeId;
     private String doorNumber;
     private String addressLine1;
     private String landmark;
     private String placeName;
-    private Integer cityId;
-    private Integer districtId;
-    private Integer stateId;
-    private Integer countryId;
-    private Integer pincode;
-    private Integer postOfficeId;
+    private String  city;
+    private String  district;
+    private String  state;
+    private String  country;
+    private String  pincode;
+    private  UUID postOfficeId;
     @ToString.Exclude
     private BigDecimal latitude;
     @ToString.Exclude

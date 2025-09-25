@@ -3,7 +3,6 @@ package com.incede.nbfc.core.monolith.customer.dto;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,22 +23,22 @@ public class CustomerAddressResponseDto {
     @Builder
     public static class AddressDetail {
         private UUID addressIdentity;
-        private Integer addressTypeId;
+        private UUID addressType;
         private String doorNumber;
         private String addressLine1;
         private String addressLine2;
         private String landmark;
         private String placeName;
-        private Integer cityId;
-        private Integer districtId;
-        private Integer stateId;
-        private Integer countryId;
-        private Integer pincode;
-        private Integer postOfficeId;
+        private String city;
+        private String district;
+        private String state;
+        private String country;
+        private String pincode;
+        private UUID postOffice;
         private BigDecimal latitude;
         private BigDecimal longitude;
         private BigDecimal geoAccuracy;
-        private Integer addressProofType;
+        private UUID addressProofType;
         private Boolean isActive;
         @ToString.Exclude
         private String digipin;

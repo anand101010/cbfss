@@ -4,6 +4,7 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -12,7 +13,7 @@ import java.math.BigDecimal;
 public class NomineeAddressDto {
 
     @NotNull(message = "Address type must not be null")
-    private Integer addressTypeId;
+    private UUID addressTypeId;
 
     @NotBlank(message = "Door number must not be blank")
     private String doorNumber;
@@ -26,22 +27,22 @@ public class NomineeAddressDto {
     private String placeName;
 
     @NotNull(message = "City ID must not be null")
-    private Integer cityId;
+    private String city;
 
     @NotNull(message = "District ID must not be null")
-    private Integer districtId;
+    private  String district;
 
     @NotNull(message = "State ID must not be null")
-    private Integer stateId;
+    private  String state;
 
     @NotNull(message = "Country ID must not be null")
-    private Integer countryId;
+    private  String country;
 
     @NotNull(message = "Pincode must not be null")
-    private Integer pincode;
+    private  String pincode;
 
     @NotNull(message = "Post office ID must not be null")
-    private Integer postOfficeId;
+    private UUID postOfficeId;
 
     @ToString.Exclude
     private BigDecimal latitude;

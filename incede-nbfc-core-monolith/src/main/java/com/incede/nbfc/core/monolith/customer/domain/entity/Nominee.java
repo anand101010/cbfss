@@ -1,6 +1,7 @@
 package com.incede.nbfc.core.monolith.customer.domain.entity;
 
 
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -43,9 +44,10 @@ public class Nominee extends CustomerBaseEntity implements Serializable {
     @Size(max = 100, message = "Full name must not exceed 100 characters")
     private String fullName;
 
-    @Column(name = "relationship", nullable = false)
-    @NotNull(message = "Relationship is required")
-    private Integer relationship;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "relationship", nullable = false, referencedColumnName = "relationship_id")
+    @NotNull(message = "Relationship must not be null")
+    private Relationships relationship;
 
     @Column(name = "dob")
     @Past(message = "Date of birth must be in the past")
@@ -74,34 +76,42 @@ public class Nominee extends CustomerBaseEntity implements Serializable {
     @Size(max = 50, message = "Place name must not exceed 50 characters")
     private String placeName;
 
-    @Column(name = "city")
-    @Min(value = 1, message = "City must be a positive integer")
-    private Integer city;
 
-    @Column(name = "district")
-    @Min(value = 1, message = "District must be a positive integer")
-    private Integer district;
+    @Column(name = "city", nullable = false)
+    @NotNull(message = "City must not be null")
+    private String city;
 
-    @Column(name = "state_id")
-    @Min(value = 1, message = "State must be a positive integer")
-    private Integer stateId;
+    @Column(name = "district", nullable = false)
+    @NotNull(message = "District must not be null")
+    private String district;
 
-    @Column(name = "country")
-    @Min(value = 1, message = "Country must be a positive integer")
-    private Integer country;
+    @Column(name = "state", nullable = false)
+    @NotNull(message = "State must not be null")
+    private String state;
 
-    @Column(name = "pincode")
-    @Min(value = 100000, message = "Pincode must be at least 6 digits")
-    @Max(value = 999999, message = "Pincode must be at most 6 digits")
-    private Integer pincode;
 
-    @Column(name = "address_type_id", nullable = false)
-    @NotNull(message = "Address type must not be null")
-    private Integer addressTypeId;
+    @Column(name = "country", nullable = false)
+    @NotNull(message = "Country must not be null")
+    private String country;
 
-    @Column(name = "post_office_id", nullable = false)
-    @NotNull(message = "Post office ID must not be null")
-    private Integer postOfficeId;
+
+
+    @Column(name = "pincode", nullable = false)
+
+    @Pattern(regexp = "^[0-9]{6}$", message = "Pincode must be exactly 6 digits")
+    private String pincode;
+
+
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "address_type_id", nullable = false, referencedColumnName = "address_type_id")
+    @NotNull(message = "Address Type must not be null")
+    private AddressType addressTypeId;
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "post_office_id", nullable = false, referencedColumnName = "post_office_id")
+    @NotNull(message = "Post Office must not be null")
+    private PostOffices postOfficeId;
 
     @Column(name = "latitude", precision = 9, scale = 6)
     private BigDecimal latitude;

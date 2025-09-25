@@ -111,7 +111,6 @@ public class KycController
      */
     @GetMapping("/upi/matching")
     public ResponseEntity<UpiAccountDetailsResponseDto> getUpiMatching( @RequestParam("upiId") String upiId) {
-
         log.info("Get UPI Validation  Received");
         UpiAccountDetailsResponseDto response = kycService.getUpiIdValidationResponse(upiId);
         return ResponseEntity.ok(response);

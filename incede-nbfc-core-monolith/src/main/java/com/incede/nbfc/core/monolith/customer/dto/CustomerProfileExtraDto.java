@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.UUID;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -14,12 +16,10 @@ import lombok.ToString;
 public class CustomerProfileExtraDto {
 
     @NotNull(message = "Education level is required")
-    @Min(value = 1, message = "Education level ID must be a positive number")
-    private Integer educationLevelId;
+    private UUID educationLevelId;
 
     @NotNull(message = "Purpose is required")
-    @Min(value = 1, message = "Purpose ID must be a positive number")
-    private Integer purposeId;
+    private UUID purposeId;
 
 
 

@@ -11,8 +11,9 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpiAccountDetailsResponseDto {
-
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String decentroTxnId;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String status;
     private String responseCode;
     private String message;
@@ -20,6 +21,7 @@ public class UpiAccountDetailsResponseDto {
     @JsonProperty("data")
     private UpiIdBenificiaryDataDto UpiIdBenificiaryDataDto;
     @ToString.Exclude
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String responseKey;
 
 

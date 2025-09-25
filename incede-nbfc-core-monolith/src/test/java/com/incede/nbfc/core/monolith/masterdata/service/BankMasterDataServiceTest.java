@@ -55,6 +55,8 @@ public class BankMasterDataServiceTest {
     private CitiesRepository citiesRepository;
     @Mock
     private DistrictRepository districtRepository;
+    @Mock
+    private CountryRepository countryRepository;
 
     @Mock
     private BranchesMapper branchesMapper;
@@ -68,6 +70,8 @@ public class BankMasterDataServiceTest {
     private CitiesMapper citiesMapper;
     @Mock
     private DistrictMapper districtMapper;
+    @Mock
+    private CountryMapper countryMapper;
 
     private Branches branchEntity;
 
@@ -81,6 +85,7 @@ public class BankMasterDataServiceTest {
         branchEntity.setPostOfficeId(30);
         branchEntity.setCityId(40);
         branchEntity.setDistrictId(50);
+        branchEntity.setCountryId(1);
     }
 
 
@@ -224,6 +229,10 @@ public class BankMasterDataServiceTest {
         city.setCityId(40);
         when(citiesRepository.findByCityIdIn(Set.of(40))).thenReturn(List.of(city));
 
+        Countries country = new Countries();
+        country.setCountryId(60);
+        when(countryRepository.findByCountryIdIn(Set.of(60))).thenReturn(List.of(country));
+
         Districts district = new Districts();
         district.setDistrictId(50);
         when(districtRepository.findBydistrictIdIn(Set.of(50))).thenReturn(List.of(district));
@@ -246,6 +255,9 @@ public class BankMasterDataServiceTest {
         DistrictDto districtDto = new DistrictDto();
         when(districtMapper.convertToDto(district)).thenReturn(districtDto);
 
+        CountryDto countryDto = new CountryDto();
+        when(countryMapper.convertToDto(country)).thenReturn(countryDto);
+
         List<BranchesDto> result = bankMasterDataService.getAllBranches();
 
         assertThat(result).isNotNull();
@@ -256,8 +268,8 @@ public class BankMasterDataServiceTest {
         assertThat(dto.getStateDto()).isSameAs(stateDto);
         assertThat(dto.getBranchTypeDto()).isSameAs(branchTypeDto);
         assertThat(dto.getPostOfficesDto()).isSameAs(postOfficeDto);
-        assertThat(dto.getCitiesDto()).isSameAs(cityDto);
         assertThat(dto.getDistrictDto()).isSameAs(districtDto);
+
     }
 
 

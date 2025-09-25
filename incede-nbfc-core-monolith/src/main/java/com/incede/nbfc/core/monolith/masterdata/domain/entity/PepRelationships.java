@@ -2,6 +2,7 @@ package com.incede.nbfc.core.monolith.masterdata.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
@@ -9,6 +10,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "pep_relationships", schema = "master_data")
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class PepRelationships extends BaseEntity implements Serializable {

@@ -2,6 +2,7 @@ package com.incede.nbfc.core.monolith.masterdata.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
@@ -9,6 +10,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "education_levels", schema = "master_data")
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class EducationLevels extends BaseEntity implements Serializable {
@@ -28,7 +30,6 @@ public class EducationLevels extends BaseEntity implements Serializable {
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
-
 
     @Column(name = "identity", nullable = false, unique = true)
     private UUID identity;

@@ -122,7 +122,14 @@ public class BankMasterDataController
         return ResponseEntity.ok(branchWeekScheduleView);
     }
 
-
+    @GetMapping("/customer-category")
+    @Operation(summary = "Get all  customer category", description = "Retrieves all customer category from the system")
+    public ResponseEntity<List<CustomerCategoryView>> getAllCustomerCategory(){
+        log.info("Fetching all customer category");
+        List<CustomerCategoryView> customerCategoryView =bankMasterDataService.getCustomerCategoryView();
+        log.info("Found {} customer category", customerCategoryView.size());
+        return ResponseEntity.ok(customerCategoryView);
+    }
 
 
 }

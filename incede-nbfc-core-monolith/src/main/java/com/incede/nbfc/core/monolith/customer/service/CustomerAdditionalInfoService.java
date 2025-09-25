@@ -1,194 +1,180 @@
-//package com.incede.nbfc.core.monolith.customer.service;
-//
-//import com.incede.nbfc.core.monolith.common.CommonConstants;
-//import com.incede.nbfc.core.monolith.customer.domain.entity.*;
-//import com.incede.nbfc.core.monolith.customer.dto.CustomerAdditionalInfoRequestDto;
-//import com.incede.nbfc.core.monolith.customer.dto.CustomerAdditionalInfoResponseDto;
-//import com.incede.nbfc.core.monolith.customer.mapper.CustomerAdditionalInfoMapper;
-//import com.incede.nbfc.core.monolith.customer.repository.*;
-//import com.incede.nbfc.core.monolith.exception.BusinessException;
-//import com.incede.nbfc.core.monolith.exception.ErrorCodes;
-//import lombok.RequiredArgsConstructor;
-//import lombok.extern.slf4j.Slf4j;
-//import org.springframework.dao.DataIntegrityViolationException;
-//import org.springframework.stereotype.Service;
-//import org.springframework.transaction.annotation.Transactional;
-//
-//import java.util.UUID;
-//
-///**
-// * Service class for managing additional customer information such as employment,
-// * referrals, PEP status, profile extras, and assets.
-// * Provides methods to create, update, and fetch all related additional info for a customer.
-// */
-//@Service
-//@RequiredArgsConstructor
-//@Slf4j
-//public class CustomerAdditionalInfoService {
-//
-//    private final CustomerAdditionalInfoMapper customerAdditionalInfoMapper;
-//
-//    private final CustomerRepository customerRepository;
-//    private final CustomerEmploymentRepository employmentRepository;
-//    private final CustomerReferralRepository referralRepository;
-//    private final CustomerPepRepository pepRepository;
-//    private final CustomerProfileExtraRepository profileExtraRepository;
-//    private final CustomerAssetRepository assetRepository;
-//
-//
-//    /**
-//     * Save additional information for a given customer. Creates or updates sub-entities
-//     * such as employment, referrals, PEP, profile extras, and assets.
-//     *
-//     * @param identity the UUID of the customer
-//     * @param dto      DTO containing the additional info to be saved
-//     * @return CustomerAdditionalInfoResponseDto containing saved info
-//     * @throws BusinessException if customer not found or persistence fails
-//     */
-//    @Transactional
-//    public CustomerAdditionalInfoResponseDto saveAdditionalInfo(UUID identity, CustomerAdditionalInfoRequestDto dto) {
-//        log.info("Saving additional info for customer with identity: {}", identity);
-//
-//        Customer customer = customerRepository.findByIdentity(identity)
-//                .orElseThrow(() -> {
-//                    log.warn("Customer not found while saving additional info. identity={}", identity);
-//                    return new BusinessException(CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.RESOURCE_NOT_FOUND);
-//                });
-//
-//        try {
-//            CustomerEmployment employment = employmentRepository.findByCustomer(customer)
-//                    .orElseGet(CustomerEmployment::new);
-//            customerAdditionalInfoMapper.createEmployment(employment, dto.getAdditional().getEmployment(), customer);
-//            employmentRepository.save(employment);
-//
-//            CustomerReferral referral = referralRepository.findByCustomer(customer)
-//                    .orElseGet(CustomerReferral::new);
-//            customerAdditionalInfoMapper.createReferral(referral, dto.getAdditional().getReferrals(), customer);
-//            referralRepository.save(referral);
-//
-//            CustomerPep pep = pepRepository.findByCustomer(customer)
-//                    .orElseGet(CustomerPep::new);
-//            customerAdditionalInfoMapper.createPep(pep, dto.getAdditional().getPep(), customer);
-//            pepRepository.save(pep);
-//
-//            CustomerProfileExtra profileExtra = profileExtraRepository.findByCustomer(customer)
-//                    .orElseGet(CustomerProfileExtra::new);
-//            customerAdditionalInfoMapper.createProfileExtra(profileExtra, dto.getAdditional().getProfileExtra(), customer);
-//            profileExtraRepository.save(profileExtra);
-//
-//            CustomerAsset asset = assetRepository.findByCustomer(customer)
-//                    .orElseGet(CustomerAsset::new);
-//            customerAdditionalInfoMapper.createAsset(asset, dto.getAdditional().getCustomerAsset(), customer);
-//            assetRepository.save(asset);
-//
-//            Customer updatedCustomer = customerAdditionalInfoMapper
-//                    .updateCustomerFromAdditionalInfo(customer, dto.getAdditional().getCustomer());
-//            customerRepository.save(updatedCustomer);
-//
-//            log.info("Successfully saved additional info for customer: {}", identity);
-//
-//            return customerAdditionalInfoMapper.buildResponseDto(customer, employment, referral, pep, profileExtra, asset);
-//
-//        } catch (DataIntegrityViolationException e) {
-//            log.error("Constraint violation while saving additional info for customer: {} DTO: {}", identity, dto, e);
-//            throw new BusinessException(CommonConstants.CONSTRAIN_VIOLATION,
-//                    ErrorCodes.CONSTRAINT_VIOLATION, e);
-//        } catch (IllegalArgumentException e) {
-//            log.warn("Validation failed while saving additional info. DTO: {} - {}", dto, e.getMessage());
-//            throw new BusinessException(e.getMessage(), ErrorCodes.VALIDATION_FAILED, e);
-//        }
-//    }
-//
-//
-//    /**
-//     * Update existing additional information for a given customer.
-//     *
-//     * @param identity the UUID of the customer
-//     * @param dto      DTO containing updated additional info
-//     * @return CustomerAdditionalInfoResponseDto with updated info
-//     * @throws BusinessException if any required entity not found or persistence fails
-//     */
-//    @Transactional
-//    public CustomerAdditionalInfoResponseDto updateAdditionalInfo(UUID identity, CustomerAdditionalInfoRequestDto dto) {
-//        log.info("Updating additional info for customer with identity: {}", identity);
-//
-//        Customer customer = customerRepository.findByIdentity(identity)
-//                .orElseThrow(() -> {
-//                    log.warn("Customer not found while updating additional info. identity={}", identity);
-//                    return new BusinessException(CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.RESOURCE_NOT_FOUND);
-//                });
-//
-//        try {
-//            CustomerEmployment employment = employmentRepository.findByCustomer(customer)
-//                    .orElseThrow(() -> new BusinessException(CommonConstants.EMPLOYMENT_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
-//            customerAdditionalInfoMapper.updateEmployment(employment, dto.getAdditional().getEmployment(), customer);
-//            employmentRepository.save(employment);
-//
-//            CustomerReferral referral = referralRepository.findByCustomer(customer)
-//                    .orElseThrow(() -> new BusinessException(CommonConstants.REFERRAL_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
-//            customerAdditionalInfoMapper.updateReferral(referral, dto.getAdditional().getReferrals(), customer);
-//            referralRepository.save(referral);
-//
-//            CustomerPep pep = pepRepository.findByCustomer(customer)
-//                    .orElseThrow(() -> new BusinessException(CommonConstants.PEP_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
-//            customerAdditionalInfoMapper.updatePep(pep, dto.getAdditional().getPep(), customer);
-//            pepRepository.save(pep);
-//
-//            CustomerProfileExtra profileExtra = profileExtraRepository.findByCustomer(customer)
-//                    .orElseThrow(() -> new BusinessException(CommonConstants.PROFILE_EXTRA_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
-//            customerAdditionalInfoMapper.updateProfileExtra(profileExtra, dto.getAdditional().getProfileExtra(), customer);
-//            profileExtraRepository.save(profileExtra);
-//
-//            CustomerAsset asset = assetRepository.findByCustomer(customer)
-//                    .orElseThrow(() -> new BusinessException(CommonConstants.ASSET_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
-//            log.warn("Customer asset info not found for identity={}", identity);
-//
-//            customerAdditionalInfoMapper.updateAsset(asset,dto.getAdditional().getCustomerAsset(), customer);
-//            assetRepository.save(asset);
-//
-//            Customer updatedCustomer = customerAdditionalInfoMapper
-//                    .updateCustomerFromAdditionalInfo(customer, dto.getAdditional().getCustomer());
-//            customerRepository.save(updatedCustomer);
-//
-//            log.info("Successfully updated additional info for customer: {}", identity);
-//
-//            return customerAdditionalInfoMapper.buildResponseDto(updatedCustomer, employment, referral, pep, profileExtra, asset);
-//
-//        } catch (DataIntegrityViolationException e) {
-//            log.error("Constraint violation while updating additional info for customer: {} DTO: {}", identity, dto, e);
-//            throw new BusinessException(CommonConstants.CONSTRAIN_VIOLATION,
-//                    ErrorCodes.CONSTRAINT_VIOLATION, e);
-//        } catch (IllegalArgumentException e) {
-//            log.warn("Validation failed while updating additional info. DTO: {} - {}", dto, e.getMessage());
-//            throw new BusinessException(e.getMessage(), ErrorCodes.VALIDATION_FAILED, e);
-//        }
-//    }
-//
-//
-//    /**
-//     * Fetch all additional information for a given customer by identity.
-//     *
-//     * @param customerIdentity UUID of the customer
-//     * @return CustomerAdditionalInfoResponseDto containing all related details
-//     * @throws BusinessException if customer not found
-//     */
-//    @Transactional(readOnly = true)
-//    public CustomerAdditionalInfoResponseDto getAdditionalInfo(UUID customerIdentity) {
-//        log.info("Fetching additional info for customer with identity: {}", customerIdentity);
-//
-//        Customer customer = customerRepository.findByIdentity(customerIdentity)
-//                .orElseThrow(() -> {
-//                    log.warn("Customer not found while fetching additional info. identity={}", customerIdentity);
-//                    return new BusinessException(CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.RESOURCE_NOT_FOUND);
-//                });
-//
-//        CustomerEmployment employment = employmentRepository.findByCustomer(customer).orElse(null);
-//        CustomerReferral referral = referralRepository.findByCustomer(customer).orElse(null);
-//        CustomerPep pep = pepRepository.findByCustomer(customer).orElse(null);
-//        CustomerProfileExtra profileExtra = profileExtraRepository.findByCustomer(customer).orElse(null);
-//        CustomerAsset assets = assetRepository.findByCustomer(customer).orElse(null);
-//
-//        log.info("Successfully fetched additional info for customer: {}", customerIdentity);
-//        return customerAdditionalInfoMapper.buildResponseDto(customer, employment, referral, pep, profileExtra, assets);
-//    }
-//}
+package com.incede.nbfc.core.monolith.customer.service;
+
+import com.incede.nbfc.core.monolith.common.CommonConstants;
+import com.incede.nbfc.core.monolith.customer.domain.entity.*;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerAdditionalInfoRequestDto;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerAdditionalInfoResponseDto;
+import com.incede.nbfc.core.monolith.customer.mapper.CustomerAdditionalInfoMapper;
+import com.incede.nbfc.core.monolith.customer.repository.*;
+import com.incede.nbfc.core.monolith.exception.BusinessException;
+import com.incede.nbfc.core.monolith.exception.ErrorCodes;
+import com.incede.nbfc.core.monolith.masterdata.repository.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+@Tag(name = "Customer Additional Info Service", description = "Service for managing additional information of customers")
+public class CustomerAdditionalInfoService {
+
+    private final CustomerAdditionalInfoMapper mapper;
+
+    private final CustomerRepository customerRepository;
+    private final CustomerEmploymentRepository employmentRepository;
+    private final CustomerReferralRepository referralRepository;
+    private final CustomerProfileExtraRepository profileExtraRepository;
+    private final CustomerAssetRepository assetRepository;
+    private final CustomerAdditionalReferenceNameRepository referenceNameRepository;
+    private final CustomerAdditionalReferenceValueRepository referenceValueRepository;
+
+    private final OccupationRepository occupationRepository;
+    private final DesignationsRepository designationsRepository;
+    private final SourceOfIncomeTypeRepository sourceOfIncomeTypeRepository;
+    private final AssetTypesRepository assetTypesRepository;
+    private final EducationLevelsRepository educationLevelsRepository;
+    private final PurposeRepository purposeRepository;
+    private final ReferralSourceRepository referralSourcesRepository;
+    private final CanvassedTypesRepository canvassedTypesRepository;
+    private final NationalityRepository nationalityRepository;
+    private final ResidentialStatusesRepository residentialStatusesRepository;
+    private final LanguagesRepository languagesRepository;
+    private final CustomerGroupRepository customerGroupRepository;
+    private final CustomerRiskProfileRepository customerRiskProfileRepository;
+    private final CustomerCategoryMappingRepository categoryMappingRepository;
+
+    @Operation(summary = "Save Additional Info", description = "Creates or updates additional information for a customer")
+    @Transactional
+    public CustomerAdditionalInfoResponseDto saveAdditionalInfo(
+            @Parameter(description = "UUID of the customer", required = true)
+            UUID identity,
+            @Parameter(description = "Additional information request DTO", required = true)
+            CustomerAdditionalInfoRequestDto dto) {
+
+        Customer customer = customerRepository.findByIdentity(identity)
+                .orElseThrow(() -> new BusinessException(CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.RESOURCE_NOT_FOUND));
+
+        try {
+            saveEmployment(customer, dto);
+            saveReferral(customer, dto);
+            saveProfileExtra(customer, dto);
+            saveAsset(customer, dto);
+            saveCustomerDetails(customer, dto);
+            saveAdditionalReference(customer, dto);
+
+            return buildResponse(customer);
+        } catch (DataIntegrityViolationException e) {
+            log.error("Constraint violation for customer {}: {}", identity, e.getMessage(), e);
+            throw new BusinessException(CommonConstants.CONSTRAIN_VIOLATION, ErrorCodes.CONSTRAINT_VIOLATION, e);
+        }
+    }
+
+    @Operation(summary = "Get Additional Info", description = "Fetches all additional information for a customer by UUID")
+    @Transactional(readOnly = true)
+    public CustomerAdditionalInfoResponseDto getAdditionalInfo(
+            @Parameter(description = "UUID of the customer", required = true)
+            UUID customerIdentity) {
+
+        Customer customer = customerRepository.findByIdentity(customerIdentity)
+                .orElseThrow(() -> new BusinessException(CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.RESOURCE_NOT_FOUND));
+
+        return buildResponse(customer);
+    }
+
+    private void saveEmployment(Customer customer, CustomerAdditionalInfoRequestDto dto) {
+        CustomerEmployment employment = employmentRepository.findByCustomer(customer).orElseGet(CustomerEmployment::new);
+        mapper.createEmployment(employment, dto.getAdditional().getEmployment(), customer);
+
+        employment.setOccupationId(occupationRepository.findByIdentity(dto.getAdditional().getEmployment().getOccupationId())
+                .orElseThrow(() -> new BusinessException("Occupation not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+        employment.setDesignationId(designationsRepository.findByIdentity(dto.getAdditional().getEmployment().getDesignationId())
+                .orElseThrow(() -> new BusinessException("Designation not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+        employment.setIncomeSourceId(sourceOfIncomeTypeRepository.findByIdentity(dto.getAdditional().getEmployment().getIncomeSourceId())
+                .orElseThrow(() -> new BusinessException("Income source not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+
+        employmentRepository.save(employment);
+    }
+
+    private void saveReferral(Customer customer, CustomerAdditionalInfoRequestDto dto) {
+        CustomerReferral referral = referralRepository.findByCustomer(customer).orElseGet(CustomerReferral::new);
+        mapper.createReferral(referral, dto.getAdditional().getReferrals(), customer);
+
+        referral.setReferralSources(referralSourcesRepository.findByIdentity(dto.getAdditional().getReferrals().getReferralSourceId())
+                .orElseThrow(() -> new BusinessException("Referral source not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+        referral.setCanvassedTypeId(canvassedTypesRepository.findByIdentity(dto.getAdditional().getReferrals().getCanvassedTypeId())
+                .orElseThrow(() -> new BusinessException("Canvassed type not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+
+        referralRepository.save(referral);
+    }
+
+    private void saveProfileExtra(Customer customer, CustomerAdditionalInfoRequestDto dto) {
+        CustomerProfileExtra profileExtra = profileExtraRepository.findByCustomer(customer).orElseGet(CustomerProfileExtra::new);
+        mapper.createProfileExtra(profileExtra, dto.getAdditional().getProfileExtra(), customer);
+
+        profileExtra.setEducationLevelId(educationLevelsRepository.findByIdentity(dto.getAdditional().getProfileExtra().getEducationLevelId())
+                .orElseThrow(() -> new BusinessException("Education level not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+        profileExtra.setPurposeId(purposeRepository.findByIdentity(dto.getAdditional().getProfileExtra().getPurposeId())
+                .orElseThrow(() -> new BusinessException("Purpose not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+
+        profileExtraRepository.save(profileExtra);
+    }
+
+    private void saveAsset(Customer customer, CustomerAdditionalInfoRequestDto dto) {
+        CustomerAsset asset = assetRepository.findByCustomer(customer).orElseGet(CustomerAsset::new);
+        mapper.createAsset(asset, dto.getAdditional().getCustomerAsset(), customer);
+
+        asset.setAssetTypeId(assetTypesRepository.findByIdentity(dto.getAdditional().getCustomerAsset().getAssetTypeId())
+                .orElseThrow(() -> new BusinessException("Asset type not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+
+        assetRepository.save(asset);
+    }
+
+    private void saveCustomerDetails(Customer customer, CustomerAdditionalInfoRequestDto dto) {
+        Customer updatedCustomer = mapper.updateCustomerFromAdditionalInfo(customer, dto.getAdditional().getCustomer());
+
+        updatedCustomer.setNationality(nationalityRepository.findByIdentity(dto.getAdditional().getCustomer().getNationality())
+                .orElseThrow(() -> new BusinessException("Nationality not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+        updatedCustomer.setPreferredLanguageId(languagesRepository.findByIdentity(dto.getAdditional().getCustomer().getPreferredLanguageId())
+                .orElseThrow(() -> new BusinessException("Preferred language not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+        updatedCustomer.setResidentialStatusId(residentialStatusesRepository.findByIdentity(dto.getAdditional().getCustomer().getResidentialStatusId())
+                .orElseThrow(() -> new BusinessException("Residential status not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+        updatedCustomer.setCustomerGroupId(customerGroupRepository.findByIdentity(dto.getAdditional().getCustomer().getCustomerGroupId()).orElse(null));
+        updatedCustomer.setRiskCategory(customerRiskProfileRepository.findByIdentity(dto.getAdditional().getCustomer().getRiskCategory()).orElse(null));
+        updatedCustomer.setCategoryId(categoryMappingRepository.findByIdentity(dto.getAdditional().getCustomer().getCategoryId()).orElse(null));
+
+        customerRepository.save(updatedCustomer);
+    }
+
+    private void saveAdditionalReference(Customer customer, CustomerAdditionalInfoRequestDto dto) {
+        CustomerAdditionalReferenceValue referenceValue = referenceValueRepository.findByCustomer(customer)
+                .orElseGet(CustomerAdditionalReferenceValue::new);
+        mapper.maptoAddtionalRefValue(referenceValue, dto.getAdditional().getAdditionalReferenceValueDto());
+
+        referenceValue.setCustomerAdditionalReferenceName(referenceNameRepository.findByIdentity(
+                        dto.getAdditional().getAdditionalReferenceValueDto().getReferenceIdentity())
+                .orElseThrow(() -> new BusinessException("Customer additional reference name not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+
+        referenceValue.setCustomer(customer);
+        referenceValueRepository.save(referenceValue);
+    }
+
+    private CustomerAdditionalInfoResponseDto buildResponse(Customer customer) {
+        CustomerEmployment employment = employmentRepository.findByCustomer(customer).orElse(null);
+        CustomerReferral referral = referralRepository.findByCustomer(customer).orElse(null);
+        CustomerProfileExtra profileExtra = profileExtraRepository.findByCustomer(customer).orElse(null);
+        CustomerAsset asset = assetRepository.findByCustomer(customer).orElse(null);
+        CustomerAdditionalReferenceValue referenceValue = referenceValueRepository.findByCustomer(customer).orElse(null);
+
+        return mapper.buildResponseDto(customer, employment, referral, profileExtra, asset, referenceValue);
+    }
+
+
+}

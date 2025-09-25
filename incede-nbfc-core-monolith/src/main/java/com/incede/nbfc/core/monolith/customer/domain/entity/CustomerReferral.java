@@ -1,5 +1,7 @@
 package com.incede.nbfc.core.monolith.customer.domain.entity;
 
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.CanvassedTypes;
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.ReferralSources;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -27,13 +29,13 @@ public class CustomerReferral extends CustomerBaseEntity implements Serializable
     @JoinColumn(name="customer_id",referencedColumnName="customer_id")
     private Customer customer;
 
-    @Column(name = "referral_source_id")
-    @Min(value = 1, message = "Referral source id must be a positive integer")
-    private Integer referralSourceId;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "referral_source_id", referencedColumnName = "referral_source_id")
+    private ReferralSources referralSources;
 
-    @Column(name = "canvassed_type_id")
-    @Min(value = 1, message = "Canvassed type id must be a positive integer")
-    private Integer canvassedTypeId;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "canvassed_type_id", referencedColumnName = "canvassed_type_id")
+    private CanvassedTypes canvassedTypeId;
 
     @Column(name = "canvasser_staff_id")
     @Min(value = 1, message = "Canvasser staff id must be a positive integer")

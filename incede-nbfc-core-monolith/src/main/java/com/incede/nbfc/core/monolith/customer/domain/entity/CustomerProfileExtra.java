@@ -1,5 +1,7 @@
 package com.incede.nbfc.core.monolith.customer.domain.entity;
 
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.EducationLevels;
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.Purpose;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -36,13 +38,13 @@ public class CustomerProfileExtra extends CustomerBaseEntity  implements Seriali
     @NotNull(message="CustomerId must not be null")
     private Customer customer;
 
-    @Column(name = "education_level_id")
-    @Min(value = 1, message = "Education level id must be a positive integer")
-    private Integer educationLevelId;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "education_level_id", referencedColumnName = "education_level_id")
+    private EducationLevels educationLevelId;
 
-    @Column(name = "purpose_id")
-    @Min(value = 1, message = "Purpose id must be a positive integer")
-    private Integer purposeId;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "purpose_id", referencedColumnName = "purpose_id")
+    private Purpose purposeId;
 
     @Size(max = 200, message = "Notes must be at most 200 characters")
     @Column(name = "notes", length = 200)

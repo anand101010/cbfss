@@ -13,8 +13,10 @@ import com.incede.nbfc.core.monolith.customer.repository.CustomerAddressReposito
 import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
 import com.incede.nbfc.core.monolith.customer.repository.NomineeRepository;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
+import com.incede.nbfc.core.monolith.exception.ErrorCodes;
 import com.incede.nbfc.core.monolith.exception.ResourceNotFoundException;
-import com.incede.nbfc.core.monolith.masterdata.repository.AddressTypeRepository;
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.*;
+import com.incede.nbfc.core.monolith.masterdata.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -33,13 +37,9 @@ public class NomineeDetailsService {
     private final NomineeRepository nomineeRepository;
     private final AddressTypeRepository addressTypeRepository;
     private final NomineeDetailsMapper nomineeMapper;
+    private final RelationshipsRepository relationshipsRepository;
+    private final PostOfficesRepository postOfficesRepository;
 
-    /**
-     *
-     * @param customerIdentity
-     * @param dto
-     * @return
-     */
     @Transactional
     public NomineeDetailsResponseDto createNominee(UUID customerIdentity, NomineeDetailsRequestDto dto) {
         Customer customer = findCustomer(customerIdentity);
@@ -47,7 +47,8 @@ public class NomineeDetailsService {
         validateMinorNominee(dto);
 
         boolean isExist = nomineeRepository.existsByCustomerAndFullNameAndRelationshipAndIsDelFalse(
-                customer, dto.getFullName(), dto.getRelationship());
+                customer, dto.getFullName(), relationshipsRepository.findByIdentity(dto.getRelationship())
+                        .orElseThrow(() -> new BusinessException("Relationship not found", ErrorCodes.VALIDATION_FAILED)));
         if (isExist) {
             throw new BusinessException("A nominee with the same name and relationship already exists.");
         }
@@ -56,21 +57,17 @@ public class NomineeDetailsService {
         validatePercentageShare(totalShare);
 
         NomineeAddressDto address = resolveNomineeAddress(dto, customer);
+        Nominee nominee = new Nominee();
+        nominee.setIdentity(UUID.randomUUID());
+        populateReferences(nominee, dto, customer, address);
 
-        Nominee nominee = nomineeMapper.toEntity(customer, dto, address);
+        nominee.setCreatedBy(nomineeMapper.getCreatedBy());
         nominee = nomineeRepository.save(nominee);
 
         NomineeDto nomineeDto = nomineeMapper.toNomineeDto(nominee);
         return nomineeMapper.toResponse(customer, CommonConstants.CUSTOMER_ADDRESS_STATUS_SUCCESS, List.of(nomineeDto));
     }
 
-    /**
-     *
-     * @param customerIdentity
-     * @param nomineeIdentity
-     * @param dto
-     * @return
-     */
     @Transactional
     public NomineeDetailsResponseDto updateNominee(UUID customerIdentity, UUID nomineeIdentity, NomineeDetailsRequestDto dto) {
         Customer customer = findCustomer(customerIdentity);
@@ -84,30 +81,30 @@ public class NomineeDetailsService {
         validateMinorNominee(dto);
 
         if (!existingNominee.getFullName().equals(dto.getFullName()) ||
-                !existingNominee.getRelationship().equals(dto.getRelationship())) {
+                !existingNominee.getRelationship().getIdentity().equals(dto.getRelationship())) {
 
+           Relationships relationships= relationshipsRepository.findByIdentity(dto.getRelationship())
+                    .orElseThrow(() -> new BusinessException("Relationship not found", ErrorCodes.VALIDATION_FAILED));
             boolean isDuplicate = nomineeRepository.existsByCustomerAndFullNameAndRelationshipAndIsDelFalse(
-                    customer, dto.getFullName(), dto.getRelationship());
+                    customer, dto.getFullName(),relationships);
             if (isDuplicate) {
                 throw new BusinessException("A nominee with the same name and relationship already exists.");
             }
         }
+
         BigDecimal totalShare = calculateTotalShareForUpdate(customer, existingNominee, dto);
         validatePercentageShare(totalShare);
 
         NomineeAddressDto address = resolveNomineeAddress(dto, customer);
-        nomineeMapper.updateEntity(existingNominee, dto, address);
+        populateReferences(existingNominee, dto, customer, address);
+
+        existingNominee.setUpdatedBy(nomineeMapper.getUpdatedBy());
         existingNominee = nomineeRepository.save(existingNominee);
 
         NomineeDto nomineeDto = nomineeMapper.toNomineeDto(existingNominee);
         return nomineeMapper.toResponse(customer, CommonConstants.CUSTOMER_ADDRESS_STATUS_SUCCESS, List.of(nomineeDto));
     }
 
-    /**
-     *
-     * @param customerIdentity
-     * @param nomineeIdentity
-     */
     @Transactional
     public void deleteNominee(UUID customerIdentity, UUID nomineeIdentity) {
         Customer customer = findCustomer(customerIdentity);
@@ -117,25 +114,16 @@ public class NomineeDetailsService {
                         "NomineeIdentity: " + nomineeIdentity + ", CustomerIdentity: " + customerIdentity));
 
         nominee.setIsDel(true);
+        nominee.setUpdatedBy(nomineeMapper.getUpdatedBy());
         nomineeRepository.save(nominee);
     }
 
-    /**
-     *
-     * @param customerIdentity
-     * @return
-     */
     @Transactional(readOnly = true)
     public NomineeDetailsResponseDto getNomineesByCustomerIdentity(UUID customerIdentity) {
         Customer customer = findCustomer(customerIdentity);
         return getNomineesByCustomer(customer);
     }
 
-    /**
-     *
-     * @param customer
-     * @return
-     */
     private NomineeDetailsResponseDto getNomineesByCustomer(Customer customer) {
         List<Nominee> nominees = nomineeRepository.findByCustomerIdentityAndIsDelFalse(customer.getIdentity());
 
@@ -146,20 +134,11 @@ public class NomineeDetailsService {
         return nomineeMapper.toResponse(customer, CommonConstants.CUSTOMER_ADDRESS_STATUS_SUCCESS, nomineeDtos);
     }
 
-    /**
-     *
-     * @param customerIdentity
-     * @return
-     */
     private Customer findCustomer(UUID customerIdentity) {
         return customerRepository.findByIdentity(customerIdentity)
                 .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_CUSTOMER, customerIdentity.toString()));
     }
 
-    /**
-     *
-     * @param dto
-     */
     private void validateMinorNominee(NomineeDetailsRequestDto dto) {
         if (Boolean.TRUE.equals(dto.getIsMinor())) {
             if (dto.getGuardianName() == null || dto.getGuardianName().trim().isEmpty()) {
@@ -177,12 +156,6 @@ public class NomineeDetailsService {
         }
     }
 
-    /**
-     *
-     * @param customer
-     * @param dto
-     * @return
-     */
     private BigDecimal calculateTotalShare(Customer customer, NomineeDetailsRequestDto dto) {
         BigDecimal share = dto.getPercentageShare() != null ? dto.getPercentageShare() : BigDecimal.valueOf(100);
         return nomineeRepository.findByCustomerIdentityAndIsDelFalse(customer.getIdentity())
@@ -192,13 +165,6 @@ public class NomineeDetailsService {
                 .add(share);
     }
 
-    /**
-     *
-     * @param customer
-     * @param existingNominee
-     * @param dto
-     * @return
-     */
     private BigDecimal calculateTotalShareForUpdate(Customer customer, Nominee existingNominee, NomineeDetailsRequestDto dto) {
         BigDecimal newShare = dto.getPercentageShare() != null ? dto.getPercentageShare() : BigDecimal.valueOf(100);
         BigDecimal totalExistingShares = nomineeRepository.findByCustomerIdentityAndIsDelFalse(customer.getIdentity())
@@ -209,22 +175,12 @@ public class NomineeDetailsService {
         return totalExistingShares.add(newShare);
     }
 
-    /**
-     *
-     * @param totalShare
-     */
     private void validatePercentageShare(BigDecimal totalShare) {
         if (totalShare.compareTo(BigDecimal.valueOf(100)) > 0) {
             throw new BusinessException("Total percentage share cannot exceed 100.");
         }
     }
 
-    /**
-     *
-     * @param dto
-     * @param customer
-     * @return
-     */
     private NomineeAddressDto resolveNomineeAddress(NomineeDetailsRequestDto dto, Customer customer) {
         if (Boolean.TRUE.equals(dto.getIsSameAddress())) {
             var permanentAddressType = addressTypeRepository
@@ -232,35 +188,110 @@ public class NomineeDetailsService {
                     .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_ADDRESS, CommonConstants.ADDRESS_TYPE_PERMANENT));
 
             List<CustomerAddress> customerAddresses = addressRepository
-                    .findByCustomerAndAddressTypeIdAndIsActiveTrueAndIsDelFalse(customer, permanentAddressType.getAddressTypeId());
+                    .findByCustomerAndAddressTypeAndIsActiveTrueAndIsDelFalse(customer, permanentAddressType);
 
             if (customerAddresses.isEmpty()) {
                 throw new ResourceNotFoundException(CommonConstants.ENTITY_ADDRESS,
                         "No active permanent address found for customer identity: " + customer.getIdentity());
             }
 
-            return nomineeMapper.toNomineeAddressDtoFromCustomerAddress(customerAddresses.get(0));
+            CustomerAddress customerAddress = customerAddresses.get(0);
+            log.debug("CustomerAddress: addressTypeId={}, postOfficeId={}",
+                    customerAddress.getAddressType() != null ? customerAddress.getAddressType().getIdentity() : null,
+                    customerAddress.getPostOffice() != null ? customerAddress.getPostOffice().getIdentity() : null);
 
+            // Validate addressTypeId and postOfficeId
+            if (customerAddress.getAddressType() == null) {
+                throw new BusinessException("Customer's permanent address has no valid address type", ErrorCodes.VALIDATION_FAILED);
+            }
+            if (customerAddress.getPostOffice() == null) {
+                throw new BusinessException("Customer's permanent address has no valid post office", ErrorCodes.VALIDATION_FAILED);
+            }
+
+            return nomineeMapper.toNomineeAddressDtoFromCustomerAddress(customerAddress);
         } else {
             if (dto.getAddressTypeId() == null || dto.getDoorNumber() == null || dto.getAddressLine1() == null) {
                 throw new BusinessException("Address must be provided when isSameAddress is false");
             }
+            var addressType = addressTypeRepository.findByIdentity(dto.getAddressTypeId())
+                    .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_ADDRESS, "AddressTypeId: " + dto.getAddressTypeId()));
+            var postOffice = postOfficesRepository.findByIdentity(dto.getPostOfficeId())
+                    .orElseThrow(() -> new ResourceNotFoundException( "Post Office not found"));
+
             return NomineeAddressDto.builder()
-                    .addressTypeId(dto.getAddressTypeId())
+                    .addressTypeId(addressType.getIdentity())
                     .doorNumber(dto.getDoorNumber())
                     .addressLine1(dto.getAddressLine1())
                     .landmark(dto.getLandmark())
                     .placeName(dto.getPlaceName())
-                    .cityId(dto.getCityId())
-                    .districtId(dto.getDistrictId())
-                    .stateId(dto.getStateId())
-                    .countryId(dto.getCountryId())
+                    .city(dto.getCity())
+                    .district(dto.getDistrict())
+                    .state(dto.getState())
+                    .country(dto.getCountry())
                     .pincode(dto.getPincode())
-                    .postOfficeId(dto.getPostOfficeId())
+                    .postOfficeId(postOffice.getIdentity())
                     .latitude(dto.getLatitude())
                     .longitude(dto.getLongitude())
                     .digipin(dto.getDigipin())
                     .build();
         }
+    }
+
+    private void populateReferences(Nominee nominee, NomineeDetailsRequestDto dto, Customer customer, NomineeAddressDto address) {
+        Objects.requireNonNull(dto.getRelationship(), "Relationship is required");
+        nominee.setRelationship(relationshipsRepository.findByIdentity(dto.getRelationship())
+                .orElseThrow(() -> new BusinessException("Invalid relationship", ErrorCodes.VALIDATION_FAILED)));
+
+        Objects.requireNonNull(customer, "Customer is required");
+        nominee.setCustomer(customer);
+
+        log.debug("Populating Nominee: addressTypeId={}, postOfficeId={}",
+                address.getAddressTypeId(), address.getPostOfficeId());
+
+        // Always validate and set addressTypeId and postOfficeId
+        Objects.requireNonNull(address.getAddressTypeId(), "Address type is required");
+        nominee.setAddressTypeId(addressTypeRepository.findByIdentity(address.getAddressTypeId())
+                .orElseThrow(() -> new BusinessException("Invalid address type", ErrorCodes.VALIDATION_FAILED)));
+
+        Objects.requireNonNull(address.getPostOfficeId(), "Post office is required");
+        nominee.setPostOfficeId(postOfficesRepository.findByIdentity(address.getPostOfficeId())
+                .orElseThrow(() -> new BusinessException("Invalid post office", ErrorCodes.VALIDATION_FAILED)));
+
+        // Set String fields for city, district, state, country, and pincode
+        Objects.requireNonNull(address.getCity(), "City is required");
+        nominee.setCity(address.getCity());
+
+        Objects.requireNonNull(address.getDistrict(), "District is required");
+        nominee.setDistrict(address.getDistrict());
+
+        Objects.requireNonNull(address.getState(), "State is required");
+        nominee.setState(address.getState());
+
+        Objects.requireNonNull(address.getCountry(), "Country is required");
+        nominee.setCountry(address.getCountry());
+
+        Objects.requireNonNull(address.getPincode(), "Pincode is required");
+        nominee.setPincode(address.getPincode());
+
+        // Set address fields directly from NomineeAddressDto
+        nominee.setHouseNumber(address.getDoorNumber());
+        nominee.setStreet(address.getAddressLine1());
+        nominee.setLandmark(address.getLandmark());
+        nominee.setPlaceName(address.getPlaceName());
+        nominee.setLatitude(address.getLatitude());
+        nominee.setLongitude(address.getLongitude());
+        nominee.setDigipin(address.getDigipin());
+
+        // Set nominee details from DTO
+        nominee.setFullName(dto.getFullName());
+        nominee.setDob(dto.getDob());
+        nominee.setContactNumber(dto.getContactNumber());
+        nominee.setIsSameAddress(dto.getIsSameAddress());
+        nominee.setIsMinor(dto.getIsMinor());
+        nominee.setGuardianName(dto.getGuardianName());
+        nominee.setGuardianEmail(dto.getGuardianEmail());
+        nominee.setGuardianDob(dto.getGuardianDob());
+        nominee.setGuardianContactNumber(dto.getGuardianContactNumber());
+        nominee.setPercentageShare(dto.getPercentageShare() != null ? dto.getPercentageShare() : BigDecimal.valueOf(100));
     }
 }

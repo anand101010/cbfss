@@ -1,12 +1,18 @@
 package com.incede.nbfc.core.monolith.masterdata.domain.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.UUID;
 
 @Entity
-@Table
+@Table(name = "referral_sources", schema = "master_data")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class ReferralSources extends BaseEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;

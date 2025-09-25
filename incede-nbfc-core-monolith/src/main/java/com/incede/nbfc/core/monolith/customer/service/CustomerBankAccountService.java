@@ -168,7 +168,7 @@ public class CustomerBankAccountService {
                 .orElseThrow(() -> new BusinessException("Invalid AccountStatus", ErrorCodes.VALIDATION_FAILED));
     }
 
-    private Integer uploadBankProof(MultipartFile bankProof) {
+    public Integer uploadBankProof(MultipartFile bankProof) {
         return Math.abs(UUID.randomUUID().hashCode());
     }
 }
