@@ -34,10 +34,13 @@ public class CustomerAdditionalReferenceValue extends  CustomerBaseEntity implem
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "customer_addi_ref_nme_id", nullable = false, referencedColumnName = "customer_addi_ref_nme_id")
     @NotNull(message = "Reference name must not be null")
-    private CustomerAdditionalReferenceName CustomerAdditionalReferenceName;
+    private CustomerAdditionalReferenceName customerAdditionalReferenceName;
 
     @Column(name = "customer_addi_ref_value", columnDefinition = "TEXT", nullable = false)
     @NotBlank(message = "Reference value must not be blank")
     private String referenceValue;
+
+    @NotNull(message = "tenantId  must not be blank")
+    private Integer tenantId;
 
 }

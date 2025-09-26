@@ -11,8 +11,11 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -239,12 +242,16 @@ public class CustomerAdditionalInfoMapper {
     }
 
 
-    public AdditionalReferenceValueDto mapToAdditionalReferenceValueDto(CustomerAdditionalReferenceValue customerAdditionalReferenceValue){
-        if(customerAdditionalReferenceValue == null) return null;
-        return AdditionalReferenceValueDto.builder()
-                .referenceValue(customerAdditionalReferenceValue.getReferenceValue())
-                .referenceIdentity(customerAdditionalReferenceValue.getCustomerAdditionalReferenceName().getIdentity())
-                .build();
+    public List<AdditionalReferenceValueDto> mapToAdditionalReferenceValueDto(List<CustomerAdditionalReferenceValue> customerAdditionalReferenceValues) {
+        if (customerAdditionalReferenceValues == null || customerAdditionalReferenceValues.isEmpty()) {
+            return null;
+        }
+        return customerAdditionalReferenceValues.stream()
+                .map(value -> AdditionalReferenceValueDto.builder()
+                        .referenceValue(value.getReferenceValue())
+                        .referenceIdentity(value.getCustomerAdditionalReferenceName().getIdentity())
+                        .build())
+                .collect(Collectors.toList());
     }
 
 
@@ -255,7 +262,7 @@ public class CustomerAdditionalInfoMapper {
             CustomerReferral referral,
             CustomerProfileExtra profileExtra,
             CustomerAsset assets,
-            CustomerAdditionalReferenceValue additionalReferenceValue) {
+            List<CustomerAdditionalReferenceValue> additionalReferenceValues) {
 
         Objects.requireNonNull(customer, "Customer must not be null");
 
@@ -265,8 +272,8 @@ public class CustomerAdditionalInfoMapper {
                         .referrals(mapToReferralDto(referral))
                         .profileExtra(mapToProfileExtraDto(profileExtra))
                         .assets(mapToAssetDto(assets))
-                        .additionalInfoCustomerDto(mapToAdditionalInfoCustomerDto(customer)) // ✅ Correct field name
-                        .additionalReferenceValueDto(mapToAdditionalReferenceValueDto(additionalReferenceValue))
+                        .additionalInfoCustomerDto(mapToAdditionalInfoCustomerDto(customer))
+                        .additionalReferenceValueDto(mapToAdditionalReferenceValueDto(additionalReferenceValues))
                         .build();
 
         return CustomerAdditionalInfoResponseDto.builder()
@@ -276,7 +283,6 @@ public class CustomerAdditionalInfoMapper {
                 .additional(additional)
                 .build();
     }
-
 
     public  Integer getCreatedBy(){
         return CommonConstants.CREATED_BY;

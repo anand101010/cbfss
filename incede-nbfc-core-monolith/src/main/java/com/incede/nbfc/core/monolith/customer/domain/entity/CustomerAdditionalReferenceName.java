@@ -38,9 +38,17 @@ public class CustomerAdditionalReferenceName extends CustomerBaseEntity implemen
     private Integer customerAddiRefNmeId;
 
     @Column(name = "customer_ref_name", nullable = false)
-   // @NotNull(message = "Customer reference name is required")
-    @Min(value=1,message = "CustomerRefName must be a positive Integer")
-    private Integer customerRefName;
+    @NotNull(message = "customerRefName is required")
+    private String customerRefName;
+
+    @Column(name = "value_type")
+    private String valueType;
+
+    @Column(name = "is_active")
+    private Boolean isActive;
+
+    @Column(name = "is_mandatory")
+    private Boolean isMandatory;
 
 
 
