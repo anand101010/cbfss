@@ -1,6 +1,7 @@
 package com.incede.nbfc.core.monolith.customer.repository;
 
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerDto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,6 +30,8 @@ public interface CustomerRepository extends JpaRepository<Customer,Integer> {
     Optional<Customer> findByTenantIdAndAadharVaultId(Integer tenantId, String aadharVault);
 
     Customer findTopByOrderByCustomerIdDesc();
+
+    Optional<Customer> findByCustomerCode(String customerCode);
 }
 
 

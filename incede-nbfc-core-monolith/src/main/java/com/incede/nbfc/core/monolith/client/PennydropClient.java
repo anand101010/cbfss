@@ -30,7 +30,7 @@ public interface PennydropClient {
      * @param bankvalidationrequestdto
      * @return
      */
-    @PostMapping("${decentro.api.Validate-Bank}")
+    @PostMapping("${decentro.api.validate-bank}")
     BankValidationResponseDto validateBankAccount(@RequestBody BankValidationRequestDto bankvalidationrequestdto);
 
     /**

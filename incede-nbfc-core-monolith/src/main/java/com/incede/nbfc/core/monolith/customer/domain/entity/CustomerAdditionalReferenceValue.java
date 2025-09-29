@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.domain.entity;
 
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.Tenant;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -40,7 +41,5 @@ public class CustomerAdditionalReferenceValue extends  CustomerBaseEntity implem
     @NotBlank(message = "Reference value must not be blank")
     private String referenceValue;
 
-    @NotNull(message = "tenantId  must not be blank")
-    private Integer tenantId;
 
 }

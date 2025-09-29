@@ -11,106 +11,76 @@
 //import com.incede.nbfc.core.monolith.masterdata.repository.*;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.junit.jupiter.MockitoExtension;
-//import org.springframework.dao.DataIntegrityViolationException;
+//import org.mockito.*;
 //
 //import java.math.BigDecimal;
-//import java.util.Optional;
-//import java.util.UUID;
+//import java.util.*;
 //
 //import static org.junit.jupiter.api.Assertions.*;
-//import static org.mockito.ArgumentMatchers.any;
+//import static org.mockito.ArgumentMatchers.*;
 //import static org.mockito.Mockito.*;
 //
-//@ExtendWith(MockitoExtension.class)
 //class CustomerAdditionalInfoServiceTest {
+//
+//    @InjectMocks
+//    private CustomerAdditionalInfoService customerAdditionalInfoService;
 //
 //    @Mock
 //    private CustomerAdditionalInfoMapper customerAdditionalInfoMapper;
 //
 //    @Mock
 //    private CustomerRepository customerRepository;
-//
 //    @Mock
 //    private CustomerEmploymentRepository employmentRepository;
-//
 //    @Mock
-//    private CustomerReferralRepository referralRepository;
-//
+//    private ReferralSourceRepository referralRepository;
+//    @Mock
+//    private CustomerReferralRepository customerReferralRepository;
 //    @Mock
 //    private CustomerProfileExtraRepository profileExtraRepository;
-//
 //    @Mock
 //    private CustomerAssetRepository assetRepository;
-//
 //    @Mock
 //    private OccupationRepository occupationRepository;
-//
 //    @Mock
 //    private DesignationsRepository designationsRepository;
-//
 //    @Mock
 //    private SourceOfIncomeTypeRepository sourceOfIncomeTypeRepository;
-//
 //    @Mock
 //    private AssetTypesRepository assetTypesRepository;
-//
 //    @Mock
 //    private EducationLevelsRepository educationLevelsRepository;
-//
 //    @Mock
 //    private PurposeRepository purposeRepository;
-//
-////    @Mock
-////    private ReferralSourcesRepository referralSourcesRepository;
-//
 //    @Mock
 //    private CanvassedTypesRepository canvassedTypesRepository;
-//
 //    @Mock
 //    private NationalityRepository nationalityRepository;
-//
 //    @Mock
 //    private ResidentialStatusesRepository residentialStatusesRepository;
-//
 //    @Mock
 //    private LanguagesRepository languagesRepository;
-//
 //    @Mock
 //    private CustomerAdditionalReferenceNameRepository customerAdditionalReferenceNameRepository;
-//
 //    @Mock
 //    private CustomerAdditionalReferenceValueRepository customerAdditionalReferenceValueRepository;
-//
 //    @Mock
 //    private CustomerGroupRepository customerGroupRepository;
-//
 //    @Mock
 //    private CustomerRiskProfileRepository customerRiskProfileRepository;
-//
 //    @Mock
 //    private CustomerCategoryMappingRepository categoryMappingRepository;
 //
-//    @InjectMocks
-//    private CustomerAdditionalInfoService customerAdditionalInfoService;
-//
-//    private UUID customerIdentity;
-//    private Customer customer;
-//    private CustomerAdditionalInfoRequestDto requestDto;
-//    private CustomerAdditionalInfoResponseDto responseDto;
-//
 //    @BeforeEach
 //    void setUp() {
-//        customerIdentity = UUID.randomUUID();
-//        customer = new Customer();
-//        customer.setIdentity(customerIdentity);
-//        customer.setCustomerCode("CUST123");
-//        customer.setOnboardingStatus("ACTIVE");
+//        MockitoAnnotations.openMocks(this);
+//    }
 //
-//        // Sample DTO setup
+//    @Test
+//    void testSaveAdditionalInfo_success() {
+//        UUID customerId = UUID.randomUUID();
+//
+//        // Prepare test data
 //        CustomerEmploymentDto employmentDto = CustomerEmploymentDto.builder()
 //                .occupationId(UUID.randomUUID())
 //                .designationId(UUID.randomUUID())
@@ -134,11 +104,11 @@
 //        CustomerAssetDto assetDto = CustomerAssetDto.builder()
 //                .assetTypeId(UUID.randomUUID())
 //                .ownsAsset(true)
-//                .hasHomeLoan(false)
-//                .homeLoanCompany(null)
+//                .hasHomeLoan(true)
+//                .homeLoanCompany("Test Loan Co.")
 //                .build();
 //
-//        AdditionalInfoCustomerDto additionalCustomerDto = AdditionalInfoCustomerDto.builder()
+//        AdditionalInfoCustomerDto customerDto = AdditionalInfoCustomerDto.builder()
 //                .nationality(UUID.randomUUID())
 //                .preferredLanguageId(UUID.randomUUID())
 //                .residentialStatusId(UUID.randomUUID())
@@ -147,102 +117,70 @@
 //                .categoryId(UUID.randomUUID())
 //                .build();
 //
-//        AdditionalReferenceValueDto additionalRefDto = AdditionalReferenceValueDto.builder()
+//        AdditionalReferenceValueDto referenceValueDto = AdditionalReferenceValueDto.builder()
 //                .referenceIdentity(UUID.randomUUID())
-//                .referenceValue("Test Value")
+//                .referenceValue("Test Reference")
 //                .build();
 //
-//        CustomerAdditionalInfoResponseDto.AdditionalInfoDto additionalInfoDto = CustomerAdditionalInfoResponseDto.AdditionalInfoDto.builder()
+//        AdditionalInfoDto additionalInfoDto = AdditionalInfoDto.builder()
 //                .employment(employmentDto)
 //                .referrals(referralDto)
 //                .profileExtra(profileExtraDto)
-//                .assets(assetDto)
-//                .additionalInfoCustomerDto(additionalCustomerDto)
-//                .additionalReferenceValueDto(additionalRefDto)
+//                .customerAsset(assetDto)
+//                .customer(customerDto)
+//                .additionalReferenceValueDto(List.of(referenceValueDto))
 //                .build();
 //
-//        requestDto = CustomerAdditionalInfoRequestDto.builder()
-//                .additional(AdditionalInfoDto.builder()
-//                        .employment(employmentDto)
-//                        .referrals(referralDto)
-//                        .profileExtra(profileExtraDto)
-//                        .customerAsset(assetDto)
-//                        .customer(additionalCustomerDto)
-//                        .additionalReferenceValueDto(additionalRefDto)
-//                        .build())
-//                .build();
+//        CustomerAdditionalInfoRequestDto requestDto = new CustomerAdditionalInfoRequestDto();
+//        requestDto.setAdditional(additionalInfoDto);
 //
-//        responseDto = CustomerAdditionalInfoResponseDto.builder()
-//                .identity(customerIdentity)
-//                .customerCode("CUST123")
-//                .status("ACTIVE")
-//                .additional(additionalInfoDto)
-//                .build();
+//        Customer customer = new Customer();
+//        customer.setIdentity(customerId); // important
+//
+//        // MOCK: Ensure customer is returned regardless of UUID instance
+//        when(customerRepository.findByIdentity(any(UUID.class)))
+//                .thenReturn(Optional.of(customer));
+//
+//        when(occupationRepository.findByIdentity(any())).thenReturn(Optional.of(new Occupation()));
+//        when(designationsRepository.findByIdentity(any())).thenReturn(Optional.of(new Designations()));
+//        when(sourceOfIncomeTypeRepository.findByIdentity(any())).thenReturn(Optional.of(new SourceOfIncomeType()));
+//        when(referralRepository.findByIdentity(any())).thenReturn(Optional.of(new ReferralSources()));
+//        when(canvassedTypesRepository.findByIdentity(any())).thenReturn(Optional.of(new CanvassedTypes()));
+//        when(educationLevelsRepository.findByIdentity(any())).thenReturn(Optional.of(new EducationLevels()));
+//        when(purposeRepository.findByIdentity(any())).thenReturn(Optional.of(new Purpose()));
+//        when(assetTypesRepository.findByIdentity(any())).thenReturn(Optional.of(new AssetTypes()));
+//        when(nationalityRepository.findByIdentity(any())).thenReturn(Optional.of(new Nationality()));
+//        when(languagesRepository.findByIdentity(any())).thenReturn(Optional.of(new Languages()));
+//        when(customerAdditionalReferenceNameRepository.findByIdentity(any()))
+//                .thenReturn(Optional.of(new CustomerAdditionalReferenceName()));
+//        when(customerAdditionalInfoMapper.buildResponseDto(any(), any(), any(), any(), any(), any()))
+//                .thenReturn(new CustomerAdditionalInfoResponseDto());
+//
+//        // EXECUTE
+//        CustomerAdditionalInfoResponseDto response =
+//                customerAdditionalInfoService.saveAdditionalInfo(customerId, requestDto);
+//
+//        // VERIFY
+//        assertNotNull(response);
+//
+//        verify(customerRepository).findByIdentity(any(UUID.class));
+//        verify(employmentRepository).save(any(CustomerEmployment.class));
+//        verify(customerReferralRepository).save(any(CustomerReferral.class));
+//        verify(profileExtraRepository).save(any(CustomerProfileExtra.class));
+//        verify(assetRepository).save(any(CustomerAsset.class));
+//        verify(customerRepository).save(any(Customer.class));
+//        verify(customerAdditionalReferenceValueRepository).save(any(CustomerAdditionalReferenceValue.class));
 //    }
 //
-//
-//
 //    @Test
-//    void saveAdditionalInfo_CustomerNotFound() {
-//        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.empty());
+//    void testSaveAdditionalInfo_customerNotFound() {
+//        UUID customerId = UUID.randomUUID();
+//        when(customerRepository.findByIdentity(any(UUID.class))).thenReturn(Optional.empty());
+//
+//        CustomerAdditionalInfoRequestDto requestDto = new CustomerAdditionalInfoRequestDto();
 //
 //        BusinessException exception = assertThrows(BusinessException.class, () ->
-//                customerAdditionalInfoService.saveAdditionalInfo(customerIdentity, requestDto));
-//
-//        assertEquals(CommonConstants.NOT_FOUND_MESSAGE, exception.getMessage());
-//        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, exception.getErrorCode());
-//    }
-//
-//    @Test
-//    void saveAdditionalInfo_DataIntegrityViolation() {
-//        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
-//        when(employmentRepository.findByCustomer(customer)).thenReturn(Optional.empty());
-//        when(occupationRepository.findByIdentity(any(UUID.class))).thenReturn(Optional.of(new Occupation())); // Added to ensure occupation is found
-//        when(designationsRepository.findByIdentity(any(UUID.class))).thenReturn(Optional.of(new Designations()));
-//        when(sourceOfIncomeTypeRepository.findByIdentity(any(UUID.class))).thenReturn(Optional.of(new SourceOfIncomeType()));
-//        doThrow(DataIntegrityViolationException.class).when(employmentRepository).save(any());
-//
-//        BusinessException exception = assertThrows(BusinessException.class, () ->
-//                customerAdditionalInfoService.saveAdditionalInfo(customerIdentity, requestDto));
-//
-//        assertEquals(CommonConstants.CONSTRAIN_VIOLATION, exception.getMessage());
-//        assertEquals(ErrorCodes.CONSTRAINT_VIOLATION, exception.getErrorCode());
-//    }
-//
-//    @Test
-//    void getAdditionalInfo_Success() {
-//        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
-//
-//        CustomerEmployment employment = new CustomerEmployment();
-//        when(employmentRepository.findByCustomer(customer)).thenReturn(Optional.of(employment));
-//
-//        CustomerReferral referral = new CustomerReferral();
-//        when(referralRepository.findByCustomer(customer)).thenReturn(Optional.of(referral));
-//
-//        CustomerProfileExtra profileExtra = new CustomerProfileExtra();
-//        when(profileExtraRepository.findByCustomer(customer)).thenReturn(Optional.of(profileExtra));
-//
-//        CustomerAsset asset = new CustomerAsset();
-//        when(assetRepository.findByCustomer(customer)).thenReturn(Optional.of(asset));
-//
-//        CustomerAdditionalReferenceValue refValue = new CustomerAdditionalReferenceValue();
-//        when(customerAdditionalReferenceValueRepository.findByCustomer(customer)).thenReturn(Optional.of(refValue));
-//
-//        when(customerAdditionalInfoMapper.buildResponseDto(customer, employment, referral, profileExtra, asset, refValue))
-//                .thenReturn(responseDto);
-//
-//        CustomerAdditionalInfoResponseDto result = customerAdditionalInfoService.getAdditionalInfo(customerIdentity);
-//
-//        assertNotNull(result);
-//        assertEquals(responseDto, result);
-//    }
-//
-//    @Test
-//    void getAdditionalInfo_CustomerNotFound() {
-//        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.empty());
-//
-//        BusinessException exception = assertThrows(BusinessException.class, () ->
-//                customerAdditionalInfoService.getAdditionalInfo(customerIdentity));
+//                customerAdditionalInfoService.saveAdditionalInfo(customerId, requestDto));
 //
 //        assertEquals(CommonConstants.NOT_FOUND_MESSAGE, exception.getMessage());
 //        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, exception.getErrorCode());

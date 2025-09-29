@@ -1,44 +1,56 @@
 package com.incede.nbfc.core.monolith.customer.service;
 
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerAdditionalReferenceName;
-import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerAdditionalReferenceValue;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerAdditionalReferenceNameResponseDto;
-import com.incede.nbfc.core.monolith.customer.repository.CustomerAdditionalReferenceValueRepository;
+import com.incede.nbfc.core.monolith.customer.repository.CustomerAdditionalReferenceNameRepository;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.exception.ErrorCodes;
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.Tenant;
+import com.incede.nbfc.core.monolith.masterdata.repository.TenantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class CustomerAdditionalReferenceNameService {
 
-    private final CustomerAdditionalReferenceValueRepository customerAdditionalReferenceValueRepository;
+    private final TenantRepository tenantRepository;
+    private final CustomerAdditionalReferenceNameRepository customerAdditionalReferenceNameRepository;
 
     /**
      * get additional reference name by tenant identity.
      * tenant table not created yet
-     * @param referenceValueIdentity
+     *
+     * @param tenantIdentity
      * @return
      */
-
     @Transactional(readOnly = true)
-    public CustomerAdditionalReferenceNameResponseDto getReferenceName(UUID referenceValueIdentity) {
-        CustomerAdditionalReferenceValue customerAdditionalReferenceValue = customerAdditionalReferenceValueRepository.findByIdentity(referenceValueIdentity)
-                .orElseThrow(() -> new BusinessException("Customer additional reference value not found", ErrorCodes.RESOURCE_NOT_FOUND));
+    public List<CustomerAdditionalReferenceNameResponseDto> getReferenceName(UUID tenantIdentity) {
 
-        CustomerAdditionalReferenceName customerAdditionalReferenceName = customerAdditionalReferenceValue.getCustomerAdditionalReferenceName();
+        Tenant tenant = tenantRepository.findByIdentity(tenantIdentity)
+                .orElseThrow(() -> new BusinessException("Tenant not found", ErrorCodes.RESOURCE_NOT_FOUND));
 
-        CustomerAdditionalReferenceNameResponseDto customerAdditionalReferenceNameDto= new CustomerAdditionalReferenceNameResponseDto();
-        customerAdditionalReferenceNameDto.setIdentity(customerAdditionalReferenceName.getIdentity());
-        customerAdditionalReferenceNameDto.setCustomerRefName(customerAdditionalReferenceName.getCustomerRefName());
-        customerAdditionalReferenceNameDto.setIsActive(customerAdditionalReferenceName.getIsActive());
-        customerAdditionalReferenceNameDto.setIsMandatory(customerAdditionalReferenceName.getIsMandatory());
-        customerAdditionalReferenceNameDto.setValueType(customerAdditionalReferenceName.getValueType());
+        List<CustomerAdditionalReferenceName> refNames =
+                customerAdditionalReferenceNameRepository.findByTenant(tenant);
 
-        return customerAdditionalReferenceNameDto;
+        if (refNames.isEmpty()) {
+            throw new BusinessException("Customer additional reference value not found", ErrorCodes.RESOURCE_NOT_FOUND);
+        }
+
+        return refNames.stream()
+                .map(ref -> {
+                    CustomerAdditionalReferenceNameResponseDto dto = new CustomerAdditionalReferenceNameResponseDto();
+                    dto.setIdentity(ref.getIdentity());
+                    dto.setCustomerRefName(ref.getCustomerRefName());
+                    dto.setIsActive(ref.getIsActive());
+                    dto.setIsMandatory(ref.getIsMandatory());
+                    dto.setValueType(ref.getValueType());
+                    return dto;
+                })
+                .toList();
     }
 }

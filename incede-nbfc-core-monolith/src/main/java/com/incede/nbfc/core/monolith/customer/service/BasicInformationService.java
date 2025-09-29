@@ -4,6 +4,7 @@ import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.dto.BasicInformationRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.BasicInformationResponseDto;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerDto;
 import com.incede.nbfc.core.monolith.customer.mapper.BasicInformationMapper;
 import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
@@ -97,7 +98,7 @@ public class BasicInformationService {
 
             Optional<Customer> duplicate = customerRepository.findByTenantIdAndAadharVaultId(dto.getTenantId(), dto.getAadharVault());
             if (duplicate.isPresent() && !duplicate.get().getIdentity().equals(identity)) {
-                throw new BusinessException(CommonConstants.CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
+                throw new BusinessException(CommonConstants.CUSTOMER_CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
             }
 
             populateReferences(existingCustomer, dto);
@@ -128,7 +129,7 @@ public class BasicInformationService {
     /**
      * Generates a unique customer code for a tenant.
      *
-     * @param tenantId Tenant ID.
+     * @param tenantId Tenant ID
      * @return Generated customer code string.
      */
     @Operation(summary = "Generate Customer Code", description = "Generates a unique customer code for a given tenant.")
@@ -144,7 +145,6 @@ public class BasicInformationService {
 
     /**
      * Populates referenced entities for the customer from DTO values.
-     *
      * @param customer Customer entity.
      * @param dto      BasicInformationRequestDto.
      */
@@ -184,5 +184,18 @@ public class BasicInformationService {
         } else {
             customer.setGuardianCustomer(null);
         }
+    }
+
+    public CustomerDto getCustomerWithCustomerId(String customerCode) {
+
+        Customer customer= customerRepository.findByCustomerCode(customerCode)
+                .orElseThrow(() -> new BusinessException("Customer not found", ErrorCodes.RESOURCE_NOT_FOUND));
+
+
+        CustomerDto  customerDto =new CustomerDto();
+        customerDto.setFirstname(customer.getFirstName());
+        customerDto.setIdentity(customer.getIdentity());
+        customerDto.setLastname(customer.getLastName());
+        return  customerDto;
     }
 }

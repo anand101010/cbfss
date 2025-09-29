@@ -84,6 +84,8 @@ public final class CommonConstants {
     public static final String FORBIDDEN_MESSAGE = "Access denied";
 
     public static final String CONFLICT_MESSAGE ="Resource already exist";
+    public static final String CUSTOMER_CONFLICT_MESSAGE ="Customer with this Aadhar-vault-id already exist";
+
     public static final String CONSTRAIN_VIOLATION =" Constrain Violation";
     //customer onboarding
     public static  String DRAFT="Draft";

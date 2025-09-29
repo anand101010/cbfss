@@ -66,7 +66,6 @@ public class CustomerKycMapper {
         customerKyc.setIssuingAuthority(request.getIssuingAuthority());
         customerKyc.setValidFrom(request.getValidFrom());
         customerKyc.setValidTo(request.getValidTo());
-        customerKyc.setDocumentRefId(request.getDocumentRefId());
         customerKyc.setCreatedBy(1);
         customerKyc.setCustomer(customer);
 

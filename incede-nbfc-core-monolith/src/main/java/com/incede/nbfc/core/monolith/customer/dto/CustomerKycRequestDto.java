@@ -36,26 +36,26 @@ public class CustomerKycRequestDto {
     @FutureOrPresent(message = "Valid to date must be today or in the future")
     private LocalDate validTo;
 
-    @NotNull(message = "Document reference ID is required")
-    private Integer documentRefId;
-
     @NotNull(message = "Verification status must be specified")
     private Boolean isVerified = false;
 
     @NotNull(message = "Active status must be specified")
     private Boolean isActive = true;
+
     private Integer tenantId;
+
     @NotBlank(message = "firstName should not be blank")
     private String firstName;
 
     @NotBlank(message = "lastName should not be blank")
     private String lastName;
 
-    @NotNull(message = "dob should not be blank")
     private LocalDate dob;
 
     @NotBlank(message = "branchCode should not be blank")
     private String branchCode;
 
     private String customerType;
+
+
 }

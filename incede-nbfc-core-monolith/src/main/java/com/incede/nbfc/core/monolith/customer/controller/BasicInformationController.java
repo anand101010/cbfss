@@ -2,6 +2,7 @@ package com.incede.nbfc.core.monolith.customer.controller;
 
 import com.incede.nbfc.core.monolith.customer.dto.BasicInformationRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.BasicInformationResponseDto;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerDto;
 import com.incede.nbfc.core.monolith.customer.service.BasicInformationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,8 +40,8 @@ public class BasicInformationController {
     /**
      * Update basic information for an existing customer.
      *
-     * @param customerUUID    Customer UUID
-     * @param request DTO containing updated basic info
+     * @param customerUUID Customer UUID
+     * @param request      DTO containing updated basic info
      * @return ResponseEntity with updated customer's basic info
      */
     @PutMapping("/{customerUUID}/basic")
@@ -63,5 +64,13 @@ public class BasicInformationController {
     public ResponseEntity<BasicInformationResponseDto> getBasicInfoByUuid(@PathVariable UUID customerUUID) {
         BasicInformationResponseDto response = customerOnboardingService.getBasicInformationByUuid(customerUUID);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{customerCode}/guardian")
+    @Operation(summary = "Get Basic Info", description = "Fetches basic info of a customer by UUID")
+    public ResponseEntity<CustomerDto> getCustomerByCustomerCode(@PathVariable String customerCode) {
+        CustomerDto response = customerOnboardingService.getCustomerWithCustomerId(customerCode);
+        return ResponseEntity.ok(response);
+
     }
 }

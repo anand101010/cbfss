@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.domain.entity;
 
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.Tenant;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -51,5 +52,9 @@ public class CustomerAdditionalReferenceName extends CustomerBaseEntity implemen
     private Boolean isMandatory;
 
 
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "tenant_id", nullable = false, referencedColumnName = "tenant_id")
+    @NotNull(message = "tenantId  must not be blank")
+    private Tenant tenant;
 
 }

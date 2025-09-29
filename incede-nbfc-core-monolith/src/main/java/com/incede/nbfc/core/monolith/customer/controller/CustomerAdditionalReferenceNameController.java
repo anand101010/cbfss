@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -25,10 +26,10 @@ public class CustomerAdditionalReferenceNameController {
      * @return
      */
     @GetMapping("/{tenantIdentity}/getAdditional-ref-name")
-    public ResponseEntity<CustomerAdditionalReferenceNameResponseDto> getReferenceNameIdentity(
+    public ResponseEntity<List<CustomerAdditionalReferenceNameResponseDto>> getReferenceNameIdentity(
             @PathVariable UUID tenantIdentity
     ){
-        CustomerAdditionalReferenceNameResponseDto customerAdditionalReferenceNameDto = customerAdditionalReferenceNameService.getReferenceName(tenantIdentity);
+        List<CustomerAdditionalReferenceNameResponseDto> customerAdditionalReferenceNameDto = customerAdditionalReferenceNameService.getReferenceName(tenantIdentity);
         return ResponseEntity.ok(customerAdditionalReferenceNameDto);
     }
 
