@@ -21,16 +21,18 @@ public class CustomerAdditionalReferenceNameController {
     private final CustomerAdditionalReferenceNameService customerAdditionalReferenceNameService;
 
     /**
-     * get additional reference name
-     * @param tenantIdentity
-     * @return
+     * Get additional reference names for a tenant.
+     *
+     * @param tenantIdentity the tenant identity
+     * @return list of additional reference names
      */
-    @GetMapping("/{tenantIdentity}/getAdditional-ref-name")
+    @GetMapping("/{tenantIdentity}/additional-reference-names")
     public ResponseEntity<List<CustomerAdditionalReferenceNameResponseDto>> getReferenceNameIdentity(
-            @PathVariable UUID tenantIdentity
-    ){
-        List<CustomerAdditionalReferenceNameResponseDto> customerAdditionalReferenceNameDto = customerAdditionalReferenceNameService.getReferenceName(tenantIdentity);
-        return ResponseEntity.ok(customerAdditionalReferenceNameDto);
-    }
+            @PathVariable UUID tenantIdentity) {
 
+        List<CustomerAdditionalReferenceNameResponseDto> response =
+                customerAdditionalReferenceNameService.getReferenceName(tenantIdentity);
+
+        return ResponseEntity.ok(response);
+    }
 }

@@ -18,10 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Global Exception Handler for Incede NBFC Core Monolith Service.
@@ -64,6 +61,25 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest().body(errorResponse);
     }
+
+    /**
+     * Handle Conflict for KYC Document
+     * @param ex
+     * @return
+     */
+    @ExceptionHandler(BusinessConflictException.class)
+    public ResponseEntity<Object> handleBusinessConflictException(BusinessConflictException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.CONFLICT.value());
+        body.put("error", "Business Conflict");
+        body.put("message", ex.getMessage());
+        body.put("errorCode", ex.getErrorCode());
+        body.put("details", ex.getDetails()); // <-- Extra payload
+        body.put("path", ""); // You can fill this dynamically
+        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+    }
+
 
     /**
      * Handle constraint violation exceptions.

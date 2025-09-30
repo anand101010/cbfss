@@ -7,14 +7,13 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class CustomerForm60ResponseDto {
-
-    private Integer branchId;
 
     private BigDecimal transactionAmount;
     private LocalDate transactionDate;
@@ -39,6 +38,7 @@ public class CustomerForm60ResponseDto {
 
     private LocalDate submissionDate;
     private Integer formFileId;
+    private UUID identity;
 
 
 }

@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.masterdata.controller;
 
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.RiskCategory;
 import com.incede.nbfc.core.monolith.masterdata.dto.*;
 import com.incede.nbfc.core.monolith.masterdata.service.BankMasterDataService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -121,6 +123,29 @@ public class BankMasterDataController
         log.info("Found {} branch week schedule", branchWeekScheduleView.size());
         return ResponseEntity.ok(branchWeekScheduleView);
     }
+    
+    @GetMapping("/ifsc-codes")
+    @Operation(summary = "Get all ifsc codes", description = "Retrieves all ifsc codes from the system")
+    public ResponseEntity<List<IfscCodesDto>> getAllIfscCodes(){
+        log.info("Fetching all the ifsc codes");
+        List<IfscCodesDto> ifscCodes = bankMasterDataService.getAllIfscCodes();
+        log.info("Found {} ifsc codes", ifscCodes.size());
+        return ResponseEntity.ok(ifscCodes);
+    }
+    @GetMapping("/ifsc-codes/{ifscCode}")
+    @Operation(summary = "Get IFSC code details", description = "Retrieves details for a specific IFSC code")
+    public ResponseEntity<IfscCodesDto> getIfscCodeDetails(@PathVariable String ifscCode) {
+        log.info("Fetching details for IFSC code: {}", ifscCode);
+        IfscCodesDto dto = bankMasterDataService.getIfscCodeDetails(ifscCode);
+
+        if (dto == null) {
+            log.warn("No details found for IFSC code: {}", ifscCode);
+            return ResponseEntity.notFound().build();
+        }
+
+        log.info("Found details for IFSC code: {}", ifscCode);
+        return ResponseEntity.ok(dto);
+    }
 
     @GetMapping("/customer-category")
     @Operation(summary = "Get all  customer category", description = "Retrieves all customer category from the system")
@@ -131,5 +156,22 @@ public class BankMasterDataController
         return ResponseEntity.ok(customerCategoryView);
     }
 
+    @GetMapping("/customer-group")
+    @Operation(summary = "Get all customer groups", description = "Retrieves all customer groups from the system")
+    public ResponseEntity<List<CustomerGroupMasterView>> getAllCustomerGroups() {
+        log.info("Fetching all customer groups");
+        List<CustomerGroupMasterView> customerGroups = bankMasterDataService.getAllCustomerGroups();
+        log.info("Found {} customer groups", customerGroups.size());
+        return ResponseEntity.ok(customerGroups);
+    }
+
+    @GetMapping("/risk-category")
+    @Operation(summary = "Get all risk categories", description = "Retrieves all active risk categories from the system")
+    public ResponseEntity<List<RiskCategoryView>> getAllRiskCategories() {
+        log.info("Fetching all risk categories");
+        List<RiskCategoryView> categories = bankMasterDataService.getAllRiskCategories();
+        log.info("Found {} risk categories", categories.size());
+        return ResponseEntity.ok(categories);
+    }
 
 }

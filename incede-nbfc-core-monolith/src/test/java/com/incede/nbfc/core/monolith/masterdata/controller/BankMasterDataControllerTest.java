@@ -7,7 +7,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 import java.util.UUID;
@@ -15,8 +21,12 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class BankMasterDataControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
 
     @Mock
     private BankMasterDataService bankMasterDataService;
@@ -172,6 +182,94 @@ public class BankMasterDataControllerTest {
         BranchWeekScheduleView result = response.getBody().get(0);
         assertThat(result.getDayOfWeek()).isEqualTo((short) 1);
         assertThat(result.getIdentity()).isEqualTo(id);
+    }
+
+
+    @Test
+    void testGetAllIfscCodes() {
+        IfscCodesDto dto = new IfscCodesDto();
+        dto.setIfscCode("SBIN0001234");
+        dto.setBankName("State Bank of India");
+        dto.setBranchName("Ernakulam");
+        dto.setPincodes(682030);
+
+        List<IfscCodesDto> mockList = List.of(dto);
+
+        when(bankMasterDataService.getAllIfscCodes()).thenReturn(mockList);
+
+        ResponseEntity<List<IfscCodesDto>> response = bankMasterDataController.getAllIfscCodes();
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).hasSize(1);
+
+        IfscCodesDto result = response.getBody().get(0);
+        assertThat(result.getIfscCode()).isEqualTo("SBIN0001234");
+        assertThat(result.getBankName()).isEqualTo("State Bank of India");
+        assertThat(result.getBranchName()).isEqualTo("Ernakulam");
+        assertThat(result.getPincodes()).isEqualTo(682030);
+    }
+
+
+    @Test
+    void testGetAllCustomerGroups() {
+        CustomerGroupMasterView mockView = mock(CustomerGroupMasterView.class);
+        when(mockView.getCustomerGroup()).thenReturn("Retail");
+        when(mockView.getCode()).thenReturn("RET");
+        when(mockView.getIdentity()).thenReturn(UUID.randomUUID());
+
+        List<CustomerGroupMasterView> mockList = List.of(mockView);
+        when(bankMasterDataService.getAllCustomerGroups()).thenReturn(mockList);
+
+        ResponseEntity<List<CustomerGroupMasterView>> response = bankMasterDataController.getAllCustomerGroups();
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).getCustomerGroup()).isEqualTo("Retail");
+        assertThat(response.getBody().get(0).getCode()).isEqualTo("RET");
+    }
+
+    @Test
+    void testGetAllRiskCategories() {
+        RiskCategoryView mockView = mock(RiskCategoryView.class);
+        when(mockView.getCategory()).thenReturn("High Risk");
+        when(mockView.getCode()).thenReturn("HRISK");
+        when(mockView.getIdentity()).thenReturn(UUID.randomUUID());
+
+        List<RiskCategoryView> mockList = List.of(mockView);
+        when(bankMasterDataService.getAllRiskCategories()).thenReturn(mockList);
+
+        ResponseEntity<List<RiskCategoryView>> response = bankMasterDataController.getAllRiskCategories();
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).getCategory()).isEqualTo("High Risk");
+        assertThat(response.getBody().get(0).getCode()).isEqualTo("HRISK");
+    }
+
+    @Test
+    void testGetIfscCodeDetails_success() {
+
+        IfscCodesDto mockDto = mock(IfscCodesDto.class);
+        when(mockDto.getIfscCode()).thenReturn("SBIN0001234");
+        when(mockDto.getBankName()).thenReturn("State Bank of India");
+        when(mockDto.getBranchName()).thenReturn("MG Road");
+        when(mockDto.getPincodes()).thenReturn(682016);
+        when(mockDto.getIdentity()).thenReturn(UUID.randomUUID());
+
+        when(bankMasterDataService.getIfscCodeDetails("SBIN0001234")).thenReturn(mockDto);
+
+        ResponseEntity<IfscCodesDto> response = bankMasterDataController.getIfscCodeDetails("SBIN0001234");
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getIfscCode()).isEqualTo("SBIN0001234");
+        assertThat(response.getBody().getBankName()).isEqualTo("State Bank of India");
+        assertThat(response.getBody().getBranchName()).isEqualTo("MG Road");
+        assertThat(response.getBody().getPincodes()).isEqualTo(682016);
     }
 
 

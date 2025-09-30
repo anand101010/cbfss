@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 import jakarta.persistence.*;
-
-
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,7 +15,6 @@ import java.util.UUID;
 /**
  * KycDocument entity for storing customer KYC details.
  * Supports multiple document types like Aadhar, PAN, etc.
- *
  *
  * @version 1.0.0
  */
@@ -32,7 +29,8 @@ public class CustomerKyc extends CustomerBaseEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer kycId;
+    @Column(name = "kyc_id")
+    private Long kycId;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "customer_id", nullable = false, referencedColumnName = "customer_id")
@@ -77,6 +75,14 @@ public class CustomerKyc extends CustomerBaseEntity implements Serializable {
     @NotNull(message = "Active status must be specified")
     private Boolean isActive = true;
 
+    // Optional: Add convenience methods
+    public boolean isExpired() {
+        return validTo != null && validTo.isBefore(LocalDate.now());
+    }
 
-
+    public boolean isValid() {
+        return Boolean.TRUE.equals(isVerified) &&
+                Boolean.TRUE.equals(isActive) &&
+                !isExpired();
+    }
 }

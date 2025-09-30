@@ -24,8 +24,7 @@ public class PostOffices extends BaseEntity implements Serializable {
     private Integer postOfficeId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pincode_id", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_post_offices_pincode"))
+    @JoinColumn(name = "pincode_id", nullable = false)
     private Pincodes pincode;
 
     @Column(name = "office_name", nullable = false, length = 100)

@@ -23,17 +23,20 @@ public class Pincodes extends BaseEntity implements Serializable {
     @Column(name = "pincode_id")
     private Integer pincodeId;
 
-    @Column(name = "city_id", nullable = false, length = 50)
-    private Integer cityId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "district_id", nullable = false)
+    private Districts districts;
 
-    @Column(name = "district_id",nullable = false, length = 50)
-    private Integer districtId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "city_id", nullable = false)
+    private Cities cities;
 
-    @Column(name = "state_id", nullable = false, length = 50)
-    private Integer stateId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "state_id", nullable = false)
+    private States states;
 
-    @Column(name = "pincode", nullable = false, length = 6)
-    private Integer pincode;
+    @Column(name = "pincode", nullable = false, length = 6, unique = true)
+    private String pincode;
 
     @Column(name = "latitude", precision = 10, scale = 7)
     private BigDecimal latitude;

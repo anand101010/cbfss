@@ -42,20 +42,11 @@ public class CustomerKycRequestDto {
     @NotNull(message = "Active status must be specified")
     private Boolean isActive = true;
 
-    private Integer tenantId;
-
-    @NotBlank(message = "firstName should not be blank")
-    private String firstName;
-
-    @NotBlank(message = "lastName should not be blank")
-    private String lastName;
-
-    private LocalDate dob;
+    private UUID tenantId;
 
     @NotBlank(message = "branchCode should not be blank")
     private String branchCode;
 
-    private String customerType;
 
 
 }

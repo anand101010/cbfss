@@ -10,6 +10,8 @@ import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.exception.ErrorCodes;
 import com.incede.nbfc.core.monolith.masterdata.repository.*;
+import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
+import com.incede.nbfc.core.monolith.tenant.repository.TenantRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -42,6 +44,8 @@ public class BasicInformationService {
     private final CustomerStatusRepository customerStatusRepository;
     private final ResidentialStatusesRepository residentialStatusesRepository;
     private final SalutationTypesRepository salutationRepository;
+    private final TenantRepository tenantRepository;
+
 
     /**
      * Save basic information of a new customer.
@@ -55,8 +59,12 @@ public class BasicInformationService {
             @Parameter(description = "Basic Information Request DTO", required = true)
             BasicInformationRequestDto dto) {
 
-        if (customerRepository.existsByTenantIdAndAadharVaultId(dto.getTenantId(), dto.getAadharVault())) {
-            throw new BusinessException(CommonConstants.CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
+        Tenant tenant = tenantRepository.findByIdentity(dto.getTenantId())
+                .orElseThrow(() -> new BusinessException(CommonConstants.TENANT_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
+
+
+        if (customerRepository.existsByTenantAndAadharVaultId(tenant, dto.getAadharVault())) {
+            throw new BusinessException(CommonConstants.CUSTOMER_CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
         }
 
         try {
@@ -65,7 +73,7 @@ public class BasicInformationService {
             populateReferences(customer, dto);
 
             customer.setIdentity(UUID.randomUUID());
-            customer.setCustomerCode(generateCustomerCode(dto.getTenantId()));
+            customer.setCustomerCode(generateCustomerCode(tenant.getTenantId()));
             customer.setOnboardingStatus(CommonConstants.IN_PROGRESS);
 
             return customerMapper.toResponseDto(customerRepository.save(customer));
@@ -90,13 +98,14 @@ public class BasicInformationService {
             BasicInformationRequestDto dto) {
 
         Customer existingCustomer = customerRepository.findByIdentity(identity)
-                .orElseThrow(() -> new BusinessException(CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.RESOURCE_NOT_FOUND));
-
+                .orElseThrow(() -> new BusinessException(CommonConstants.CUSTOMER_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
+        Tenant tenant = tenantRepository.findByIdentity(dto.getTenantId())
+                .orElseThrow(() -> new BusinessException(CommonConstants.TENANT_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
         try {
             customerMapper.updateEntityFromDto(existingCustomer, dto);
             existingCustomer.setUpdatedAt(LocalDateTime.now());
 
-            Optional<Customer> duplicate = customerRepository.findByTenantIdAndAadharVaultId(dto.getTenantId(), dto.getAadharVault());
+            Optional<Customer> duplicate = customerRepository.findByTenantAndAadharVaultId(tenant, dto.getAadharVault());
             if (duplicate.isPresent() && !duplicate.get().getIdentity().equals(identity)) {
                 throw new BusinessException(CommonConstants.CUSTOMER_CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
             }
@@ -122,7 +131,7 @@ public class BasicInformationService {
             UUID customerUuid) {
 
         Customer customer = customerRepository.findByIdentity(customerUuid)
-                .orElseThrow(() -> new BusinessException(CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(CommonConstants.CUSTOMER_NOT_FOUND, ErrorCodes.NOT_FOUND));
         return customerMapper.toResponseDto(customer);
     }
 
@@ -151,35 +160,35 @@ public class BasicInformationService {
     private void populateReferences(Customer customer, BasicInformationRequestDto dto) {
         Objects.requireNonNull(dto.getGender(), "Gender is required");
         customer.setGender(gendersRepository.findByIdentity(dto.getGender())
-                .orElseThrow(() -> new BusinessException("Invalid gender", ErrorCodes.VALIDATION_FAILED)));
+                .orElseThrow(() -> new BusinessException(CommonConstants.INVALID_GENDER, ErrorCodes.VALIDATION_FAILED)));
 
         Objects.requireNonNull(dto.getMaritalStatus(), "Marital status is required");
         customer.setMaritalStatus(maritalStatusRepository.findByIdentity(dto.getMaritalStatus())
-                .orElseThrow(() -> new BusinessException("Invalid marital status", ErrorCodes.VALIDATION_FAILED)));
+                .orElseThrow(() -> new BusinessException(CommonConstants.INVALID_MARITAL_STATUS, ErrorCodes.VALIDATION_FAILED)));
 
         Objects.requireNonNull(dto.getTaxCategory(), "Tax category is required");
         customer.setTaxCategory(taxCategoryRepository.findByIdentity(dto.getTaxCategory())
-                .orElseThrow(() -> new BusinessException("Invalid tax category", ErrorCodes.VALIDATION_FAILED)));
+                .orElseThrow(() -> new BusinessException(CommonConstants.INVALID_TAX_CATEGORY, ErrorCodes.VALIDATION_FAILED)));
 
         Objects.requireNonNull(dto.getOccupation(), "Occupation is required");
         customer.setOccupation(occupationRepository.findByIdentity(dto.getOccupation())
-                .orElseThrow(() -> new BusinessException("Invalid occupation", ErrorCodes.VALIDATION_FAILED)));
+                .orElseThrow(() -> new BusinessException(CommonConstants.INVALID_OCCUPATION, ErrorCodes.VALIDATION_FAILED)));
 
         Objects.requireNonNull(dto.getBranchId(), "Branch is required");
         customer.setBranchId(branchesRepository.findByIdentity(dto.getBranchId())
-                .orElseThrow(() -> new BusinessException("Invalid branch", ErrorCodes.VALIDATION_FAILED)));
+                .orElseThrow(() -> new BusinessException(CommonConstants.INVALID_BRANCH, ErrorCodes.VALIDATION_FAILED)));
 
         Objects.requireNonNull(dto.getSalutation(), "Salutation is required");
         customer.setSalutation(salutationRepository.findByIdentity(dto.getSalutation())
-                .orElseThrow(() -> new BusinessException("Invalid salutation", ErrorCodes.VALIDATION_FAILED)));
+                .orElseThrow(() -> new BusinessException(CommonConstants.INVALID_SALUTATION, ErrorCodes.VALIDATION_FAILED)));
 
         Objects.requireNonNull(dto.getCustomerStatus(), "Customer status is required");
         customer.setCustomerStatus(customerStatusRepository.findByIdentity(dto.getCustomerStatus())
-                .orElseThrow(() -> new BusinessException("Invalid customer status", ErrorCodes.VALIDATION_FAILED)));
+                .orElseThrow(() -> new BusinessException(CommonConstants.INVALID_CUSTOMER_STATUS, ErrorCodes.VALIDATION_FAILED)));
 
         if (dto.getGuardianCustomerId() != null && Boolean.TRUE.equals(dto.getIsMinor())) {
             Customer guardian = customerRepository.findByIdentity(dto.getGuardianCustomerId())
-                    .orElseThrow(() -> new BusinessException("Guardian not found", ErrorCodes.RESOURCE_NOT_FOUND));
+                    .orElseThrow(() -> new BusinessException(CommonConstants.GUARDIAN_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
             customer.setGuardianCustomer(guardian);
         } else {
             customer.setGuardianCustomer(null);
@@ -189,7 +198,20 @@ public class BasicInformationService {
     public CustomerDto getCustomerWithCustomerId(String customerCode) {
 
         Customer customer= customerRepository.findByCustomerCode(customerCode)
-                .orElseThrow(() -> new BusinessException("Customer not found", ErrorCodes.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(CommonConstants.CUSTOMER_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
+
+
+        CustomerDto  customerDto =new CustomerDto();
+        customerDto.setFirstname(customer.getFirstName());
+        customerDto.setIdentity(customer.getIdentity());
+        customerDto.setLastname(customer.getLastName());
+        return  customerDto;
+    }
+
+    public CustomerDto getCustomerWithCustomerIdentity(UUID customerIdentity) {
+
+        Customer customer= customerRepository.findByIdentity(customerIdentity)
+                .orElseThrow(() -> new BusinessException(CommonConstants.CUSTOMER_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
 
 
         CustomerDto  customerDto =new CustomerDto();

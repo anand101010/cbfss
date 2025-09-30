@@ -4,7 +4,6 @@ import com.incede.nbfc.core.monolith.masterdata.domain.entity.*;
 import com.incede.nbfc.core.monolith.masterdata.dto.*;
 import com.incede.nbfc.core.monolith.masterdata.mapper.*;
 import com.incede.nbfc.core.monolith.masterdata.repository.*;
-import com.incede.nbfc.core.monolith.masterdata.repository.StatesRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,7 +30,6 @@ public class BankMasterDataService {
     private final StatesRepository statesRepository;
     private final StatesMapper statesMapper;
     private final CountryMapper countryMapper;
-    private final PincodeMapper pincodeMapper;
     private final BranchTypeRepository branchTypeRepository;
     private final BranchTypeMapper branchTypeMapper;
     private final PostOfficesRepository postOfficesRepository;
@@ -40,7 +38,11 @@ public class BankMasterDataService {
     private final CitiesMapper citiesMapper;
     private final DistrictRepository districtRepository;
     private final DistrictMapper districtMapper;
+    private final IfscCodesRepository ifscCodesRepository;
+    private final IfscCodeMapper ifscCodeMapper;
     private final CustomerCategoryRepository customerCategoryRepository;
+    private final CustomerGroupMasterRepository customerGroupMasterRepository;
+    private final RiskCategoryRepository riskCategoryRepository;
     private final CountryRepository countryRepository;
     private final PincodesRepository pincodesRepository;
 
@@ -220,6 +222,81 @@ public class BankMasterDataService {
     }
 
     /**
+     * Retrieves all bank name and branch name from the ifsc code search
+     *
+     */
+    @Transactional(readOnly = true)
+    public List<IfscCodesDto> getAllIfscCodes() {
+
+        List<IfscCodes> ifscCodes = ifscCodesRepository.findAllIfscCodeByIsDelFalse();
+
+        if (ifscCodes.isEmpty()) {
+            log.warn("No IFSC codes found");
+            return Collections.emptyList();
+        }
+        Set<Integer> pincodeIds = ifscCodes.stream()
+                .map(IfscCodes::getPincodeId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Map<Integer, Pincodes> pincodeMap = pincodesRepository.findByPincodeIdIn(pincodeIds).stream()
+                .collect(Collectors.toMap(Pincodes::getPincodeId, Function.identity()));
+
+        List<IfscCodesDto> ifscDtos = ifscCodes.stream()
+                .map(entity -> {
+                    IfscCodesDto dto = ifscCodeMapper.convertToDto(entity);
+
+                    if (entity.getPincodeId() != null) {
+                        Pincodes pincode = pincodeMap.get(entity.getPincodeId());
+                        if (pincode != null) {
+                            dto.setPincodes(Integer.valueOf(pincode.getPincode()));
+                            log.info("Mapped IFSC {} to Pincode {}", entity.getIfscCode(), pincode.getPincode());
+                        } else {
+                            log.warn("No Pincode found for IFSC {} with pincodeId {}",
+                                    entity.getIfscCode(), entity.getPincodeId());
+                        }
+                    }
+
+                    return dto;
+                })
+                .toList();
+
+        log.info("Fetched {} IFSC codes with pincodes", ifscDtos.size());
+        return Collections.unmodifiableList(ifscDtos);
+    }
+
+
+    @Transactional(readOnly = true)
+    public IfscCodesDto getIfscCodeDetails(String ifscCode) {
+        Optional<IfscCodes> optionalIfsc = ifscCodesRepository.findByIfscCodeAndIsDelFalse(ifscCode);
+
+        if (optionalIfsc.isEmpty()) {
+            log.warn("IFSC code {} not found or marked as deleted", ifscCode);
+            return null;
+        }
+
+        IfscCodes entity = optionalIfsc.get();
+        IfscCodesDto dto = ifscCodeMapper.convertToDto(entity);
+
+        if (entity.getBank() != null) {
+            dto.setBankName(entity.getBank().getName());
+        }
+
+        if (entity.getPincodeId() != null) {
+            Pincodes pincode = pincodesRepository.findById(entity.getPincodeId()).orElse(null);
+            if (pincode != null) {
+                dto.setPincodes(Integer.valueOf(pincode.getPincode()));
+                log.info("Mapped IFSC {} to Pincode {}", entity.getIfscCode(), pincode.getPincode());
+            } else {
+                log.warn("No Pincode found for IFSC {} with pincodeId {}", entity.getIfscCode(), entity.getPincodeId());
+            }
+        }
+
+        return dto;
+    }
+
+
+    /**
      * Retrieves all active account Types
      *
      */
@@ -284,5 +361,31 @@ public class BankMasterDataService {
 
         log.info("Fetched {} customer category", customerCategory.size());
         return Collections.unmodifiableList(customerCategory);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CustomerGroupMasterView> getAllCustomerGroups() {
+        List<CustomerGroupMasterView> customerGroups = customerGroupMasterRepository.findByIsDelFalseAndIsActiveTrue();
+
+        if (customerGroups.isEmpty()) {
+            log.warn("No customer groups found");
+            return customerGroups;
+        }
+
+        log.info("Fetched {} customer groups", customerGroups.size());
+        return Collections.unmodifiableList(customerGroups);
+    }
+
+    @Transactional(readOnly = true)
+    public List<RiskCategoryView> getAllRiskCategories() {
+        List<RiskCategoryView> categories = riskCategoryRepository.findByIsDelFalseAndIsActiveTrue();
+
+        if (categories.isEmpty()) {
+            log.warn("No risk categories found");
+            return categories;
+        }
+
+        log.info("Fetched {} risk categories", categories.size());
+        return Collections.unmodifiableList(categories);
     }
 }

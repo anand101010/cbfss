@@ -10,6 +10,7 @@ import com.incede.nbfc.core.monolith.customer.repository.CustomerNotificationPre
 import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.exception.ErrorCodes;
+import com.incede.nbfc.core.monolith.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -90,4 +91,18 @@ public class CustomerNotificationPreferenceService {
 
         return mapper.toResponseDto(entity);
     }
+
+    @Transactional
+    public CustomerNotificationPreferenceResponseDto deleteNotificationPreference(UUID customerId) {
+        Customer customer = customerRepository.findByIdentity(customerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + customerId));
+
+        CustomerNotificationPreference notificationPreference = notificationRepository.findByCustomer(customer)
+                .orElseThrow(() -> new ResourceNotFoundException("Notification preference not found for customer id: " + customerId));
+
+        notificationRepository.delete(notificationPreference);
+        return mapper.toResponseDto(notificationPreference);
+    }
+
+
 }

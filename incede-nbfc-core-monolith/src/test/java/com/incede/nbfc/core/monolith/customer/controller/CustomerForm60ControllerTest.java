@@ -74,7 +74,6 @@ class CustomerForm60ControllerTest {
         requestDto.setUpdatedBy(2);
 
         responseDto = new CustomerForm60ResponseDto();
-        responseDto.setBranchId(10);
         responseDto.setTransactionAmount(BigDecimal.valueOf(200000));
     }
 

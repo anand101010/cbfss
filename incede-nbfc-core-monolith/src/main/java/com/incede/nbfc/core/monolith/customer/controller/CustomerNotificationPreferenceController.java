@@ -69,4 +69,14 @@ public class CustomerNotificationPreferenceController {
         CustomerNotificationPreferenceResponseDto response = notificationService.getNotificationPreferences(customerId);
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping("/{customerId}/notification-preferences")
+    public ResponseEntity<CustomerNotificationPreferenceResponseDto> deleteNotification(
+            @PathVariable UUID customerId) {
+
+        CustomerNotificationPreferenceResponseDto response = notificationService.deleteNotificationPreference(customerId);
+        return ResponseEntity.ok(response);
+
+
+    }
 }

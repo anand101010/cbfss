@@ -16,7 +16,7 @@ import java.util.UUID;
 public class BasicInformationRequestDto {
 
     @NotNull(message = "Tenant ID is required")
-    private Integer tenantId;
+    private UUID tenantId;
 
     @NotNull(message = "Salutation is required")
     private UUID salutation;
@@ -57,7 +57,6 @@ public class BasicInformationRequestDto {
     private String aadharVault;
 
     @ToString.Exclude
-    @NotBlank(message = "CRM Reference ID is required")
     private String crmReferenceId;
 
     @NotNull(message = "Occupation is required")

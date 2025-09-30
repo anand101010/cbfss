@@ -12,6 +12,8 @@ import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.exception.ErrorCodes;
 import com.incede.nbfc.core.monolith.exception.ResourceNotFoundException;
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.AccountStatuses;
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.AccountTypeMaster;
 import com.incede.nbfc.core.monolith.masterdata.repository.AccountStatusesRepository;
 import com.incede.nbfc.core.monolith.masterdata.repository.AccountTypeMasterRepository;
 import jakarta.validation.ConstraintViolation;
@@ -111,7 +113,7 @@ public class CustomerBankAccountService {
             throw e;
         } catch (Exception e) {
             log.error("Unexpected error updating bank account", e);
-            throw new BusinessException("Failed to update bank account", ErrorCodes.INTERNAL_SERVER_ERROR, e);
+            throw new BusinessException(CommonConstants.FAILED_TO_UPDATE_BANK_ACCOUNT, ErrorCodes.INTERNAL_SERVER_ERROR, e);
         }
     }
 
@@ -135,7 +137,7 @@ public class CustomerBankAccountService {
             String errorMsg = violations.stream()
                     .map(v -> v.getPropertyPath() + " " + v.getMessage())
                     .reduce((m1, m2) -> m1 + ", " + m2)
-                    .orElse("Validation failed");
+                    .orElse(CommonConstants.BANK_ACCOUNT_REQUEST_VALIDATION_ERROR);
             throw new BusinessException(errorMsg, ErrorCodes.VALIDATION_FAILED);
         }
     }
@@ -158,17 +160,18 @@ public class CustomerBankAccountService {
         }
     }
 
-    private com.incede.nbfc.core.monolith.masterdata.domain.entity.AccountTypeMaster fetchAccountType(UUID identity) {
+    private AccountTypeMaster fetchAccountType(UUID identity) {
         return accountTypeMasterRepository.findByIdentity(identity)
-                .orElseThrow(() -> new BusinessException("Invalid AccountType", ErrorCodes.VALIDATION_FAILED));
+                .orElseThrow(() -> new BusinessException(CommonConstants.INVALID_ACCOUNT_TYPE, ErrorCodes.VALIDATION_FAILED));
     }
 
-    private com.incede.nbfc.core.monolith.masterdata.domain.entity.AccountStatuses fetchAccountStatus(UUID identity) {
+    private AccountStatuses fetchAccountStatus(UUID identity) {
         return accountStatusesRepository.findByIdentity(identity)
-                .orElseThrow(() -> new BusinessException("Invalid AccountStatus", ErrorCodes.VALIDATION_FAILED));
+                .orElseThrow(() -> new BusinessException(CommonConstants.INVALID_ACCOUNT_STATUS, ErrorCodes.VALIDATION_FAILED));
     }
 
     public Integer uploadBankProof(MultipartFile bankProof) {
         return Math.abs(UUID.randomUUID().hashCode());
     }
 }
+

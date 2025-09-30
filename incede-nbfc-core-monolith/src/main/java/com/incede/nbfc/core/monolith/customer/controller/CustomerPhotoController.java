@@ -52,4 +52,7 @@ public class CustomerPhotoController {
         CustomerPhotoResponseDto photoResponse = customerPhotoService.getCustomerPhotos(customerUUID);
         return ResponseEntity.ok(photoResponse);
     }
+
+
+
 }

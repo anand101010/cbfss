@@ -92,7 +92,7 @@ class CustomerNotificationPreferenceServiceTest {
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.saveNotification(customerId, requestDto));
 
-        assertEquals(CommonConstants.NOT_FOUND_MESSAGE, ex.getMessage());
+        assertEquals(CommonConstants.CUSTOMER_NOT_FOUND, ex.getMessage());
         assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
     }
 
@@ -104,7 +104,7 @@ class CustomerNotificationPreferenceServiceTest {
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.saveNotification(customerId, requestDto));
 
-        assertEquals(CommonConstants.CONFLICT_MESSAGE, ex.getMessage());
+        assertEquals(CommonConstants.NOTIFICATION_PREFERENCE_ALREADY_EXIST, ex.getMessage());
         assertEquals(ErrorCodes.CONFLICT, ex.getErrorCode());
     }
 
@@ -115,7 +115,7 @@ class CustomerNotificationPreferenceServiceTest {
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.updateNotification(customerId, requestDto));
 
-        assertEquals(CommonConstants.NOT_FOUND_MESSAGE, ex.getMessage());
+        assertEquals(CommonConstants.CUSTOMER_NOT_FOUND, ex.getMessage());
         assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
     }
 
@@ -127,7 +127,7 @@ class CustomerNotificationPreferenceServiceTest {
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.updateNotification(customerId, requestDto));
 
-        assertEquals(CommonConstants.NOT_FOUND_MESSAGE, ex.getMessage());
+        assertEquals(CommonConstants.NOTIFICATION_PREFERENCE_NOT_FOUND, ex.getMessage());
         assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
     }
 
@@ -138,7 +138,7 @@ class CustomerNotificationPreferenceServiceTest {
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.getNotificationPreferences(customerId));
 
-        assertEquals(CommonConstants.NOT_FOUND_MESSAGE, ex.getMessage());
+        assertEquals(CommonConstants.CUSTOMER_NOT_FOUND, ex.getMessage());
         assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
     }
 
@@ -150,7 +150,7 @@ class CustomerNotificationPreferenceServiceTest {
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.getNotificationPreferences(customerId));
 
-        assertEquals(CommonConstants.NOT_FOUND_MESSAGE, ex.getMessage());
+        assertEquals(CommonConstants.NOTIFICATION_PREFERENCE_NOT_FOUND, ex.getMessage());
         assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
     }
 }

@@ -17,13 +17,13 @@ import java.util.UUID;
 public class CustomerAssetDto {
 
 
-    @NotNull(message = "Asset Type ID is required")
+
     private UUID assetTypeId;
 
 
     private Boolean ownsAsset;
 
-    @NotNull(message = "Has Home Loan flag is required")
+
     private Boolean hasHomeLoan;
 
     private String homeLoanCompany;

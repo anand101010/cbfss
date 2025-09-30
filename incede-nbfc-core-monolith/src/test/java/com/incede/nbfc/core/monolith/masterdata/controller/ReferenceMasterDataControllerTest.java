@@ -10,14 +10,18 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class ReferenceMasterDataControllerTest {
 
     @Mock
@@ -118,66 +122,55 @@ public class ReferenceMasterDataControllerTest {
     @Test
     void testGetAllPincodes() {
 
-        PincodeDto mockPincode = new PincodeDto();
-        mockPincode.setPincode(673528);
+        PincodeDto dto = new PincodeDto();
+        dto.setPincode("682030");
+        dto.setCityName("Kochi");
+        dto.setStateName("Kerala");
+        dto.setDistrictName("Ernakulam");
 
-        StatesDto stateDto = new StatesDto();
-        stateDto.setState("Kerala");
-        mockPincode.setStateDto(stateDto);
+        Page<PincodeDto> mockPage = new PageImpl<>(List.of(dto));
 
-        DistrictDto districtDto = new DistrictDto();
-        districtDto.setDistrict("Kozhikode");
-        mockPincode.setDistrictDto(districtDto);
-
-        CitiesDto citiesDto = new CitiesDto();
-        citiesDto.setCity("Peruvannamuzhi");
-        mockPincode.setCitiesDto(citiesDto);
-
-        Page<PincodeDto> mockPage = new PageImpl<>(List.of(mockPincode));
-
-        given(referenceMasterDataService.getAllPincodes(0, 10)).willReturn(mockPage);
+        when(referenceMasterDataService.getAllPincodes(0, 10)).thenReturn(mockPage);
 
         ResponseEntity<Page<PincodeDto>> response = referenceMasterDataController.getAllPincodes(0, 10);
 
         assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getContent()).hasSize(1);
+
         PincodeDto result = response.getBody().getContent().get(0);
-        assertThat(result.getPincode()).isEqualTo(673528);
-        assertThat(result.getStateDto().getState()).isEqualTo("Kerala");
-        assertThat(result.getDistrictDto().getDistrict()).isEqualTo("Kozhikode");
-        assertThat(result.getCitiesDto().getCity()).isEqualTo("Peruvannamuzhi");
+        assertThat(result.getPincode()).isEqualTo("682030");
+        assertThat(result.getCityName()).isEqualTo("Kochi");
+        assertThat(result.getStateName()).isEqualTo("Kerala");
+        assertThat(result.getDistrictName()).isEqualTo("Ernakulam");
     }
 
     @Test
     void testGetPincodeByNumber() {
-        PincodeDto mockPincode = new PincodeDto();
-        mockPincode.setPincode(673528);
+        PincodeDto dto = new PincodeDto();
+        dto.setPincode("682030");
+        dto.setCityName("Kochi");
+        dto.setStateName("Kerala");
+        dto.setDistrictName("Ernakulam");
+        dto.setPostOfficeNames(List.of("Ernakulam", "Kaloor"));
 
-        StatesDto stateDto = new StatesDto();
-        stateDto.setState("Kerala");
-        mockPincode.setStateDto(stateDto);
+        List<PincodeDto> mockList = List.of(dto);
 
-        DistrictDto districtDto = new DistrictDto();
-        districtDto.setDistrict("Kozhikode");
-        mockPincode.setDistrictDto(districtDto);
+        when(referenceMasterDataService.getPincodeDetails("682030")).thenReturn(mockList);
 
-        CitiesDto citiesDto = new CitiesDto();
-        citiesDto.setCity("Peruvannamuzhi");
-        mockPincode.setCitiesDto(citiesDto);
-
-        List<PincodeDto> mockList = List.of(mockPincode);
-
-        given(referenceMasterDataService.getPincodeDetails(673528)).willReturn(mockList);
-
-        ResponseEntity<List<PincodeDto>> response = referenceMasterDataController.getPincodeByNumber(673528);
+        ResponseEntity<List<PincodeDto>> response = referenceMasterDataController.getPincodeByNumber(682030);
 
         assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
+
         PincodeDto result = response.getBody().get(0);
-        assertThat(result.getPincode()).isEqualTo(673528);
-        assertThat(result.getStateDto().getState()).isEqualTo("Kerala");
-        assertThat(result.getDistrictDto().getDistrict()).isEqualTo("Kozhikode");
-        assertThat(result.getCitiesDto().getCity()).isEqualTo("Peruvannamuzhi");
+        assertThat(result.getPincode()).isEqualTo("682030");
+        assertThat(result.getCityName()).isEqualTo("Kochi");
+        assertThat(result.getStateName()).isEqualTo("Kerala");
+        assertThat(result.getDistrictName()).isEqualTo("Ernakulam");
+        assertThat(result.getPostOfficeNames()).contains("Ernakulam", "Kaloor");
+
     }
 }

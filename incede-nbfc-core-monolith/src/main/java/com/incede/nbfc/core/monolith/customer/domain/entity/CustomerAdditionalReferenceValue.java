@@ -1,6 +1,5 @@
 package com.incede.nbfc.core.monolith.customer.domain.entity;
 
-import com.incede.nbfc.core.monolith.masterdata.domain.entity.Tenant;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

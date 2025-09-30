@@ -42,16 +42,16 @@ public class CustomerForm60Service {
         try {
 
             Customer customer = customerRepository.findByIdentity(customerIdentity)
-                    .orElseThrow(() -> new BusinessException("Customer not found", ErrorCodes.NOT_FOUND));
+                    .orElseThrow(() -> new BusinessException(CommonConstants.ENTITY_CUSTOMER, ErrorCodes.NOT_FOUND));
 
             DocumentMaster pidDoc = request.getPidDocumentId() != null
                     ? documentRepository.findById(Math.toIntExact(request.getPidDocumentId()))
-                    .orElseThrow(() -> new BusinessException("PID Document not found", ErrorCodes.NOT_FOUND))
+                    .orElseThrow(() -> new BusinessException(CommonConstants.PID_DOCUMENT_NOT_FOUND, ErrorCodes.NOT_FOUND))
                     : null;
 
             DocumentMaster addDoc = request.getAddDocumentId() != null
                     ? documentRepository.findById(Math.toIntExact(request.getAddDocumentId()))
-                    .orElseThrow(() -> new BusinessException("Address Document not found", ErrorCodes.NOT_FOUND))
+                    .orElseThrow(() -> new BusinessException(CommonConstants.ADDRESS_DOC_NOT_FOUND, ErrorCodes.NOT_FOUND))
                     : null;
 
             if (request.getCreatedBy() == null) {
@@ -81,23 +81,24 @@ public class CustomerForm60Service {
 
             Customer customer = customerRepository.findByIdentity(customerIdentity)
                     .orElseThrow(() -> new BusinessException(
-                            CommonConstants.NOT_FOUND_MESSAGE,
+                            CommonConstants.ENTITY_CUSTOMER,
                             ErrorCodes.NOT_FOUND));
 
             CustomerForm60 existingForm60 = customerForm60Repository
                     .findByForm60IdAndCustomerId(form60Id, customer.getCustomerId())
                     .orElseThrow(() -> new BusinessException(
-                            "Form 60 not found with ID: " + form60Id + " for customer: " + customerIdentity,
+
+                            CommonConstants.FORM_60_NOT_FOUND_FOR_THE_CUSTOMER,
                             ErrorCodes.NOT_FOUND));
 
             DocumentMaster pidDoc = request.getPidDocumentId() != null
                     ? documentRepository.findById(Math.toIntExact(request.getPidDocumentId()))
-                    .orElseThrow(() -> new BusinessException("PID Document not found", ErrorCodes.NOT_FOUND))
+                    .orElseThrow(() -> new BusinessException(CommonConstants.PID_DOCUMENT_NOT_FOUND , ErrorCodes.NOT_FOUND))
                     : null;
 
             DocumentMaster addDoc = request.getAddDocumentId() != null
                     ? documentRepository.findById(Math.toIntExact(request.getAddDocumentId()))
-                    .orElseThrow(() -> new BusinessException("Address Document not found", ErrorCodes.NOT_FOUND))
+                    .orElseThrow(() -> new BusinessException(CommonConstants.ADDRESS_DOC_NOT_FOUND, ErrorCodes.NOT_FOUND))
                     : null;
 
             validateForm60Request(request);
@@ -121,18 +122,18 @@ public class CustomerForm60Service {
 
     private void validateForm60Request(CustomerForm60RequestDto request) {
         if (request.getTransactionAmount() == null) {
-            throw new BusinessException("Transaction amount is mandatory", ErrorCodes.VALIDATION_FAILED);
+            throw new BusinessException(CommonConstants.TRANSACTION_AMOUNT_NOT_NULL, ErrorCodes.VALIDATION_FAILED);
         }
         if (request.getTransactionDate() == null) {
-            throw new BusinessException("Transaction date is mandatory", ErrorCodes.VALIDATION_FAILED);
+            throw new BusinessException(CommonConstants.TRANSACTION_DATE_NOT_NULL, ErrorCodes.VALIDATION_FAILED);
         }
 
         if (request.getTransactionAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException("Transaction amount must be greater than zero", ErrorCodes.VALIDATION_FAILED);
+            throw new BusinessException(CommonConstants.TRANSACTION_AMOUNT_MUST_BE_NONZERO, ErrorCodes.VALIDATION_FAILED);
         }
 
         if (request.getTransactionAmount().compareTo(MAX_TRANSACTION_AMOUNT) > 0) {
-            throw new BusinessException("Form 60 cannot be used for transactions above ₹5,00,000. Please provide PAN.",
+            throw new BusinessException(CommonConstants.MAXIMUM_TRANSACTION_AMOUNT_CONSTRAINT,
                     ErrorCodes.VALIDATION_FAILED);
         }
     }
@@ -141,13 +142,13 @@ public class CustomerForm60Service {
     public CustomerForm60ResponseDto getForm60ById(UUID customerIdentity, Integer form60Id) {
         Customer customer = customerRepository.findByIdentity(customerIdentity)
                 .orElseThrow(() -> new BusinessException(
-                        CommonConstants.NOT_FOUND_MESSAGE,
+                        CommonConstants.ENTITY_CUSTOMER,
                         ErrorCodes.NOT_FOUND));
 
         CustomerForm60 form60 = customerForm60Repository
                 .findByForm60IdAndCustomerId(form60Id, customer.getCustomerId())
                 .orElseThrow(() -> new BusinessException(
-                        "Form 60 not found with ID: " + form60Id + " for customer: " + customerIdentity,
+                     CommonConstants.FORM_60_NOT_FOUND_FOR_THE_CUSTOMER,
                         ErrorCodes.NOT_FOUND));
 
         return form60Mapper.toResponseDto(form60);

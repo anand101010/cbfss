@@ -27,7 +27,6 @@ public class BasicInformationMapper {
         Objects.requireNonNull(basicInformationRequestDto, "BasicInformationRequestDto must not be null");
 
         Customer customer = new Customer();
-        customer.setTenantId(basicInformationRequestDto.getTenantId());
         customer.setFirstName(basicInformationRequestDto.getFirstName());
         customer.setMiddleName(basicInformationRequestDto.getMiddleName());
         customer.setLastName(basicInformationRequestDto.getLastName());
@@ -60,7 +59,6 @@ public class BasicInformationMapper {
         Objects.requireNonNull(customer, "Customer must not be null");
         Objects.requireNonNull(basicInformation, "BasicInformationRequestDto must not be null");
 
-        customer.setTenantId(basicInformation.getTenantId());
         customer.setFirstName(basicInformation.getFirstName());
         customer.setMiddleName(basicInformation.getMiddleName());
         customer.setLastName(basicInformation.getLastName());

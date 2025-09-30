@@ -1,8 +1,5 @@
 package com.incede.nbfc.core.monolith.common;
 
-import com.incede.nbfc.core.monolith.customer.enums.PhotoStatus;
-import jakarta.validation.constraints.NotBlank;
-
 /**
  * Common constants used throughout the application.
  * 
@@ -15,6 +12,7 @@ import jakarta.validation.constraints.NotBlank;
 public final class CommonConstants {
 
 
+    public static final String CUSTOMER_TYPE = "TEST";
 
     private CommonConstants() {
         // Utility class - prevent instantiation
@@ -88,8 +86,8 @@ public final class CommonConstants {
 
     public static final String CONSTRAIN_VIOLATION =" Constrain Violation";
     //customer onboarding
-    public static  String DRAFT="Draft";
-    public static  String IN_PROGRESS="In_progress";
+    public static  String DRAFT="DRAFT";
+    public static  String IN_PROGRESS="IN_PROGRESS";
     public static  String CREATED_BY_REQUIRED="CreatedBy is required";
     public static  String UPDATED_BY_REQUIRED="UpdatedBy is required";
     public static final String INVALID_JSON = "Invalid Json format";
@@ -104,6 +102,8 @@ public final class CommonConstants {
     public static final String CONTACT_ALREADY_EXIST ="A primary contact with this contact value already exists for another customer" ;
     public static final String CONTACT_EXISTS = "A contact with the given value already exists";
     public static final String DOCUMENT_ALREADY_EXISTS = "Document already exists";
+
+
 
 
 
@@ -145,21 +145,95 @@ public final class CommonConstants {
     public static final String KEY = "key";
     public static final String APIV2VALIADTOR = "v2/kyc";
 
-    // Entity Names
+
     public static final String ENTITY_CUSTOMER = "Customer";
     public static final String ENTITY_ADDRESS = "Address";
     public static final String ENTITY_BANK_ACCOUNT = "CustomerBankAccount";
     public static final String ADDRESS_TYPE_PERMANENT = "PERMANENT";
     public static final String ENTITY_NOMINEE = "Nominee";
 
-    // Customer Address Status
+
     public static final String CUSTOMER_ADDRESS_STATUS_IN_PROGRESS = "IN_PROGRESS";
     public static final String CUSTOMER_ADDRESS_STATUS_UPDATED = "UPDATED";
     public static final String CUSTOMER_ADDRESS_STATUS_SUCCESS = "SUCCESS";
 
-    //  Customer Bank Account Status
+
     public static final String CUSTOMER_STATUS_IN_PROGRESS = "IN_PROGRESS";
-    public static final String CUSTOMER_STATUS_ACTIVE   = "ACTIVE";
+    public static final String CUSTOMER_STATUS_ACTIVE = "ACTIVE";
 
+    public static final String COMPLETED = "COMPLETED";
+    public static final String CUSTOMER_NOT_FOUND = "Customer not found";
+    public static final String INVALID_GENDER = "Invalid gender";
+    public static final String INVALID_MARITAL_STATUS = "Invalid marital status";
+    public static final String INVALID_TAX_CATEGORY = "Invalid tax category";
+    public static final String INVALID_OCCUPATION = "Invalid occupation";
+    public static final String INVALID_BRANCH = "Invalid branch";
+    public static final String INVALID_SALUTATION = "Invalid salutation";
+    public static final String INVALID_CUSTOMER_STATUS = "Invalid customer status";
+    public static final String GUARDIAN_NOT_FOUND = "Guardian not found";
+    public static final String OCCUPATION_NOT_FOUND = "Occupation not found";
+    public static final String DESIGNATION_NOT_FOUND = "Designation not found";
+    public static final String INCOME_SOURCE_NOT_FOUND = "Income source not found";
+    public static final String REFERRAL_SOURCE_NOT_FOUND = "Referral source not found";
+    public static final String CANVASSED_TYPE_NOT_FOUND = "Canvassed type not found";
+    public static final String EDUCATION_LEVEL_NOT_FOUND = "Education level not found";
+    public static final String PURPOSE_NOT_FOUND = "Purpose not found";
+    public static final String ASSET_TYPE_NOT_FOUND = "Asset type not found";
+    public static final String NATIONALITY_NOT_FOUND = "Nationality not found";
+    public static final String PREFERRED_LANGUAGE_NOT_FOUND = "Preferred language not found";
+    public static final String RESIDENTIAL_STATUS_NOT_FOUND = "Residential status not found";
+    public static final String CUSTOMER_ADDITIONAL_REF_NAME_NOT_FOUND = "Customer additional reference name not found";
+    public static final String TENANT_NOT_FOUND = "Tenant not found";
+    public static final String CUSTOMER_ADDITIONAL_REF_VALUE_NOT_FOUND = "Customer additional reference value not found";
+    public static final String INVALID_REQUEST = "Invalid request";
+    public static final String DOCUMENT_TYPE_NOT_FOUND = "Document type not found";
+    public static final String FILE_PROCESSING_FAILED = "Error processing file upload";
+    public static final String PHOTOS_NOT_FOUND = "No photos found";
 
-} 
+    public static final String CONTACT_TYPE_NOT_FOUND = "Contact type not found";
+    public static final String CUSTOMER_CONTACT_NOT_FOUND = "Customer contact not found";
+
+    public static final String BANK_ACCOUNT_REQUEST_VALIDATION_ERROR = "Bank account validation error";
+    public static final String INVALID_ACCOUNT_TYPE = "Invalid account type";
+    public static final String INVALID_ACCOUNT_STATUS = "Invalid account status";
+    public static final String FAILED_TO_UPDATE_BANK_ACCOUNT = "Failed to update bank account";
+    public static final String INVALID_POST_OFFICE = "Post office not found";
+    public static final String PID_DOCUMENT_NOT_FOUND = "PID document not found";
+    public static final String ADDRESS_DOC_NOT_FOUND = "Address document not found";
+    public static final String TRANSACTION_AMOUNT_NOT_NULL = "Transaction amount must be provided";
+    public static final String TRANSACTION_DATE_NOT_NULL = "Transaction date must be provided";
+    public static final String FORM_60_NOT_FOUND_FOR_THE_CUSTOMER = "Form 60 not found for the customer";
+    public static final String TRANSACTION_AMOUNT_MUST_BE_NONZERO = "Transaction amount must be greater than zero";
+    public static final String MAXIMUM_TRANSACTION_AMOUNT_CONSTRAINT = "Form 60 cannot be used for transactions above ₹5,00,000. Please provide PAN";
+    public static final String NOTIFICATION_PREFERENCE_NOT_FOUND = "Notification preference not found";
+    public static final String NOTIFICATION_PREFERENCE_ALREADY_EXIST = "Notification preference already exists for the customer";
+    public static final String RELATIONSHIP_NOT_FOUND = "Relationship not found";
+    public static final String NOMINEE_ALREADY_EXIST = "Nominee already exists with the same name and relationship";
+    public static final String NOMINEE_NOT_FOUND_FOR_GIVEN_CUSTOMER = "Nominee not found for the given customer";
+    public static final String NOMINEE_NAME_AND_RELATIONSHIP_ALREADY_EXIST = "A nominee with the same name and relationship already exists";
+    public static final String GUARDIAN_NAME_REQUIRED = "Guardian's name is required for minor nominees";
+    public static final String GUARDIAN_DOB_REQUIRED = "Guardian's date of birth is required for minor nominees";
+    public static final String GUARDIAN_EMAIL_REQUIRED = "Guardian's email is required for minor nominees";
+    public static final String GUARDIAN_CONTACT_NUMBER_REQUIRED = "Guardian's contact number is required for minor nominees";
+    public static final String TOTAL_SHARE_VALIDATION = "Total percentage share cannot exceed 100";
+    public static final String PERMANENT_ADDRESS_NOT_FOUND = "Permanent address not found";
+    public static final String NO_VALID_CUSTOMER_TYPE = "Customer's permanent address has no valid address type";
+    public static final String NO_VALID_POST_OFFICE_FOR_PERMANENT_ADDRESS = "Customer's permanent address has no valid post office";
+    public static final String ADDRESS_REQUIRED_FOR_IS_SAME_ADDRESS_TRUE = "Address must be provided when isSameAddress is false";
+    public static final String ADDRESS_NOT_FOUND = "Address not found";
+    public static final String RELATIONSHIP_IS_REQUIRED = "Relationship is required";
+    public static final String INVALID_RELATIONSHIP = "Invalid relationship";
+    public static final String NO_ACTIVE_ADDRESSES_FOUND_FOR_CUSTOMER_IDENTITY = "No active address found for customer";
+    public static final String ADDRESS_IS_REQUIRED = "Address is required";
+    public static final String POST_OFFICE_IS_REQUIRED = "Post office is required";
+    public static final String CITY_IS_REQUIRED = "City is required";
+    public static final String DISTRICT_IS_REQUIRED = "District is required";
+    public static final String STATE_IS_REQUIRED = "State is required";
+    public static final String COUNTRY_IS_REQUIRED = "Country is required";
+    public static final String PIN_CODE_IS_REQUIRED = "Pin code is required";
+    public static final String INVALID_ADDRESS_TYPE = "Invalid address type";
+    public static final String INVALID_ADDRESS_PROOF_TYPE = "Invalid address proof type";
+    public static final String IS_SAME_AS_PERMANENT_CONSTRAINT = "Document file must be provided if 'isSameAsPermanent' is true";
+    public static final String NO_ACTIVE_ADDRESSES_FOUND_FOR_CUSTOMER = "No active address found for the customer";
+
+}

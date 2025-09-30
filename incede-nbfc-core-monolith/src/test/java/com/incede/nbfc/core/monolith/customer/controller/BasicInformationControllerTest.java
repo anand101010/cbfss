@@ -47,7 +47,6 @@ class BasicInformationControllerTest {
 
         // Minimal request DTO
         requestDto = BasicInformationRequestDto.builder()
-                .tenantId(1)
                 .salutation(salutation)
                 .branchId(branchId)
                 .firstName("John")

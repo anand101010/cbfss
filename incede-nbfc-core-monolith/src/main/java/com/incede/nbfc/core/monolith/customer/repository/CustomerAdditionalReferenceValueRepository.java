@@ -3,7 +3,7 @@ package com.incede.nbfc.core.monolith.customer.repository;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerAdditionalReferenceName;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerAdditionalReferenceValue;
-import com.incede.nbfc.core.monolith.masterdata.domain.entity.Tenant;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

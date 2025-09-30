@@ -106,7 +106,7 @@ public class ReferenceMasterDataController {
             description = "Fetches all post offices, district and state for given pincode")
     public ResponseEntity<List<PincodeDto>> getPincodeByNumber(@PathVariable Integer pincode) {
         log.info("Fetching pincode details for {}", pincode);
-        List<PincodeDto> response = referenceMasterDataService.getPincodeDetails(pincode);
+        List<PincodeDto> response = referenceMasterDataService.getPincodeDetails(String.valueOf(((pincode))));
         return ResponseEntity.ok(response);
     }
 }

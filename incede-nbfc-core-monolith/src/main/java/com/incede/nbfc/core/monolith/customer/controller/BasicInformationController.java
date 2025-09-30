@@ -73,4 +73,11 @@ public class BasicInformationController {
         return ResponseEntity.ok(response);
 
     }
+    @GetMapping("/{customerIdentity}/identity/guardian")
+    @Operation(summary = "Get Basic Info", description = "Fetches basic info of a customer by UUID")
+    public ResponseEntity<CustomerDto> getCustomerByCustomerIdentity(@PathVariable UUID customerIdentity) {
+        CustomerDto response = customerOnboardingService.getCustomerWithCustomerIdentity(customerIdentity);
+        return ResponseEntity.ok(response);
+
+    }
 }

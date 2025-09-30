@@ -1,6 +1,7 @@
 package com.incede.nbfc.core.monolith.customer.domain.entity;
 
 import com.incede.nbfc.core.monolith.masterdata.domain.entity.*;
+import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -28,9 +29,10 @@ public class Customer extends CustomerBaseEntity implements Serializable {
     @Column(name = "customer_id")
     private Integer customerId;
 
-    @Column(name = "tenant_id", nullable = false)
-    @NotNull(message = "Tenant ID is mandatory")
-    private Integer tenantId;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "tenant_id", referencedColumnName = "tenant_id", nullable = false)
+    @NotNull(message = "Tenant is mandatory")
+    private Tenant tenant;
 
     @Column(name = "customer_code", nullable = false, length = 15)
     @NotBlank(message = "Customer code is required")
@@ -38,21 +40,16 @@ public class Customer extends CustomerBaseEntity implements Serializable {
     private String customerCode;
 
     @Column(name = "first_name", nullable = false, length = 50)
-    @NotBlank(message = "First name is required")
     @Size(max = 50, message = "First name must not exceed 50 characters")
     private String firstName;
 
     @Column(name = "middle_name", length = 50)
-    @Size(max = 50, message = "Middle name must not exceed 50 characters")
     private String middleName;
 
     @Column(name = "last_name", nullable = false, length = 50)
-    @NotBlank(message = "Last name is required")
-    @Size(max = 50, message = "Last name must not exceed 50 characters")
     private String lastName;
 
     @Column(name = "display_nme", length = 100)
-    @Size(max = 100, message = "Display name must not exceed 100 characters")
     private String displayName;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
@@ -68,7 +65,6 @@ public class Customer extends CustomerBaseEntity implements Serializable {
     private Genders gender;
 
     @Column(name = "dob", nullable = false)
-    @NotNull(message = "Date of birth is required")
     @Past(message = "Date of birth must be in the past")
     private LocalDate dob;
 

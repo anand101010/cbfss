@@ -13,15 +13,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -56,8 +52,17 @@ public class BankMasterDataServiceTest {
     @Mock
     private DistrictRepository districtRepository;
     @Mock
+    private PincodesRepository pincodesRepository;
+    @Mock
+    private IfscCodesRepository ifscCodesRepository;
+    @Mock
     private CountryRepository countryRepository;
-
+    @Mock
+    private CustomerGroupMasterRepository customerGroupMasterRepository;
+    @Mock
+    private RiskCategoryRepository riskCategoryRepository;
+    @Mock
+    private IfscCodeMapper ifscCodeMapper;
     @Mock
     private BranchesMapper branchesMapper;
     @Mock
@@ -75,6 +80,10 @@ public class BankMasterDataServiceTest {
 
     private Branches branchEntity;
 
+    private IfscCodes ifscEntity;
+    private IfscCodesDto ifscDto;
+    private Pincodes pincode;
+
     @BeforeEach
     void setUp() {
 
@@ -85,6 +94,19 @@ public class BankMasterDataServiceTest {
         branchEntity.setPostOfficeId(30);
         branchEntity.setCityId(40);
         branchEntity.setDistrictId(50);
+
+        ifscEntity = new IfscCodes();
+        ifscEntity.setIfscCode("TEST0001234");
+        ifscEntity.setBranchName("Test Branch");
+        ifscEntity.setPincodeId(101);
+
+        ifscDto = new IfscCodesDto();
+        ifscDto.setIfscCode("TEST0001234");
+        ifscDto.setBranchName("Test Branch");
+
+        pincode = new Pincodes();
+        pincode.setPincodeId(101);
+        pincode.setPincode("673528");
         branchEntity.setCountryId(1);
     }
 
@@ -326,7 +348,7 @@ public class BankMasterDataServiceTest {
 
     @Test
     void testGetAllAccountStatuses_WhenRepositoryThrowsException() {
-        when(accountStatusesRepository.findByIsDelFalseAndIsActiveTrue()).thenThrow(new RuntimeException("DB error")); // Make sure this is the only stubbing
+        when(accountStatusesRepository.findByIsDelFalseAndIsActiveTrue()).thenThrow(new RuntimeException("DB error"));
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> bankMasterDataService.getAllAccountStatuses());
 
@@ -408,5 +430,148 @@ public class BankMasterDataServiceTest {
         assertEquals("DB error", ex.getMessage());
     }
 
+    @Test
+    void testGetAllIfscCodes_withData() {
 
+        IfscCodes ifsc = new IfscCodes();
+        ifsc.setIfscCode("SBIN0001234");
+        ifsc.setPincodeId(1);
+
+        Pincodes pincode = new Pincodes();
+        pincode.setPincodeId(1);
+        pincode.setPincode("682030");
+
+        IfscCodesDto dto = new IfscCodesDto();
+        dto.setIfscCode("SBIN0001234");
+
+        when(ifscCodesRepository.findAllIfscCodeByIsDelFalse()).thenReturn(List.of(ifsc));
+        when(pincodesRepository.findByPincodeIdIn(Set.of(1))).thenReturn(List.of(pincode));
+        when(ifscCodeMapper.convertToDto(ifsc)).thenReturn(dto);
+
+        List<IfscCodesDto> result = bankMasterDataService.getAllIfscCodes();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getIfscCode()).isEqualTo("SBIN0001234");
+        assertThat(result.get(0).getPincodes()).isEqualTo(682030);
+    }
+
+    @Test
+    void testGetAllIfscCodes_empty() {
+        when(ifscCodesRepository.findAllIfscCodeByIsDelFalse()).thenReturn(List.of());
+
+        List<IfscCodesDto> result = bankMasterDataService.getAllIfscCodes();
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void testGetAllIfscCodes_missingPincodeMapping() {
+
+        IfscCodes ifsc = new IfscCodes();
+        ifsc.setIfscCode("SBIN0005678");
+        ifsc.setPincodeId(99);
+
+        IfscCodesDto dto = new IfscCodesDto();
+        dto.setIfscCode("SBIN0005678");
+
+        when(ifscCodesRepository.findAllIfscCodeByIsDelFalse()).thenReturn(List.of(ifsc));
+        when(pincodesRepository.findByPincodeIdIn(Set.of(99))).thenReturn(List.of());
+        when(ifscCodeMapper.convertToDto(ifsc)).thenReturn(dto);
+
+        List<IfscCodesDto> result = bankMasterDataService.getAllIfscCodes();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getIfscCode()).isEqualTo("SBIN0005678");
+        assertThat(result.get(0).getPincodes()).isNull();
+    }
+
+    @Test
+    void testGetAllCustomerGroups_withData() {
+        CustomerGroupMasterView mockView = mock(CustomerGroupMasterView.class);
+        when(mockView.getCustomerGroup()).thenReturn("Retail");
+        when(mockView.getCode()).thenReturn("RET");
+        when(mockView.getIdentity()).thenReturn(UUID.randomUUID());
+
+        List<CustomerGroupMasterView> mockList = List.of(mockView);
+        when(customerGroupMasterRepository.findByIsDelFalseAndIsActiveTrue()).thenReturn(mockList);
+
+        List<CustomerGroupMasterView> result = bankMasterDataService.getAllCustomerGroups();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getCustomerGroup()).isEqualTo("Retail");
+        assertThat(result.get(0).getCode()).isEqualTo("RET");
+    }
+
+    @Test
+    void testGetAllCustomerGroups_empty() {
+        when(customerGroupMasterRepository.findByIsDelFalseAndIsActiveTrue()).thenReturn(List.of());
+
+        List<CustomerGroupMasterView> result = bankMasterDataService.getAllCustomerGroups();
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void testGetAllRiskCategories_withData() {
+        RiskCategoryView mockView = mock(RiskCategoryView.class);
+        when(mockView.getCategory()).thenReturn("High Risk");
+        when(mockView.getCode()).thenReturn("HRISK");
+        when(mockView.getIdentity()).thenReturn(UUID.randomUUID());
+
+        List<RiskCategoryView> mockList = List.of(mockView);
+        when(riskCategoryRepository.findByIsDelFalseAndIsActiveTrue()).thenReturn(mockList);
+
+        List<RiskCategoryView> result = bankMasterDataService.getAllRiskCategories();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getCategory()).isEqualTo("High Risk");
+        assertThat(result.get(0).getCode()).isEqualTo("HRISK");
+    }
+
+    @Test
+    void testGetAllRiskCategories_empty() {
+        when(riskCategoryRepository.findByIsDelFalseAndIsActiveTrue()).thenReturn(List.of());
+
+        List<RiskCategoryView> result = bankMasterDataService.getAllRiskCategories();
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void testGetIfscCodeDetails_success() {
+        String ifscCode = "SBIN0001234";
+
+        Banks bank = new Banks();
+        bank.setName("State Bank of India");
+
+        IfscCodes entity = new IfscCodes();
+        entity.setIfscCode(ifscCode);
+        entity.setBank(bank);
+        entity.setBranchName("MG Road");
+        entity.setPincodeId(101);
+        entity.setIdentity(UUID.randomUUID());
+
+        Pincodes pincode = new Pincodes();
+        pincode.setPincodeId(101);
+        pincode.setPincode("682016");
+
+        IfscCodesDto dto = IfscCodesDto.builder()
+                .ifscCode(ifscCode)
+                .bankName(bank.getName())
+                .branchName(entity.getBranchName())
+                .pincodes(Integer.valueOf(pincode.getPincode()))
+                .identity(entity.getIdentity())
+                .build();
+
+        when(ifscCodesRepository.findByIfscCodeAndIsDelFalse(ifscCode)).thenReturn(Optional.of(entity));
+        when(pincodesRepository.findById(101)).thenReturn(Optional.of(pincode));
+        when(ifscCodeMapper.convertToDto(entity)).thenReturn(dto);
+
+        IfscCodesDto result = bankMasterDataService.getIfscCodeDetails(ifscCode);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getBankName()).isEqualTo("State Bank of India");
+        assertThat(result.getPincodes()).isEqualTo(682016);
+        verify(pincodesRepository).findById(101);
+    }
 }

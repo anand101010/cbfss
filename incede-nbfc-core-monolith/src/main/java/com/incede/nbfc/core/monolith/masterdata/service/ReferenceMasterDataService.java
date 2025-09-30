@@ -1,14 +1,9 @@
 package com.incede.nbfc.core.monolith.masterdata.service;
 
-import com.incede.nbfc.core.monolith.masterdata.domain.entity.Cities;
-import com.incede.nbfc.core.monolith.masterdata.domain.entity.Districts;
 import com.incede.nbfc.core.monolith.masterdata.domain.entity.Pincodes;
-import com.incede.nbfc.core.monolith.masterdata.domain.entity.States;
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.PostOffices;
 import com.incede.nbfc.core.monolith.masterdata.dto.*;
-import com.incede.nbfc.core.monolith.masterdata.mapper.CitiesMapper;
-import com.incede.nbfc.core.monolith.masterdata.mapper.DistrictMapper;
-import com.incede.nbfc.core.monolith.masterdata.mapper.PincodeMapper;
-import com.incede.nbfc.core.monolith.masterdata.mapper.StatesMapper;
+import com.incede.nbfc.core.monolith.masterdata.mapper.*;
 import com.incede.nbfc.core.monolith.masterdata.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +13,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.function.Function;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -32,8 +28,8 @@ public class ReferenceMasterDataService {
     private final ResidentialStatusesRepository residentialStatusesRepository;
     private final ContactTypesRepository contactTypesRepository;
     private final PincodesRepository pincodesRepository;
+    private final PostOfficesRepository postOfficesRepository;
 
-    private final PincodesRepository pincodeRepository;
     private final StatesRepository statesRepository;
     private final DistrictRepository districtRepository;
     private final CitiesRepository citiesRepository;
@@ -42,6 +38,8 @@ public class ReferenceMasterDataService {
     private final StatesMapper statesMapper;
     private final DistrictMapper districtMapper;
     private final CitiesMapper citiesMapper;
+    private final PostOfficeMapper postOfficeMapper;
+
     /**
      * Retrieves all active address p
      *
@@ -113,134 +111,67 @@ public class ReferenceMasterDataService {
     }
 
     /**
-     * Retrieves all Pincodes
-     *
-     */
-
-    public Page<PincodeDto> getAllPincodes(int page, int size) {
-
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Pincodes> pincodesPage = pincodesRepository.findByIsDelFalse(pageable);
-
-        if (pincodesPage.isEmpty()) {
-            log.warn("No pincodes found");
-            return Page.empty();
-        }
-
-        Set<Integer> stateIds = pincodesPage.stream()
-                .map(Pincodes::getStateId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-        Set<Integer> districtIds = pincodesPage.stream()
-                .map(Pincodes::getDistrictId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-        Set<Integer> cityIds = pincodesPage.stream()
-                .map(Pincodes::getCityId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-        Map<Integer, States> stateMap = statesRepository.findByStateIdIn(stateIds).stream()
-                .collect(Collectors.toMap(States::getStateId, Function.identity()));
-
-        Map<Integer, Districts> districtMap = districtRepository.findBydistrictIdIn(districtIds).stream()
-                .collect(Collectors.toMap(Districts::getDistrictId, Function.identity()));
-
-        Map<Integer, Cities> citiesMap = citiesRepository.findByCityIdIn(cityIds).stream()
-                .collect(Collectors.toMap(Cities::getCityId, Function.identity()));
-
-
-        Page<PincodeDto> dtoPage = pincodesPage.map(pincode -> {
-            PincodeDto dto = pincodeMapper.convertToDto(pincode);
-
-            if (pincode.getStateId() != null) {
-                States state = stateMap.get(pincode.getStateId());
-                if (state != null) dto.setStateDto(statesMapper.convertToDto(state));
-            }
-
-            if (pincode.getDistrictId() != null) {
-                Districts district = districtMap.get(pincode.getDistrictId());
-                if (district != null) dto.setDistrictDto(districtMapper.convertToDto(district));
-            }
-
-            if (pincode.getCityId() != null) {
-                Cities city = citiesMap.get(pincode.getCityId());
-                if (city != null) dto.setCitiesDto(citiesMapper.convertToDto(city));
-            }
-
-            return dto;
-        });
-
-        log.info("Fetched {} pincodes with related entities", dtoPage.getNumberOfElements());
-        return dtoPage;
-    }
-
-
-    /**
-     * Get list of city, District, State for a Pincode
+     * Get details for a specific pincode including city, state, district, and post office names
      */
     @Transactional(readOnly = true)
-    public List<PincodeDto> getPincodeDetails(Integer pincode) {
-        log.info("Fetching details for pincode {}", pincode);
-
-        List<Pincodes> entities = pincodesRepository.findByDetailsThroughPincode(pincode);
+    public List<PincodeDto> getPincodeDetails(String pincodeNumber) {
+        List<Pincodes> entities = pincodesRepository.findByPincodeWithDetails(pincodeNumber);
 
         if (entities.isEmpty()) {
-            log.warn("No records found for pincode {}", pincode);
             return Collections.emptyList();
         }
 
-        Set<Integer> stateIds = entities.stream()
-                .map(Pincodes::getStateId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+        List<Integer> pincodeIds = entities.stream()
+                .map(Pincodes::getPincodeId)
+                .toList();
 
-        Set<Integer> districtIds = entities.stream()
-                .map(Pincodes::getDistrictId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+        List<PostOffices> postOffices = postOfficesRepository.findByPincode_PincodeIdIn(pincodeIds);
 
-        Set<Integer> cityIds = entities.stream()
-                .map(Pincodes::getCityId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+        Map<Integer, List<String>> postOfficeMap = postOffices.stream()
+                .collect(Collectors.groupingBy(
+                        po -> po.getPincode().getPincodeId(),
+                        Collectors.mapping(PostOffices::getOfficeName, Collectors.toList())
+                ));
 
+        return entities.stream()
+                .map(pincode -> {
+                    PincodeDto dto = pincodeMapper.convertToDto(pincode);
+                    dto.setCityName(pincode.getCities().getCity());
+                    dto.setStateName(pincode.getStates().getState());
+                    dto.setDistrictName(pincode.getDistricts().getDistrict());
 
-        Map<Integer, States> stateMap = statesRepository.findByStateIdIn(stateIds).stream()
-                .collect(Collectors.toMap(States::getStateId, Function.identity()));
-
-        Map<Integer, Districts> districtMap = districtRepository.findBydistrictIdIn(districtIds).stream()
-                .collect(Collectors.toMap(Districts::getDistrictId, Function.identity()));
-
-        Map<Integer, Cities> citiesMap = citiesRepository.findByCityIdIn(cityIds).stream()
-                .collect(Collectors.toMap(Cities::getCityId, Function.identity()));
-
-        List<PincodeDto> pincodeDtos = entities.stream()
-                .map(pincodeEntity -> {
-                    PincodeDto dto = pincodeMapper.convertToDto(pincodeEntity);
-
-                    if (pincodeEntity.getStateId() != null) {
-                        States state = stateMap.get(pincodeEntity.getStateId());
-                        if (state != null) dto.setStateDto(statesMapper.convertToDto(state));
-                    }
-
-                    if (pincodeEntity.getDistrictId() != null) {
-                        Districts district = districtMap.get(pincodeEntity.getDistrictId());
-                        if (district != null) dto.setDistrictDto(districtMapper.convertToDto(district));
-                    }
-
-                    if (pincodeEntity.getCityId() != null) {
-                        Cities city = citiesMap.get(pincodeEntity.getCityId());
-                        if (city != null) dto.setCitiesDto(citiesMapper.convertToDto(city));
-                    }
+                    List<String> officeNames = postOfficeMap.getOrDefault(pincode.getPincodeId(), List.of());
+                    dto.setPostOfficeNames(officeNames);
 
                     return dto;
                 })
                 .toList();
-
-        log.info("Fetched {} pincodes with related entities", entities.size());
-        return Collections.unmodifiableList(pincodeDtos);
     }
-}
+
+        /**
+         * Retrieves all pincdes
+         *
+         */
+        @Transactional(readOnly = true)
+        public Page<PincodeDto> getAllPincodes ( int page, int size){
+            Pageable pageable = PageRequest.of(page, size);
+
+            Page<Pincodes> pincodesPage = pincodesRepository.findByIsDelFalse(pageable);
+
+            return pincodesPage.map(pincode -> {
+                PincodeDto dto = pincodeMapper.convertToDto(pincode);
+
+                if (pincode.getCities() != null) {
+                    dto.setCityName(pincode.getCities().getCity());
+                }
+                if (pincode.getStates() != null) {
+                    dto.setStateName(pincode.getStates().getState());
+                }
+                if (pincode.getDistricts() != null) {
+                    dto.setDistrictName(pincode.getDistricts().getDistrict());
+                }
+                return dto;
+            });
+        }
+
+    }

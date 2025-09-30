@@ -5,27 +5,20 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class PincodeDto {
 
-    private Integer pincodeId;
-    private Integer stateId;
-    private String stateName;
-    private Integer districtId;
-    private String districtName;
-    private Integer cityId;
-    private String cityName;
-    private Integer pincode;
-    private BigDecimal latitude;
-    private BigDecimal longitude;
-    private UUID identity;
 
-    private StatesDto stateDto;
-    private CitiesDto CitiesDto;
-    private DistrictDto DistrictDto;
+    private String pincode;
+    private String cityName;
+    private String districtName;
+    private String stateName;
+    private List<String> postOfficeNames;
+    private UUID identity;
 }

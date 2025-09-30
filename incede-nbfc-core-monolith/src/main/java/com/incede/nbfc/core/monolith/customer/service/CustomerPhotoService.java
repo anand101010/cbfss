@@ -54,7 +54,7 @@ public class CustomerPhotoService {
     @Transactional
     public CustomerPhotoResponseDto createPhoto(UUID identity, String requestJson, MultipartFile file) {
         Customer customer = customerRepository.findByIdentity(identity)
-                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.NOT_FOUND_MESSAGE));
+                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.CUSTOMER_NOT_FOUND));
 
         try {
             CustomerPhotoRequestDto requestDTO = objectMapper.readValue(requestJson, CustomerPhotoRequestDto.class);
@@ -65,7 +65,7 @@ public class CustomerPhotoService {
                 String errorMsg = violations.stream()
                         .map(v -> v.getPropertyPath() + " " + v.getMessage())
                         .reduce((m1, m2) -> m1 + ", " + m2)
-                        .orElse("Invalid request");
+                        .orElse(CommonConstants.INVALID_REQUEST);
                 throw new BusinessException(errorMsg, ErrorCodes.VALIDATION_FAILED);
             }
 
@@ -89,7 +89,7 @@ public class CustomerPhotoService {
 
         } catch (IOException e) {
             log.error("File processing failed for customer {}. File: {}", identity, file.getOriginalFilename(), e);
-            throw new BusinessException("Error processing file upload", ErrorCodes.INTERNAL_SERVER_ERROR, e);
+            throw new BusinessException(CommonConstants.FILE_PROCESSING_FAILED, ErrorCodes.INTERNAL_SERVER_ERROR, e);
         }
     }
 
@@ -104,14 +104,14 @@ public class CustomerPhotoService {
     @Transactional(readOnly = true)
     public CustomerPhotoResponseDto getCustomerPhotos(UUID identity) {
         Customer customer = customerRepository.findByIdentity(identity)
-                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.NOT_FOUND_MESSAGE));
+                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.CUSTOMER_NOT_FOUND));
 
         List<CustomerPhoto> photos = photoRepository
                 .findByCustomerIdentityAndIsDelFalseOrderByCaptureTimeDesc(identity);
 
         if (photos.isEmpty()) {
             log.warn("No photos found for customer {}", identity);
-            throw new ResourceNotFoundException(CommonConstants.NOT_FOUND_MESSAGE);
+            throw new ResourceNotFoundException(CommonConstants.PHOTOS_NOT_FOUND);
         }
 
         return customerPhotoMapper.toResponseDto(customer, photos);

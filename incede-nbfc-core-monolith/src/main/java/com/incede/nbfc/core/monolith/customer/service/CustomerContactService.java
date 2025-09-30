@@ -11,7 +11,9 @@ import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.exception.ErrorCodes;
 import com.incede.nbfc.core.monolith.masterdata.domain.entity.ContactTypes;
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.CustomerStatus;
 import com.incede.nbfc.core.monolith.masterdata.repository.ContactTypesRepository;
+import com.incede.nbfc.core.monolith.masterdata.repository.CustomerStatusRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,6 +36,7 @@ public class CustomerContactService {
     private final CustomerContactRepository contactRepository;
     private final CustomerContactMapper contactMapper;
     private final ContactTypesRepository contactTypesRepository;
+    private final CustomerStatusRepository customerStatusRepository;
 
     /**
      * save contact for customer
@@ -86,6 +89,8 @@ public class CustomerContactService {
 
         CustomerContact saved = contactRepository.save(contact);
 
+        customer.setOnboardingStatus(CommonConstants.COMPLETED);
+
         return CustomerContactResponseDto.builder()
                 .identity(customer.getIdentity())
                 .contacts(List.of(contactMapper.toResponseDto(saved)))
@@ -106,17 +111,17 @@ public class CustomerContactService {
 
         Customer customer = customerRepository.findByIdentity(customerId)
                 .orElseThrow(() -> new BusinessException(
-                        CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.RESOURCE_NOT_FOUND));
+                        CommonConstants.CUSTOMER_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
 
 
         CustomerContact contact = contactRepository.findByIdentityAndCustomer(contactId, customer)
                 .orElseThrow(() -> new BusinessException(
-                        CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.RESOURCE_NOT_FOUND));
+                        CommonConstants.CUSTOMER_CONTACT_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
 
 
         ContactTypes contactType = contactTypesRepository.findByIdentity(dto.getContactType())
                 .orElseThrow(() -> new BusinessException(
-                        "Contact type not found", ErrorCodes.RESOURCE_NOT_FOUND));
+                        CommonConstants.CONTACT_TYPE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
 
 
         if (contactRepository.existsByContactValueAndIdentityNotAndIsPrimaryTrueAndIsActiveTrue(dto.getContactDetails(), contactId)) {
@@ -161,7 +166,7 @@ public class CustomerContactService {
     public CustomerContactResponseDto getContacts(UUID customerId) {
         Customer customer = customerRepository.findByIdentity(customerId)
                 .orElseThrow(() -> new BusinessException(
-                        CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.RESOURCE_NOT_FOUND));
+                        CommonConstants.CUSTOMER_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
 
         List<CustomerContactResponseDto.Contact> contacts =
                 contactRepository.findByCustomerAndIsActiveTrue(customer).stream()
@@ -183,11 +188,11 @@ public class CustomerContactService {
 
         Customer customer = customerRepository.findByIdentity(customerId)
                 .orElseThrow(() -> new BusinessException(
-                        CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.RESOURCE_NOT_FOUND));
+                        CommonConstants.CUSTOMER_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
 
         CustomerContact contact = contactRepository.findByIdentityAndCustomer(contactId, customer)
                 .orElseThrow(() -> new BusinessException(
-                        CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.RESOURCE_NOT_FOUND));
+                        CommonConstants.CUSTOMER_CONTACT_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
 
         contact.setIsActive(false);
         contact.setUpdatedAt(LocalDateTime.now());

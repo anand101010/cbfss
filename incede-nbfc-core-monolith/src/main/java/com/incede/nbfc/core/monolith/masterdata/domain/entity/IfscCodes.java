@@ -18,12 +18,15 @@ public class IfscCodes extends BaseEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @Column(name = "ifsc_code", length = 11)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ifsc_code_id")
+    private Integer ifscCodeId;
+
+    @Column(name = "ifsc_code", length = 11, nullable = false, unique = true)
     private String ifscCode;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bank_id", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_ifsc_bank"))
+    @JoinColumn(name = "bank_id", nullable = false, foreignKey = @ForeignKey(name = "fk_ifsc_bank"))
     private Banks bank;
 
     @Column(name = "branch_name", nullable = false, length = 150)
@@ -50,9 +53,8 @@ public class IfscCodes extends BaseEntity implements Serializable {
     @Column(name = "micr_code", length = 9)
     private String micrCode;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pincode_id", foreignKey = @ForeignKey(name = "fk_ifsc_pincode"))
-    private Pincodes pincode;
+    @Column(name = "pincode_id", length = 9)
+    private Integer pincodeId;
 
     @Column(name = "rbi_flag", nullable = false)
     private Boolean rbiFlag = false;

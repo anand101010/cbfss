@@ -81,46 +81,46 @@ public class CustomerAdditionalInfoService {
             CustomerEmployment employment = employmentRepository.findByCustomer(customer).orElseGet(CustomerEmployment::new);
             customerAdditionalInfoMapper.createEmployment(employment, dto.getAdditional().getEmployment(), customer);
             employment.setOccupationId(occupationRepository.findByIdentity(dto.getAdditional().getEmployment().getOccupationId())
-                    .orElseThrow(() -> new BusinessException("Occupation not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+                    .orElseThrow(() -> new BusinessException(CommonConstants.OCCUPATION_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
             employment.setDesignationId(designationsRepository.findByIdentity(dto.getAdditional().getEmployment().getDesignationId())
-                    .orElseThrow(() -> new BusinessException("Designation not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+                    .orElseThrow(() -> new BusinessException(CommonConstants.DESIGNATION_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
             employment.setIncomeSourceId(sourceOfIncomeTypeRepository.findByIdentity(dto.getAdditional().getEmployment().getIncomeSourceId())
-                    .orElseThrow(() -> new BusinessException("Income source not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+                    .orElseThrow(() -> new BusinessException(CommonConstants.INCOME_SOURCE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
             employmentRepository.save(employment);
 
 
             CustomerReferral referral = customerReferralRepository.findByCustomer(customer).orElseGet(CustomerReferral::new);
             customerAdditionalInfoMapper.createReferral(referral, dto.getAdditional().getReferrals(), customer);
             referral.setReferralSources(referralRepository.findByIdentity(dto.getAdditional().getReferrals().getReferralSourceId())
-                    .orElseThrow(() -> new BusinessException("Referral source not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+                    .orElseThrow(() -> new BusinessException(CommonConstants.REFERRAL_SOURCE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
             referral.setCanvassedTypeId(canvassedTypesRepository.findByIdentity(dto.getAdditional().getReferrals().getCanvassedTypeId())
-                    .orElseThrow(() -> new BusinessException("Canvassed type not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+                    .orElseThrow(() -> new BusinessException(CommonConstants.CANVASSED_TYPE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
             customerReferralRepository.save(referral);
 
 
             CustomerProfileExtra profileExtra = profileExtraRepository.findByCustomer(customer).orElseGet(CustomerProfileExtra::new);
             customerAdditionalInfoMapper.createProfileExtra(profileExtra, dto.getAdditional().getProfileExtra(), customer);
             profileExtra.setEducationLevelId(educationLevelsRepository.findByIdentity(dto.getAdditional().getProfileExtra().getEducationLevelId())
-                    .orElseThrow(() -> new BusinessException("Education level not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+                    .orElseThrow(() -> new BusinessException(CommonConstants.EDUCATION_LEVEL_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
             profileExtra.setPurposeId(purposeRepository.findByIdentity(dto.getAdditional().getProfileExtra().getPurposeId())
-                    .orElseThrow(() -> new BusinessException("Purpose not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+                    .orElseThrow(() -> new BusinessException(CommonConstants.PURPOSE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
             profileExtraRepository.save(profileExtra);
 
 
             CustomerAsset asset = assetRepository.findByCustomer(customer).orElseGet(CustomerAsset::new);
             customerAdditionalInfoMapper.createAsset(asset, dto.getAdditional().getCustomerAsset(), customer);
             asset.setAssetTypeId(assetTypesRepository.findByIdentity(dto.getAdditional().getCustomerAsset().getAssetTypeId())
-                    .orElseThrow(() -> new BusinessException("Asset type not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+                    .orElseThrow(() -> new BusinessException(CommonConstants.ASSET_TYPE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
             assetRepository.save(asset);
 
 
             Customer updatedCustomer = customerAdditionalInfoMapper.updateCustomerFromAdditionalInfo(customer, dto.getAdditional().getCustomer());
             updatedCustomer.setNationality(nationalityRepository.findByIdentity(dto.getAdditional().getCustomer().getNationality())
-                    .orElseThrow(() -> new BusinessException("Nationality not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+                    .orElseThrow(() -> new BusinessException(CommonConstants.NATIONALITY_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
             updatedCustomer.setPreferredLanguageId(languagesRepository.findByIdentity(dto.getAdditional().getCustomer().getPreferredLanguageId())
-                    .orElseThrow(() -> new BusinessException("Preferred language not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+                    .orElseThrow(() -> new BusinessException(CommonConstants.PREFERRED_LANGUAGE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
             updatedCustomer.setResidentialStatusId(residentialStatusesRepository.findByIdentity(dto.getAdditional().getCustomer().getResidentialStatusId())
-                    .orElseThrow(() -> new BusinessException("Residential status not found", ErrorCodes.RESOURCE_NOT_FOUND)));
+                    .orElseThrow(() -> new BusinessException(CommonConstants.RESIDENTIAL_STATUS_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
             updatedCustomer.setCustomerGroupId(customerGroupRepository.findByIdentity(dto.getAdditional().getCustomer().getCustomerGroupId()).orElse(null));
             updatedCustomer.setRiskCategory(customerRiskProfileRepository.findByIdentity(dto.getAdditional().getCustomer().getRiskCategory()).orElse(null));
             updatedCustomer.setCategoryId(categoryMappingRepository.findByIdentity(dto.getAdditional().getCustomer().getCategoryId()).orElse(null));
@@ -135,14 +135,14 @@ public class CustomerAdditionalInfoService {
                             .findByCustomerAndCustomerAdditionalReferenceName(
                                     customer,
                                     customerAdditionalReferenceNameRepository.findByIdentity(referenceValueDto.getReferenceIdentity())
-                                            .orElseThrow(() -> new BusinessException("Customer additional reference name not found", ErrorCodes.RESOURCE_NOT_FOUND))
+                                            .orElseThrow(() -> new BusinessException(CommonConstants.CUSTOMER_ADDITIONAL_REF_NAME_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND))
                             )
                             .orElseGet(CustomerAdditionalReferenceValue::new);
 
                     customerAdditionalInfoMapper.maptoAddtionalRefValue(customerAdditionalReferenceValue, referenceValueDto);
                     customerAdditionalReferenceValue.setCustomerAdditionalReferenceName(
                             customerAdditionalReferenceNameRepository.findByIdentity(referenceValueDto.getReferenceIdentity())
-                                    .orElseThrow(() -> new BusinessException("Customer additional reference name not found", ErrorCodes.RESOURCE_NOT_FOUND))
+                                    .orElseThrow(() -> new BusinessException(CommonConstants.CUSTOMER_ADDITIONAL_REF_NAME_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND))
                     );
                     customerAdditionalReferenceValue.setCustomer(customer);
                     customerAdditionalReferenceValueRepository.save(customerAdditionalReferenceValue);

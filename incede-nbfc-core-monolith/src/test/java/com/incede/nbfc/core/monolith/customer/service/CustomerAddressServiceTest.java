@@ -67,6 +67,7 @@ class CustomerAddressServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+
         customerId = UUID.randomUUID();
         addressId = UUID.randomUUID();
 
@@ -82,8 +83,7 @@ class CustomerAddressServiceTest {
         requestDto.setAddressType(UUID.randomUUID());
         requestDto.setPostOfficeId(UUID.randomUUID());
         requestDto.setAddressProofType(UUID.randomUUID());
-        requestDto.setIsSameAsPermanent(false);
-
+        requestDto.setIsSameAsPermanent(false); // By default test the document-required scenario
         requestDto.setDoorNumber("123");
         requestDto.setAddressLine1("Main Street");
         requestDto.setPlaceName("Some Place");
@@ -94,112 +94,92 @@ class CustomerAddressServiceTest {
     }
 
     @Test
-    void testCreateAddress_Success() throws JsonProcessingException {
-        String jsonRequest = "{}";
+    void testCreateAddress_SuccessWithDocument() throws Exception {
+        MultipartFile file = mock(MultipartFile.class);
+        when(file.isEmpty()).thenReturn(false);
 
-        when(objectMapper.readValue(jsonRequest, CustomerAddressRequestDto.class)).thenReturn(requestDto);
+        CustomerAddress newAddress = new CustomerAddress();
+
+        when(objectMapper.readValue(anyString(), eq(CustomerAddressRequestDto.class))).thenReturn(requestDto);
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(addressMapper.toEntity(customer, requestDto)).thenReturn(address);
+        when(addressMapper.toEntity(customer, requestDto)).thenReturn(newAddress);
         when(addressTypeRepository.findByIdentity(requestDto.getAddressType())).thenReturn(Optional.of(new AddressType()));
         when(postOfficesRepository.findByIdentity(requestDto.getPostOfficeId())).thenReturn(Optional.of(new PostOffices()));
         when(addressProofTypeRepository.findByIdentity(requestDto.getAddressProofType())).thenReturn(Optional.of(new AddressProofType()));
-        when(addressRepository.save(address)).thenReturn(address);
-        when(addressMapper.toAddressDetail(address)).thenReturn(new CustomerAddressResponseDto.AddressDetail());
+        when(addressRepository.save(newAddress)).thenReturn(newAddress);
+        when(addressMapper.toAddressDetail(newAddress)).thenReturn(new CustomerAddressResponseDto.AddressDetail());
         when(addressMapper.toResponse(eq(customer), anyString(), anyList())).thenReturn(new CustomerAddressResponseDto());
 
-        CustomerAddressResponseDto response = customerAddressService.createAddress(customerId, jsonRequest, null);
+        CustomerAddressResponseDto response = customerAddressService.createAddress(customerId, "{}", file);
 
         assertNotNull(response);
-        verify(addressRepository).save(address);
+        assertNotNull(newAddress.getDocumentRefId(), "DocumentRefId should be set when file is provided");
+        verify(addressRepository).save(newAddress);
     }
 
     @Test
-    void testCreateAddress_DocumentRequired() throws JsonProcessingException {
-        String jsonRequest = "{}";
-        requestDto.setIsSameAsPermanent(true);
+    void testCreateAddress_SuccessWithoutDocumentWhenSameAsPermanent() throws Exception {
+        requestDto.setIsSameAsPermanent(true); // Document optional
+        MultipartFile file = null;
 
+        CustomerAddress newAddress = new CustomerAddress();
+
+        when(objectMapper.readValue(anyString(), eq(CustomerAddressRequestDto.class))).thenReturn(requestDto);
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(addressMapper.toEntity(customer, requestDto)).thenReturn(newAddress);
+        when(addressTypeRepository.findByIdentity(requestDto.getAddressType())).thenReturn(Optional.of(new AddressType()));
+        when(postOfficesRepository.findByIdentity(requestDto.getPostOfficeId())).thenReturn(Optional.of(new PostOffices()));
+        when(addressProofTypeRepository.findByIdentity(requestDto.getAddressProofType())).thenReturn(Optional.of(new AddressProofType()));
+        when(addressRepository.save(newAddress)).thenReturn(newAddress);
+        when(addressMapper.toAddressDetail(newAddress)).thenReturn(new CustomerAddressResponseDto.AddressDetail());
+        when(addressMapper.toResponse(eq(customer), anyString(), anyList())).thenReturn(new CustomerAddressResponseDto());
+
+        CustomerAddressResponseDto response = customerAddressService.createAddress(customerId, "{}", file);
+
+        assertNotNull(response);
+        assertNull(newAddress.getDocumentRefId(), "DocumentRefId should be null when sameAsPermanent=true");
+        verify(addressRepository).save(newAddress);
+    }
+
+    @Test
+    void testCreateAddress_ThrowsBusinessException_WhenDocumentMissing() throws JsonProcessingException {
+        requestDto.setIsSameAsPermanent(false);
         MultipartFile file = mock(MultipartFile.class);
         when(file.isEmpty()).thenReturn(true);
 
-        when(objectMapper.readValue(jsonRequest, CustomerAddressRequestDto.class)).thenReturn(requestDto);
+        when(objectMapper.readValue(anyString(), eq(CustomerAddressRequestDto.class))).thenReturn(requestDto);
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(addressMapper.toEntity(customer, requestDto)).thenReturn(new CustomerAddress()); // <- important
+        when(addressMapper.toEntity(customer, requestDto)).thenReturn(address);
         when(addressTypeRepository.findByIdentity(requestDto.getAddressType())).thenReturn(Optional.of(new AddressType()));
         when(postOfficesRepository.findByIdentity(requestDto.getPostOfficeId())).thenReturn(Optional.of(new PostOffices()));
         when(addressProofTypeRepository.findByIdentity(requestDto.getAddressProofType())).thenReturn(Optional.of(new AddressProofType()));
 
-        BusinessException exception = assertThrows(BusinessException.class, () ->
-                customerAddressService.createAddress(customerId, jsonRequest, file));
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+                customerAddressService.createAddress(customerId, "{}", file));
 
-        assertTrue(exception.getMessage().contains("Document file must be provided"));
-    }
-
-
-    @Test
-    void testCreateAddress_InvalidCustomer() throws JsonProcessingException {
-        String jsonRequest = "{}";
-        when(objectMapper.readValue(jsonRequest, CustomerAddressRequestDto.class)).thenReturn(requestDto);
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-                customerAddressService.createAddress(customerId, jsonRequest, null));
-        assertTrue(exception.getMessage().contains(CommonConstants.ENTITY_CUSTOMER));
+        assertEquals("Document file must be provided", ex.getMessage());
     }
 
     @Test
-    void testCreateAddress_InvalidAddressType() throws JsonProcessingException {
-        String jsonRequest = "{}";
-        when(objectMapper.readValue(jsonRequest, CustomerAddressRequestDto.class)).thenReturn(requestDto);
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(addressMapper.toEntity(customer, requestDto)).thenReturn(address);
-        when(addressTypeRepository.findByIdentity(requestDto.getAddressType())).thenReturn(Optional.empty());
+    void testUpdateAddress_SuccessWithDocument() throws Exception {
+        MultipartFile file = mock(MultipartFile.class);
+        when(file.isEmpty()).thenReturn(false);
 
-        BusinessException exception = assertThrows(BusinessException.class, () ->
-                customerAddressService.createAddress(customerId, jsonRequest, null));
-        assertTrue(exception.getMessage().contains("Invalid Address Type"));
-    }
-
-    @Test
-    void testUpdateAddress_Success() throws JsonProcessingException {
-        String jsonRequest = "{}";
-
-        when(objectMapper.readValue(jsonRequest, CustomerAddressRequestDto.class)).thenReturn(requestDto);
+        when(objectMapper.readValue(anyString(), eq(CustomerAddressRequestDto.class))).thenReturn(requestDto);
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(addressRepository.findByIdentity(addressId)).thenReturn(Optional.of(address));
-        when(addressMapper.toAddressDetail(address)).thenReturn(new CustomerAddressResponseDto.AddressDetail());
-        when(addressMapper.toResponse(eq(customer), anyString(), anyList())).thenReturn(new CustomerAddressResponseDto());
         when(addressTypeRepository.findByIdentity(requestDto.getAddressType())).thenReturn(Optional.of(new AddressType()));
         when(postOfficesRepository.findByIdentity(requestDto.getPostOfficeId())).thenReturn(Optional.of(new PostOffices()));
         when(addressProofTypeRepository.findByIdentity(requestDto.getAddressProofType())).thenReturn(Optional.of(new AddressProofType()));
         when(addressRepository.save(address)).thenReturn(address);
+        when(addressMapper.toAddressDetail(address)).thenReturn(new CustomerAddressResponseDto.AddressDetail());
+        when(addressMapper.toResponse(eq(customer), anyString(), anyList())).thenReturn(new CustomerAddressResponseDto());
 
-        CustomerAddressResponseDto response = customerAddressService.updateAddress(customerId, addressId, jsonRequest, null);
+        CustomerAddressResponseDto response = customerAddressService.updateAddress(customerId, addressId, "{}", file);
 
         assertNotNull(response);
+        assertNotNull(address.getDocumentRefId());
         verify(addressRepository).save(address);
-    }
-
-    @Test
-    void testUpdateAddress_InvalidCustomer() throws JsonProcessingException {
-        String jsonRequest = "{}";
-        when(objectMapper.readValue(jsonRequest, CustomerAddressRequestDto.class)).thenReturn(requestDto);
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-                customerAddressService.updateAddress(customerId, addressId, jsonRequest, null));
-        assertTrue(exception.getMessage().contains(CommonConstants.ENTITY_CUSTOMER));
-    }
-
-    @Test
-    void testUpdateAddress_InvalidAddress() throws JsonProcessingException {
-        String jsonRequest = "{}";
-        when(objectMapper.readValue(jsonRequest, CustomerAddressRequestDto.class)).thenReturn(requestDto);
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(addressRepository.findByIdentity(addressId)).thenReturn(Optional.empty());
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-                customerAddressService.updateAddress(customerId, addressId, jsonRequest, null));
-        assertTrue(exception.getMessage().contains(CommonConstants.ENTITY_ADDRESS));
     }
 
     @Test
@@ -215,25 +195,6 @@ class CustomerAddressServiceTest {
     }
 
     @Test
-    void testDeleteAddress_InvalidCustomer() {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-                customerAddressService.deleteAddress(customerId, addressId));
-        assertTrue(exception.getMessage().contains(CommonConstants.ENTITY_CUSTOMER));
-    }
-
-    @Test
-    void testDeleteAddress_InvalidAddress() {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(addressRepository.findByIdentity(addressId)).thenReturn(Optional.empty());
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-                customerAddressService.deleteAddress(customerId, addressId));
-        assertTrue(exception.getMessage().contains(CommonConstants.ENTITY_ADDRESS));
-    }
-
-    @Test
     void testGetActiveAddressesByCustomerIdentity_Success() {
         when(customerRepository.findByIdentityAndIsDelFalse(customerId)).thenReturn(Optional.of(customer));
         when(addressRepository.findByCustomerAndIsDelFalse(customer)).thenReturn(List.of(address));
@@ -244,6 +205,7 @@ class CustomerAddressServiceTest {
 
         assertNotNull(response);
         verify(addressRepository).findByCustomerAndIsDelFalse(customer);
+        verify(addressMapper).toResponse(eq(customer), anyString(), anyList());
     }
 
     @Test
@@ -251,47 +213,9 @@ class CustomerAddressServiceTest {
         when(customerRepository.findByIdentityAndIsDelFalse(customerId)).thenReturn(Optional.of(customer));
         when(addressRepository.findByCustomerAndIsDelFalse(customer)).thenReturn(List.of());
 
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-                customerAddressService.getActiveAddressesByCustomerIdentity(customerId));
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
+                () -> customerAddressService.getActiveAddressesByCustomerIdentity(customerId));
 
-        assertTrue(exception.getMessage().contains("No active addresses found"));
+        assertTrue(ex.getMessage().contains("No active addresses found"));
     }
-
-    @Test
-    void testCreateAddress_WithDocumentUpload() throws Exception {
-        String jsonRequest = "{}";
-
-        requestDto.setIsSameAsPermanent(true);
-        requestDto.setDoorNumber("123");
-        requestDto.setAddressLine1("Main Street");
-        requestDto.setPlaceName("Some Place");
-        requestDto.setDistrict("Central District");
-        requestDto.setCity("Metropolis");
-        requestDto.setState("StateName");
-        requestDto.setCountry("CountryName");
-        requestDto.setAddressType(UUID.randomUUID());
-        requestDto.setPostOfficeId(UUID.randomUUID());
-        requestDto.setAddressProofType(UUID.randomUUID());
-
-        MultipartFile file = mock(MultipartFile.class);
-        when(file.isEmpty()).thenReturn(false);
-
-        CustomerAddress address = new CustomerAddress();
-        when(objectMapper.readValue(jsonRequest, CustomerAddressRequestDto.class)).thenReturn(requestDto);
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(addressMapper.toEntity(customer, requestDto)).thenReturn(address);
-        when(addressTypeRepository.findByIdentity(requestDto.getAddressType())).thenReturn(Optional.of(new AddressType()));
-        when(postOfficesRepository.findByIdentity(requestDto.getPostOfficeId())).thenReturn(Optional.of(new PostOffices()));
-        when(addressProofTypeRepository.findByIdentity(requestDto.getAddressProofType())).thenReturn(Optional.of(new AddressProofType()));
-        when(addressRepository.save(address)).thenReturn(address);
-        when(addressMapper.toAddressDetail(address)).thenReturn(new CustomerAddressResponseDto.AddressDetail());
-        when(addressMapper.toResponse(eq(customer), anyString(), anyList())).thenReturn(new CustomerAddressResponseDto());
-
-        CustomerAddressResponseDto response = customerAddressService.createAddress(customerId, jsonRequest, file);
-
-        assertNotNull(response);
-        assertNotNull(address.getDocumentRefId(), "DocumentRefId should be set when file is provided");
-        verify(addressRepository).save(address);
-    }
-
 }

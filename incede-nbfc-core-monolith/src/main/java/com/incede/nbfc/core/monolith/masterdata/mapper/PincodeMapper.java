@@ -7,21 +7,25 @@ import org.springframework.stereotype.Component;
 @Component
 public class PincodeMapper {
 
-    public PincodeDto convertToDto(Pincodes pincodes){
-
+    public PincodeDto convertToDto(Pincodes pincodes) {
         PincodeDto dto = new PincodeDto();
-        dto.setPincodeId(pincodes.getPincodeId());
-        dto.setStateId(pincodes.getStateId());
-        dto.setDistrictId(pincodes.getDistrictId());
-        dto.setCityId(pincodes.getCityId());
+
         dto.setPincode(pincodes.getPincode());
-        dto.setLatitude(pincodes.getLatitude());
-        dto.setLongitude(pincodes.getLongitude());
         dto.setIdentity(pincodes.getIdentity());
-        dto.setStateId(pincodes.getStateId());
-        dto.setDistrictId(pincodes.getDistrictId());
-        dto.setCityId(pincodes.getCityId());
+
+        if (pincodes.getCities() != null) {
+            dto.setCityName(pincodes.getCities().toString());
+        }
+
+        if (pincodes.getDistricts() != null) {
+            dto.setDistrictName(pincodes.getDistricts().getDistrict());
+        }
+
+        if (pincodes.getStates() != null) {
+            dto.setStateName(pincodes.getStates().getState());
+        }
 
         return dto;
     }
 }
+

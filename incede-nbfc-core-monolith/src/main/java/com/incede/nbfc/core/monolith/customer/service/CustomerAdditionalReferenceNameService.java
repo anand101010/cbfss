@@ -1,12 +1,13 @@
 package com.incede.nbfc.core.monolith.customer.service;
 
+import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerAdditionalReferenceName;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerAdditionalReferenceNameResponseDto;
 import com.incede.nbfc.core.monolith.customer.repository.CustomerAdditionalReferenceNameRepository;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.exception.ErrorCodes;
-import com.incede.nbfc.core.monolith.masterdata.domain.entity.Tenant;
-import com.incede.nbfc.core.monolith.masterdata.repository.TenantRepository;
+import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
+import com.incede.nbfc.core.monolith.tenant.repository.TenantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,13 +33,13 @@ public class CustomerAdditionalReferenceNameService {
     public List<CustomerAdditionalReferenceNameResponseDto> getReferenceName(UUID tenantIdentity) {
 
         Tenant tenant = tenantRepository.findByIdentity(tenantIdentity)
-                .orElseThrow(() -> new BusinessException("Tenant not found", ErrorCodes.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(CommonConstants.TENANT_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
 
         List<CustomerAdditionalReferenceName> refNames =
                 customerAdditionalReferenceNameRepository.findByTenant(tenant);
 
         if (refNames.isEmpty()) {
-            throw new BusinessException("Customer additional reference value not found", ErrorCodes.RESOURCE_NOT_FOUND);
+            throw new BusinessException(CommonConstants.CUSTOMER_ADDITIONAL_REF_VALUE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND);
         }
 
         return refNames.stream()

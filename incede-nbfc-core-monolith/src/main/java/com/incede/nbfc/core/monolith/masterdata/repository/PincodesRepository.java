@@ -9,13 +9,21 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface PincodesRepository extends JpaRepository<Pincodes, Integer> {
 
+    List<Pincodes> findByPincodeIdIn(Set<Integer> pincodeIds);
+
+    @Query("""
+        SELECT p FROM Pincodes p
+        JOIN FETCH p.cities
+        JOIN FETCH p.states
+        JOIN FETCH p.districts
+        WHERE p.pincode = :pincode
+    """)
+    List<Pincodes> findByPincodeWithDetails(@Param("pincode") String pincode);
+
     Page<Pincodes> findByIsDelFalse(Pageable pageable);
-
-    @Query("SELECT p FROM Pincodes p WHERE p.pincode = :pincode")
-    List<Pincodes> findByDetailsThroughPincode(@Param("pincode") Integer pincode);
-
 }

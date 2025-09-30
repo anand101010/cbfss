@@ -59,10 +59,8 @@ public class CustomerAddressService {
 
         Customer customer = customerRepository.findByIdentity(customerIdentity)
                 .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_CUSTOMER, customerIdentity.toString()));
-        log.debug("Found customer: {}", customer.getCustomerCode());
 
         CustomerAddress address = addressMapper.toEntity(customer, dto);
-        log.debug("Mapped CustomerAddress entity from DTO: {}", address);
 
         AddressType addressType = addressTypeRepository.findByIdentity(dto.getAddressType())
                 .orElseThrow(() -> new BusinessException("Invalid Address Type", ErrorCodes.VALIDATION_FAILED));
@@ -75,23 +73,18 @@ public class CustomerAddressService {
         AddressProofType addressProof = addressProofTypeRepository.findByIdentity(dto.getAddressProofType())
                 .orElseThrow(() -> new BusinessException("Invalid Address Proof Type", ErrorCodes.VALIDATION_FAILED));
         address.setAddressProofType(addressProof);
-        log.debug("Set AddressProofType: {}", addressProof.getName());
 
-        if (Boolean.TRUE.equals(dto.getIsSameAsPermanent())) {
+        if (Boolean.FALSE.equals(dto.getIsSameAsPermanent())) {
             if (file == null || file.isEmpty()) {
-                log.error("'isSameAsPermanent' is true but no file provided");
-                throw new BusinessException("Document file must be provided if 'isSameAsPermanent' is true");
+                throw new BusinessException("Document file must be provided");
             }
             Integer documentRefId = uploadDocument(file);
             address.setDocumentRefId(documentRefId);
-            log.debug("Uploaded document and set documentRefId: {}", documentRefId);
         } else {
             address.setDocumentRefId(null);
         }
 
         CustomerAddress savedAddress = addressRepository.save(address);
-        log.info("Saved CustomerAddress with id: {}", savedAddress.getAddressId());
-
         CustomerAddressResponseDto.AddressDetail detail = addressMapper.toAddressDetail(savedAddress);
         return addressMapper.toResponse(customer, CommonConstants.CUSTOMER_ADDRESS_STATUS_IN_PROGRESS, List.of(detail));
     }
@@ -105,15 +98,12 @@ public class CustomerAddressService {
 
         Customer customer = customerRepository.findByIdentity(customerIdentity)
                 .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_CUSTOMER, customerIdentity.toString()));
-        log.debug("Found customer: {}", customer.getCustomerCode());
 
         CustomerAddress address = addressRepository.findByIdentity(addressIdentity)
                 .filter(a -> a.getCustomer().getCustomerId().equals(customer.getCustomerId()))
                 .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_ADDRESS, addressIdentity.toString()));
-        log.debug("Found address to update: {}", address.getAddressId());
 
         addressMapper.updateEntity(address, dto);
-        log.debug("Updated CustomerAddress entity from DTO");
 
         AddressType addressType = addressTypeRepository.findByIdentity(dto.getAddressType())
                 .orElseThrow(() -> new BusinessException("Invalid Address Type", ErrorCodes.VALIDATION_FAILED));
@@ -127,29 +117,23 @@ public class CustomerAddressService {
                 .orElseThrow(() -> new BusinessException("Invalid Address Proof Type", ErrorCodes.VALIDATION_FAILED));
         address.setAddressProofType(addressProof);
 
-        if (Boolean.TRUE.equals(dto.getIsSameAsPermanent())) {
+        if (Boolean.FALSE.equals(dto.getIsSameAsPermanent())) {
             if (file == null || file.isEmpty()) {
-                log.error("'isSameAsPermanent' is true but no file provided");
-                throw new BusinessException("Document file must be provided if 'isSameAsPermanent' is true");
+                throw new BusinessException("Document file must be provided");
             }
             Integer documentRefId = uploadDocument(file);
             address.setDocumentRefId(documentRefId);
-            log.debug("Uploaded document and set documentRefId: {}", documentRefId);
         } else {
             address.setDocumentRefId(null);
         }
 
         CustomerAddress updatedAddress = addressRepository.save(address);
-        log.info("Updated CustomerAddress with id: {}", updatedAddress.getAddressId());
-
         CustomerAddressResponseDto.AddressDetail detail = addressMapper.toAddressDetail(updatedAddress);
         return addressMapper.toResponse(customer, CommonConstants.CUSTOMER_ADDRESS_STATUS_UPDATED, List.of(detail));
     }
 
     @Transactional
     public void deleteAddress(UUID customerIdentity, UUID addressIdentity) {
-        log.info("Deleting address {} for customer {}", addressIdentity, customerIdentity);
-
         Customer customer = customerRepository.findByIdentity(customerIdentity)
                 .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_CUSTOMER, customerIdentity.toString()));
 
@@ -160,21 +144,16 @@ public class CustomerAddressService {
         address.setIsDel(true);
         address.setIsActive(false);
         addressRepository.save(address);
-
-        log.info("Soft-deleted CustomerAddress with id: {}", address.getAddressId());
     }
 
     @Transactional(readOnly = true)
     public CustomerAddressResponseDto getActiveAddressesByCustomerIdentity(UUID customerIdentity) {
-        log.info("Fetching active addresses for customerIdentity: {}", customerIdentity);
-
         Customer customer = customerRepository.findByIdentityAndIsDelFalse(customerIdentity)
                 .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_CUSTOMER, customerIdentity.toString()));
 
         List<CustomerAddress> addresses = addressRepository.findByCustomerAndIsDelFalse(customer);
 
         if (addresses.isEmpty()) {
-            log.warn("No active addresses found for customerIdentity: {}", customerIdentity);
             throw new ResourceNotFoundException(CommonConstants.ENTITY_ADDRESS,
                     "No active addresses found for customer identity: " + customerIdentity);
         }
@@ -183,7 +162,6 @@ public class CustomerAddressService {
                 .map(addressMapper::toAddressDetail)
                 .toList();
 
-        log.info("Found {} active addresses for customerIdentity: {}", addressDetails.size(), customerIdentity);
         return addressMapper.toResponse(customer, CommonConstants.CUSTOMER_ADDRESS_STATUS_SUCCESS, addressDetails);
     }
 
@@ -194,16 +172,11 @@ public class CustomerAddressService {
                     .map(v -> v.getPropertyPath() + " " + v.getMessage())
                     .reduce((m1, m2) -> m1 + ", " + m2)
                     .orElse("Validation failed");
-            log.error("DTO validation failed: {}", errorMsg);
             throw new BusinessException(errorMsg, ErrorCodes.VALIDATION_FAILED);
-        } else {
-            log.debug("DTO validation passed");
         }
     }
 
     private Integer uploadDocument(MultipartFile file) {
-        Integer refId = Math.abs(UUID.randomUUID().hashCode());
-        log.debug("Simulated document upload, generated documentRefId: {}", refId);
-        return refId;
+        return Math.abs(UUID.randomUUID().hashCode());
     }
 }

@@ -14,7 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/onboarding")
+@RequestMapping("/api/v1/customers")
 @RequiredArgsConstructor
 public class CustomerAddressController {
 

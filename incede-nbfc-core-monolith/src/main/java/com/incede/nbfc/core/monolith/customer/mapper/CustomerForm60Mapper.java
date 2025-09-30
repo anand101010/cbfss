@@ -8,6 +8,7 @@ import com.incede.nbfc.core.monolith.masterdata.domain.entity.DocumentMaster;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
+import java.util.UUID;
 
 @Component
 public class CustomerForm60Mapper {
@@ -49,7 +50,6 @@ public class CustomerForm60Mapper {
 
     public CustomerForm60ResponseDto toResponseDto(CustomerForm60 entity) {
         return CustomerForm60ResponseDto.builder()
-                .branchId(entity.getBranchId())
                 .transactionAmount(entity.getTransactionAmount())
                 .transactionDate(entity.getTransactionDate())
                 .modeOfTransaction(entity.getModeOfTransaction())
@@ -68,6 +68,7 @@ public class CustomerForm60Mapper {
                 .addIssuingAuthority(entity.getAddIssuingAuthority())
                 .submissionDate(entity.getSubmissionDate())
                 .formFileId(entity.getFormFileId())
+                .identity(UUID.randomUUID())
                 .build();
     }
 
