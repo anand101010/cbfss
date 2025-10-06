@@ -7,7 +7,10 @@ import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
 import com.incede.nbfc.core.monolith.masterdata.domain.entity.DocumentType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -50,6 +53,7 @@ public class CustomerKycMapper {
         customerKyc.setValidTo(request.getValidTo());
         customerKyc.setCreatedBy(getCreatedBy());
         customerKyc.setCustomer(customer);
+        customerKyc.setIdentity(UUID.randomUUID());
 
         customerKyc.setIsVerified(request.getIsVerified() != null ? request.getIsVerified() : false);
         customerKyc.setIsActive(request.getIsActive() != null ? request.getIsActive() : true);
@@ -57,11 +61,11 @@ public class CustomerKycMapper {
         return customerKyc;
     }
 
-    public CustomerKycResponseDto toResponseDto(Customer customer, List<CustomerKyc> customerKycList) {
+    public CustomerKycResponseDto toResponseDto(Customer customer, List<CustomerKyc> customerKycList, MultipartFile file) {
         Objects.requireNonNull(customer);
 
         List<KycDocumentResponseDto> kycDocuments = customerKycList.stream()
-                .map(this::toKycDocumentResponseDto)
+                .map(kyc -> toKycDocumentResponseDto(kyc, file))
                 .collect(Collectors.toList());
 
         return CustomerKycResponseDto.builder()
@@ -78,7 +82,8 @@ public class CustomerKycMapper {
                 .build();
     }
 
-    private KycDocumentResponseDto toKycDocumentResponseDto(CustomerKyc customerKyc) {
+
+    private KycDocumentResponseDto toKycDocumentResponseDto(CustomerKyc customerKyc,MultipartFile file) {
         return KycDocumentResponseDto.builder()
                 .identity(customerKyc.getIdentity())
                 .idType(customerKyc.getIdType() != null ? customerKyc.getIdType().getDisplayName() : null)
@@ -89,16 +94,56 @@ public class CustomerKycMapper {
                 .validTo(customerKyc.getValidTo() != null ? customerKyc.getValidTo().toString() : null)
                 .isVerified(customerKyc.getIsVerified())
                 .isActive(customerKyc.getIsActive())
-                .kycUploads(toKycUploadResponseDtos(customerKyc))
+                .kycUploads(toKycUploadResponseDtos(customerKyc,file))
                 .build();
     }
 
-    private List<KycUploadResponseDto> toKycUploadResponseDtos(CustomerKyc customerKyc) {
+
+
+    public CustomerKycUpload toKycUploadEntity(
+            CustomerKyc customerKyc,
+            MultipartFile file) {
+
+        Objects.requireNonNull(customerKyc, "CustomerKyc must not be null");
+
+        CustomerKycUpload upload = new CustomerKycUpload();
+
+        upload.setKyc(customerKyc);
+        upload.setCustomer(customerKyc.getCustomer());
+
+
+        String originalFilename = file != null ? file.getOriginalFilename() : "document";
+        String fileType = file != null ? file.getContentType() : "application/octet-stream";
+
+        upload.setFileName(originalFilename);
+        upload.setFileType(fileType);
+        upload.setUploadStatus(CustomerKycUpload.UploadStatus.SUCCESS);
+
+        upload.setUploadDate(Timestamp.valueOf(LocalDateTime.now()));
+
+        upload.setResponsePayload(null);
+        upload.setCreatedBy(getCreatedBy());
+
+        upload.setIsDel(false);
+
+        return upload;
+    }
+
+
+    private List<KycUploadResponseDto> toKycUploadResponseDtos(CustomerKyc customerKyc, MultipartFile file) {
+        String originalFilename = file != null ? file.getOriginalFilename() : "document";
+        String fileExtension = "";
+
+        if (originalFilename != null && originalFilename.contains(".")) {
+            fileExtension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
+        }
+
+        String fileType = file != null ? file.getContentType() : "application/octet-stream";
+
         return List.of(KycUploadResponseDto.builder()
-                .identity(UUID.randomUUID())
                 .documentReference("DOC_REF_" + (customerKyc.getDocumentRefId() != null ? customerKyc.getDocumentRefId() : "UNKNOWN"))
-                .fileName("document.pdf")
-                .fileType("application/pdf")
+                .fileName(originalFilename != null ? originalFilename : "document")
+                .fileType(fileType != null ? fileType : "application/octet-stream")
                 .uploadStatus("UPLOADED")
                 .version(1)
                 .build());
@@ -106,12 +151,10 @@ public class CustomerKycMapper {
 
     public String generateCustomerCode(String branchCode, String customerType) {
         Objects.requireNonNull(branchCode);
-        Objects.requireNonNull(customerType);
+
+        String categoryCode = CommonConstants.CATEGORY_CODE;
 
         Customer lastCustomer = customerRepository.findTopByOrderByCustomerIdDesc();
-        String customerTypeShort = customerType.length() >= 3
-                ? customerType.substring(0, 3).toUpperCase()
-                : customerType.toUpperCase();
 
         int incrementalId = 1;
         if (lastCustomer != null && lastCustomer.getCustomerCode() != null) {
@@ -123,8 +166,11 @@ public class CustomerKycMapper {
             }
         }
 
-        return branchCode + "-" + customerTypeShort + "-" + String.format("%03d", incrementalId);
+        String serialNumber = String.format("%05d", incrementalId);
+
+        return branchCode + "-" + categoryCode + "-" + serialNumber;
     }
+
 
     public Integer getCreatedBy() {
         return CommonConstants.CREATED_BY;

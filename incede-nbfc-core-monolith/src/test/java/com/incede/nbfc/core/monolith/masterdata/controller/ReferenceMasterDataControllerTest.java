@@ -148,12 +148,16 @@ public class ReferenceMasterDataControllerTest {
 
     @Test
     void testGetPincodeByNumber() {
+
+        PostOfficesResponseDto po1 = new PostOfficesResponseDto("Ernakulam", UUID.randomUUID());
+        PostOfficesResponseDto po2 = new PostOfficesResponseDto("Kaloor", UUID.randomUUID());
+
         PincodeDto dto = new PincodeDto();
         dto.setPincode("682030");
         dto.setCityName("Kochi");
         dto.setStateName("Kerala");
         dto.setDistrictName("Ernakulam");
-        dto.setPostOfficeNames(List.of("Ernakulam", "Kaloor"));
+        dto.setPostOffices(List.of(po1, po2));
 
         List<PincodeDto> mockList = List.of(dto);
 
@@ -170,7 +174,12 @@ public class ReferenceMasterDataControllerTest {
         assertThat(result.getCityName()).isEqualTo("Kochi");
         assertThat(result.getStateName()).isEqualTo("Kerala");
         assertThat(result.getDistrictName()).isEqualTo("Ernakulam");
-        assertThat(result.getPostOfficeNames()).contains("Ernakulam", "Kaloor");
 
+        List<String> officeNames = result.getPostOffices().stream()
+                .map(PostOfficesResponseDto::getOfficeName)
+                .toList();
+
+        assertThat(officeNames).containsExactlyInAnyOrder("Ernakulam", "Kaloor");
     }
+
 }

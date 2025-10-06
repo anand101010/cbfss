@@ -12,14 +12,20 @@ import com.incede.nbfc.core.monolith.exception.ErrorCodes;
 import com.incede.nbfc.core.monolith.masterdata.repository.DocumentMasterRepository;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
+
 
 public class CustomerForm60ServiceTest {
 
@@ -31,7 +37,7 @@ public class CustomerForm60ServiceTest {
     private CustomerForm60Mapper form60Mapper;
     @Mock
     private DocumentMasterRepository documentRepository;
-    @Mock
+
     private CustomerForm60Service service;
 
     private UUID customerIdentity;
@@ -65,6 +71,10 @@ public class CustomerForm60ServiceTest {
         form60.setForm60Id(form60Id);
         form60.setCustomerId(customer);
 
+        CustomerForm60RequestDto requestDto = new CustomerForm60RequestDto();
+        requestDto.setTransactionAmount(BigDecimal.valueOf(100000));
+        requestDto.setCreatedBy(1);
+        requestDto.setTransactionDate(LocalDate.now());
     }
 
     @Test
@@ -79,6 +89,9 @@ public class CustomerForm60ServiceTest {
         CustomerForm60ResponseDto result = service.getForm60ById(customerIdentity, form60Id);
 
         assertNotNull(result);
+        verify(customerRepository).findByIdentity(customerIdentity);
+        verify(customerForm60Repository).findByForm60IdAndCustomerId(form60Id, customer.getCustomerId());
+        verify(form60Mapper).toResponseDto(form60);
     }
 
     @Test
@@ -90,6 +103,7 @@ public class CustomerForm60ServiceTest {
             fail("Expected BusinessException for customer not found");
         } catch (BusinessException e) {
             assertEquals(ErrorCodes.NOT_FOUND, e.getErrorCode());
+            assertEquals("Customer not found", e.getMessage());
         }
     }
 
@@ -110,16 +124,21 @@ public class CustomerForm60ServiceTest {
 
     @Test
     public void testSaveForm60_Success() {
-
         CustomerForm60RequestDto requestDto = new CustomerForm60RequestDto();
         requestDto.setTransactionAmount(BigDecimal.valueOf(100000));
         requestDto.setCreatedBy(1);
+        requestDto.setTransactionDate(LocalDate.now());
 
         when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
         when(form60Mapper.toEntity(requestDto, customer, null, null)).thenReturn(form60);
         when(customerForm60Repository.save(form60)).thenReturn(form60);
-        when(form60Mapper.toResponseDto(form60)).thenReturn(new CustomerForm60ResponseDto());
 
+        CustomerForm60ResponseDto responseDto = new CustomerForm60ResponseDto();
+        when(form60Mapper.toResponseDto(form60)).thenReturn(responseDto);
+
+        CustomerForm60ResponseDto result = service.saveForm60(requestDto, customerIdentity);
+
+        assertNotNull(result);
         verify(customerForm60Repository).save(form60);
     }
 
@@ -128,6 +147,8 @@ public class CustomerForm60ServiceTest {
         CustomerForm60RequestDto requestDto = new CustomerForm60RequestDto();
         requestDto.setTransactionAmount(BigDecimal.valueOf(100000));
         requestDto.setCreatedBy(1);
+        requestDto.setTransactionDate(LocalDate.now());
+
         when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.empty());
 
         try {
@@ -143,10 +164,11 @@ public class CustomerForm60ServiceTest {
     public void testSaveForm60_ValidationFailure() {
         CustomerForm60RequestDto requestDto = new CustomerForm60RequestDto();
         requestDto.setTransactionAmount(BigDecimal.valueOf(100000));
-        requestDto.setCreatedBy(1);
-        requestDto.setTransactionAmount(BigDecimal.valueOf(0));
+        requestDto.setCreatedBy(null);
+        requestDto.setTransactionDate(LocalDate.now());
         when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
 
+        when(form60Mapper.toEntity(any(), any(), any(), any())).thenReturn(new CustomerForm60());
         try {
             service.saveForm60(requestDto, customerIdentity);
             fail("Expected BusinessException for validation failure");
@@ -156,27 +178,34 @@ public class CustomerForm60ServiceTest {
         }
     }
 
-
     @Test
     public void testUpdateForm60_Success() {
         CustomerForm60RequestDto requestDto = new CustomerForm60RequestDto();
         requestDto.setTransactionAmount(BigDecimal.valueOf(100000));
         requestDto.setCreatedBy(1);
+        requestDto.setTransactionDate(LocalDate.now());
+
         when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
         when(customerForm60Repository.findByForm60IdAndCustomerId(form60Id, customer.getCustomerId()))
                 .thenReturn(Optional.of(form60));
         when(customerForm60Repository.save(form60)).thenReturn(form60);
-        when(form60Mapper.toResponseDto(form60)).thenReturn(new CustomerForm60ResponseDto());
 
+        CustomerForm60ResponseDto responseDto = new CustomerForm60ResponseDto();
+        when(form60Mapper.toResponseDto(form60)).thenReturn(responseDto);
+
+        CustomerForm60ResponseDto result = service.updateForm60(customerIdentity, form60Id, requestDto);
+
+        assertNotNull(result);
         verify(customerForm60Repository).save(form60);
     }
 
     @Test
     public void testUpdateForm60_CustomerNotFound() {
-
         CustomerForm60RequestDto requestDto = new CustomerForm60RequestDto();
         requestDto.setTransactionAmount(BigDecimal.valueOf(100000));
         requestDto.setCreatedBy(1);
+        requestDto.setTransactionDate(LocalDate.now());
+
         when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.empty());
 
         try {
@@ -189,10 +218,10 @@ public class CustomerForm60ServiceTest {
 
     @Test
     public void testUpdateForm60_Form60NotFound() {
-
         CustomerForm60RequestDto requestDto = new CustomerForm60RequestDto();
         requestDto.setTransactionAmount(BigDecimal.valueOf(100000));
         requestDto.setCreatedBy(1);
+        requestDto.setTransactionDate(LocalDate.now());
         when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
         when(customerForm60Repository.findByForm60IdAndCustomerId(form60Id, customer.getCustomerId()))
                 .thenReturn(Optional.empty());
@@ -203,6 +232,24 @@ public class CustomerForm60ServiceTest {
         } catch (BusinessException e) {
             assertEquals(ErrorCodes.NOT_FOUND, e.getErrorCode());
             assertTrue(e.getMessage().contains("Form 60 not found"));
+        }
+    }
+
+    @Test
+    public void testSaveForm60_NullCreatedBy() {
+        CustomerForm60RequestDto requestDto = new CustomerForm60RequestDto();
+        requestDto.setTransactionAmount(BigDecimal.valueOf(100000));
+        requestDto.setCreatedBy(null);
+        requestDto.setTransactionDate(LocalDate.now());
+
+        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
+
+        when(form60Mapper.toEntity(any(), any(), any(), any())).thenReturn(new CustomerForm60());
+        try {
+            service.saveForm60(requestDto, customerIdentity);
+            fail("Expected BusinessException for null createdBy");
+        } catch (BusinessException e) {
+            assertEquals(ErrorCodes.VALIDATION_FAILED, e.getErrorCode());
         }
     }
 }

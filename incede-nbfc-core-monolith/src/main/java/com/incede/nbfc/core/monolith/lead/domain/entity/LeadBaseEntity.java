@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Data
 @MappedSuperclass
-public abstract class leadBaseEntity {
+public abstract class LeadBaseEntity {
 
     @Column(name = "created_by", nullable = false)
     @NotNull(message = "Created by is required")

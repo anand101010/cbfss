@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class LeadFollowUp extends leadBaseEntity implements Serializable {
+public class LeadFollowUp extends LeadBaseEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -32,7 +32,7 @@ public class LeadFollowUp extends leadBaseEntity implements Serializable {
     @NotNull(message = "Staff ID must not be null")
     private Integer staffId;
 
-    @Column(name = "follow_up_type_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "follow_up_type_id", nullable = false, referencedColumnName = "follow_up_type_id")
     @NotNull(message = "Follow-up type ID must not be null")
     private Integer followUpTypeId;

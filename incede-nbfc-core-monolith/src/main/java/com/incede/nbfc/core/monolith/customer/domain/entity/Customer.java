@@ -146,15 +146,17 @@ public class Customer extends CustomerBaseEntity implements Serializable {
     @Column(name = "otp_is_verified")
     private Boolean otpIsVerified;
 
-    @ManyToOne(optional = true)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "customer_group_id", referencedColumnName = "customer_group_id")
-    private CustomerGroup customerGroupId;
+    private CustomerGroupMaster customerGroupId;
 
-    @ManyToOne(optional = true)
-    @JoinColumn(name = "risk_category", nullable = false, referencedColumnName = "risk_category")
-    private CustomerRiskProfile riskCategory;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "risk_category", referencedColumnName = "risk_category_id")
+    private RiskCategory riskCategory;
 
-    @ManyToOne(optional = true)
-    @JoinColumn(name = "category_id", nullable = false, referencedColumnName = "category_id")
-    private CustomerCategoryMapping categoryId;
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "category_id", referencedColumnName = "category_id")
+    private CustomerCategory categoryId;
+
 }

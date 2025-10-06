@@ -19,7 +19,7 @@ import java.math.BigDecimal;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class LeadAddress extends leadBaseEntity implements Serializable {
+public class LeadAddress extends LeadBaseEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -33,7 +33,7 @@ public class LeadAddress extends leadBaseEntity implements Serializable {
     @NotNull(message = "Lead reference must not be null")
     private Lead lead;
 
-    @Column(name = "address_type_id")
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "address_type_id", nullable = false, referencedColumnName = "address_type_id")
     private AddressType addressType;
 
@@ -63,7 +63,7 @@ public class LeadAddress extends leadBaseEntity implements Serializable {
     @Column(name = "district_id")
     private String  district;
 
-    @Column(name = "post_office_id")
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_office_id", nullable = false, referencedColumnName = "post_office_id")
     private PostOffices postOfficeId;
 
@@ -79,7 +79,7 @@ public class LeadAddress extends leadBaseEntity implements Serializable {
     @Column(name = "longitude", precision = 9, scale = 6)
     private BigDecimal longitude;
 
-    @Column(name = "address_proof_type_id")
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "address_proof_type_id", nullable = false, referencedColumnName = "address_proof_type_id")
     private AddressProofType addressProofType;
 

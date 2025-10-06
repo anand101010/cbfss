@@ -1,27 +1,37 @@
 package com.incede.nbfc.core.monolith.exception;
 
-/**
- * Exception thrown when a business conflict occurs,
- * such as attempting to create a duplicate resource.
- *
- * This extends BusinessException and carries additional
- * context (details) that can be returned in the response.
- *
- * Example: Duplicate customer KYC document.
- *
- * @author Incede NBFC
- * @version 1.0.0
- */
-public class BusinessConflictException extends BusinessException {
+import java.util.List;
+import java.util.Map;
 
-    private final Object details;
+public class BusinessConflictException extends RuntimeException {
 
-    public BusinessConflictException(String message, String errorCode, Object details) {
-        super(message, errorCode);
-        this.details = details;
+    private final String errorCode;
+    private final String existingIdentity;
+    private final Map<String, Object> existingDetails;
+    private final List<String> suggestedActions;
+
+    public BusinessConflictException(String message, String errorCode, String existingIdentity,
+                                     Map<String, Object> existingDetails, List<String> suggestedActions) {
+        super(message);
+        this.errorCode = errorCode;
+        this.existingIdentity = existingIdentity;
+        this.existingDetails = existingDetails;
+        this.suggestedActions = suggestedActions;
     }
 
-    public Object getDetails() {
-        return details;
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    public String getExistingIdentity() {
+        return existingIdentity;
+    }
+
+    public Map<String, Object> getExistingDetails() {
+        return existingDetails;
+    }
+
+    public List<String> getSuggestedActions() {
+        return suggestedActions;
     }
 }

@@ -63,20 +63,18 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handle Conflict for KYC Document
+     * Handle Conflict for KYC Document upload
      * @param ex
      * @return
      */
     @ExceptionHandler(BusinessConflictException.class)
     public ResponseEntity<Object> handleBusinessConflictException(BusinessConflictException ex) {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.CONFLICT.value());
-        body.put("error", "Business Conflict");
-        body.put("message", ex.getMessage());
         body.put("errorCode", ex.getErrorCode());
-        body.put("details", ex.getDetails()); // <-- Extra payload
-        body.put("path", ""); // You can fill this dynamically
+        body.put("message", ex.getMessage());
+        body.put("existingIdentity", ex.getExistingIdentity());
+        body.put("existingDetails", ex.getExistingDetails());
+        body.put("suggestedActions", ex.getSuggestedActions());
         return new ResponseEntity<>(body, HttpStatus.CONFLICT);
     }
 

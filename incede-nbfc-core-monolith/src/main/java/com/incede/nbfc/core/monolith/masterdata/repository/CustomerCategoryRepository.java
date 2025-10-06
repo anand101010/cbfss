@@ -6,9 +6,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface CustomerCategoryRepository extends JpaRepository<CustomerCategory, Integer> {
 
     List<CustomerCategoryView> findByIsDelFalseAndIsActiveTrue();
+
+    Optional<CustomerCategory> findByIdentity(UUID categoryId);
 }

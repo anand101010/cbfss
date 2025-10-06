@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class LeadStageHistory extends leadBaseEntity implements Serializable {
+public class LeadStageHistory extends LeadBaseEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

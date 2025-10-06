@@ -50,6 +50,14 @@ public class CustomerAddressService {
 
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
+    /**
+     *
+     * @param customerIdentity
+     * @param requestJson
+     * @param file
+     * @return
+     * @throws JsonProcessingException
+     */
     @Transactional
     public CustomerAddressResponseDto createAddress(UUID customerIdentity, String requestJson, MultipartFile file) throws JsonProcessingException {
         log.info("Creating new address for customerIdentity: {}", customerIdentity);
@@ -89,6 +97,15 @@ public class CustomerAddressService {
         return addressMapper.toResponse(customer, CommonConstants.CUSTOMER_ADDRESS_STATUS_IN_PROGRESS, List.of(detail));
     }
 
+    /**
+     *
+     * @param customerIdentity
+     * @param addressIdentity
+     * @param requestJson
+     * @param file
+     * @return
+     * @throws JsonProcessingException
+     */
     @Transactional
     public CustomerAddressResponseDto updateAddress(UUID customerIdentity, UUID addressIdentity, String requestJson, MultipartFile file) throws JsonProcessingException {
         log.info("Updating address {} for customer {}", addressIdentity, customerIdentity);
@@ -117,20 +134,21 @@ public class CustomerAddressService {
                 .orElseThrow(() -> new BusinessException("Invalid Address Proof Type", ErrorCodes.VALIDATION_FAILED));
         address.setAddressProofType(addressProof);
 
-        if (Boolean.FALSE.equals(dto.getIsSameAsPermanent())) {
-            if (file == null || file.isEmpty()) {
-                throw new BusinessException("Document file must be provided");
-            }
+        if (file != null && !file.isEmpty()) {
             Integer documentRefId = uploadDocument(file);
             address.setDocumentRefId(documentRefId);
-        } else {
-            address.setDocumentRefId(null);
         }
 
         CustomerAddress updatedAddress = addressRepository.save(address);
         CustomerAddressResponseDto.AddressDetail detail = addressMapper.toAddressDetail(updatedAddress);
         return addressMapper.toResponse(customer, CommonConstants.CUSTOMER_ADDRESS_STATUS_UPDATED, List.of(detail));
     }
+
+    /**
+     *
+     * @param customerIdentity
+     * @param addressIdentity
+     */
 
     @Transactional
     public void deleteAddress(UUID customerIdentity, UUID addressIdentity) {
@@ -146,6 +164,11 @@ public class CustomerAddressService {
         addressRepository.save(address);
     }
 
+    /**
+     *
+     * @param customerIdentity
+     * @return
+     */
     @Transactional(readOnly = true)
     public CustomerAddressResponseDto getActiveAddressesByCustomerIdentity(UUID customerIdentity) {
         Customer customer = customerRepository.findByIdentityAndIsDelFalse(customerIdentity)
@@ -165,6 +188,10 @@ public class CustomerAddressService {
         return addressMapper.toResponse(customer, CommonConstants.CUSTOMER_ADDRESS_STATUS_SUCCESS, addressDetails);
     }
 
+    /**
+     *
+     * @param dto
+     */
     private void validateDto(CustomerAddressRequestDto dto) {
         Set<ConstraintViolation<CustomerAddressRequestDto>> violations = validator.validate(dto);
         if (!violations.isEmpty()) {

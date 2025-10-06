@@ -21,7 +21,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Entity
 @Table(name = "leads", schema = "lead")
-public class Lead extends leadBaseEntity implements Serializable {
+public class Lead extends LeadBaseEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

@@ -1,219 +1,437 @@
-//package com.incede.nbfc.core.monolith.customer.service;
-//
-//import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
-//import com.incede.nbfc.core.monolith.customer.dto.BasicInformationRequestDto;
-//import com.incede.nbfc.core.monolith.customer.dto.BasicInformationResponseDto;
-//import com.incede.nbfc.core.monolith.customer.mapper.BasicInformationMapper;
-//import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
-//import com.incede.nbfc.core.monolith.exception.BusinessException;
-//import com.incede.nbfc.core.monolith.exception.ErrorCodes;
-//import com.incede.nbfc.core.monolith.masterdata.domain.entity.*;
-//import com.incede.nbfc.core.monolith.masterdata.repository.*;
-//import lombok.RequiredArgsConstructor;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.mockito.*;
-//import org.springframework.dao.DataIntegrityViolationException;
-//
-//import java.time.LocalDate;
-//import java.util.Optional;
-//import java.util.UUID;
-//
-//import static org.junit.jupiter.api.Assertions.*;
-//import static org.mockito.Mockito.*;
-//@RequiredArgsConstructor
-//class BasicInformationServiceTest {
-//
-//    @Mock private CustomerRepository customerRepository;
-//    @Mock private BasicInformationMapper customerMapper;
-//    @Mock private GendersRepository gendersRepository;
-//    @Mock private MaritalStatusRepository maritalStatusRepository;
-//    @Mock private NationalityRepository nationalityRepository;
-//    @Mock private TaxCategoryRepository taxCategoryRepository;
-//    @Mock private OccupationRepository occupationRepository;
-//    @Mock private LanguagesRepository languagesRepository;
-//    @Mock private BranchesRepository branchesRepository;
-//    @Mock private CustomerStatusRepository customerStatusRepository;
-//    @Mock private ResidentialStatusesRepository residentialStatusesRepository;
-//    @Mock private SalutationTypesRepository salutationRepository;
-//
-//    @InjectMocks
-//    private BasicInformationService service;
-//
-//    private BasicInformationRequestDto requestDto;
-//    private Customer customer;
-//    private BasicInformationResponseDto responseDto;
-//
-//    private UUID genderId, maritalId, taxCatId, occId, branchId, salutationId, custStatusId;
-//
-//    @BeforeEach
-//    void setUp() {
-//        MockitoAnnotations.openMocks(this);
-//
-//        genderId = UUID.randomUUID();
-//        maritalId = UUID.randomUUID();
-//        taxCatId = UUID.randomUUID();
-//        occId = UUID.randomUUID();
-//        branchId = UUID.randomUUID();
-//        salutationId = UUID.randomUUID();
-//        custStatusId = UUID.randomUUID();
-//
-//        requestDto = new BasicInformationRequestDto();
-//        requestDto.setAadharVault("vault123");
-//        requestDto.setFirstName("John");
-//        requestDto.setLastName("Doe");
-//        requestDto.setAadharName("John Doe");
-//        requestDto.setDob(LocalDate.of(1990, 1, 1));
-//        requestDto.setMobileNumber("9999999999");
-//        requestDto.setOtpVerified(true);
-//        requestDto.setIsBusiness(true);
-//        requestDto.setIsFirm(false);
-//
-//        requestDto.setGender(genderId);
-//        requestDto.setMaritalStatus(maritalId);
-//        requestDto.setTaxCategory(taxCatId);
-//        requestDto.setOccupation(occId);
-//        requestDto.setBranchId(branchId);
-//        requestDto.setSalutation(salutationId);
-//        requestDto.setCustomerStatus(custStatusId);
-//
-//        when(gendersRepository.findByIdentity(genderId)).thenReturn(Optional.of(new Genders()));
-//        when(maritalStatusRepository.findByIdentity(maritalId)).thenReturn(Optional.of(new MaritalStatus()));
-//        when(taxCategoryRepository.findByIdentity(taxCatId)).thenReturn(Optional.of(new TaxCategory()));
-//        when(occupationRepository.findByIdentity(occId)).thenReturn(Optional.of(new Occupation()));
-//        when(branchesRepository.findByIdentity(branchId)).thenReturn(Optional.of(new Branches()));
-//        when(salutationRepository.findByIdentity(salutationId)).thenReturn(Optional.of(new SalutationTypes()));
-//        when(customerStatusRepository.findByIdentity(custStatusId)).thenReturn(Optional.of(new CustomerStatus()));
-//
-//        customer = new Customer();
-//        customer.setIdentity(UUID.randomUUID());
-//        customer.setAadharVaultId("vault123");
-//
-//        responseDto = new BasicInformationResponseDto();
-//    }
-//
-//
-//    @Test
-//    void saveBasicInformation_success() {
-//        when(customerRepository.existsByTenantAndAadharVaultId(UUID.randomUUID(), "vault123")).thenReturn(false);
-//        when(customerMapper.toEntity(requestDto)).thenReturn(customer);
-//        when(customerRepository.save(any(Customer.class))).thenReturn(customer);
-//        when(customerMapper.toResponseDto(customer)).thenReturn(responseDto);
-//
-//        BasicInformationResponseDto result = service.saveBasicInformation(requestDto);
-//
-//        assertNotNull(result);
-//        verify(customerRepository).save(any(Customer.class));
-//    }
-//
-//    @Test
-//    void saveBasicInformation_duplicate() {
-//        when(customerRepository.existsByTenantIdAndAadharVaultId(1, "vault123")).thenReturn(true);
-//
-//        BusinessException ex = assertThrows(BusinessException.class,
-//                () -> service.saveBasicInformation(requestDto));
-//
-//        assertEquals(ErrorCodes.CONFLICT, ex.getErrorCode());
-//    }
-//
-//    @Test
-//    void saveBasicInformation_dataIntegrityViolation() {
-//        when(customerRepository.existsByTenantIdAndAadharVaultId(1, "vault123")).thenReturn(false);
-//        when(customerMapper.toEntity(requestDto)).thenReturn(customer);
-//        when(customerRepository.save(any())).thenThrow(new DataIntegrityViolationException("duplicate"));
-//
-//        BusinessException ex = assertThrows(BusinessException.class,
-//                () -> service.saveBasicInformation(requestDto));
-//
-//        assertEquals(ErrorCodes.CONSTRAINT_VIOLATION, ex.getErrorCode());
-//    }
-//
-//
-//    @Test
-//    void updateBasicInformation_notFound() {
-//        UUID id = UUID.randomUUID();
-//        when(customerRepository.findByIdentity(id)).thenReturn(Optional.empty());
-//
-//        BusinessException ex = assertThrows(BusinessException.class,
-//                () -> service.updateBasicInformation(id, requestDto));
-//
-//        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
-//    }
-//
-//    @Test
-//    void updateBasicInformation_duplicate() {
-//        UUID id = UUID.randomUUID();
-//        customer.setIdentity(id);
-//
-//        Customer other = new Customer();
-//        other.setIdentity(UUID.randomUUID());
-//
-//        when(customerRepository.findByIdentity(id)).thenReturn(Optional.of(customer));
-//        when(customerRepository.findByTenantIdAndAadharVaultId(1, "vault123"))
-//                .thenReturn(Optional.of(other));
-//
-//        BusinessException ex = assertThrows(BusinessException.class,
-//                () -> service.updateBasicInformation(id, requestDto));
-//
-//        assertEquals(ErrorCodes.CONFLICT, ex.getErrorCode());
-//    }
-//
-//    @Test
-//    void updateBasicInformation_success() {
-//        UUID id = UUID.randomUUID();
-//        customer.setIdentity(id);
-//
-//        when(customerRepository.findByIdentity(id)).thenReturn(Optional.of(customer));
-//        when(customerRepository.findByTenantIdAndAadharVaultId(1, "vault123"))
-//                .thenReturn(Optional.of(customer));
-//        when(customerRepository.save(any(Customer.class))).thenReturn(customer);
-//        when(customerMapper.toResponseDto(customer)).thenReturn(responseDto);
-//
-//        BasicInformationResponseDto result = service.updateBasicInformation(id, requestDto);
-//
-//        assertNotNull(result);
-//        verify(customerRepository).save(customer);
-//    }
-//
-//    @Test
-//    void updateBasicInformation_dataIntegrityViolation() {
-//        UUID id = UUID.randomUUID();
-//        customer.setIdentity(id);
-//
-//        when(customerRepository.findByIdentity(id)).thenReturn(Optional.of(customer));
-//        when(customerRepository.findByTenantIdAndAadharVaultId(1, "vault123"))
-//                .thenReturn(Optional.of(customer));
-//        when(customerRepository.save(any()))
-//                .thenThrow(new DataIntegrityViolationException("duplicate"));
-//
-//        BusinessException ex = assertThrows(BusinessException.class,
-//                () -> service.updateBasicInformation(id, requestDto));
-//
-//        assertEquals(ErrorCodes.CONSTRAINT_VIOLATION, ex.getErrorCode());
-//    }
-//
-//
-//
-//    @Test
-//    void getBasicInformationByUuid_success() {
-//        UUID id = UUID.randomUUID();
-//        when(customerRepository.findByIdentity(id)).thenReturn(Optional.of(customer));
-//        when(customerMapper.toResponseDto(customer)).thenReturn(responseDto);
-//
-//        BasicInformationResponseDto result = service.getBasicInformationByUuid(id);
-//
-//        assertNotNull(result);
-//    }
-//
-//    @Test
-//    void getBasicInformationByUuid_notFound() {
-//        UUID id = UUID.randomUUID();
-//        when(customerRepository.findByIdentity(id)).thenReturn(Optional.empty());
-//
-//        BusinessException ex = assertThrows(BusinessException.class,
-//                () -> service.getBasicInformationByUuid(id));
-//
-//        assertEquals(ErrorCodes.NOT_FOUND, ex.getErrorCode());
-//    }
-//}
-//
+package com.incede.nbfc.core.monolith.customer.service;
+
+import com.incede.nbfc.core.monolith.common.CommonConstants;
+import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
+import com.incede.nbfc.core.monolith.customer.dto.BasicInformationRequestDto;
+import com.incede.nbfc.core.monolith.customer.dto.BasicInformationResponseDto;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerDto;
+import com.incede.nbfc.core.monolith.customer.mapper.BasicInformationMapper;
+import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
+import com.incede.nbfc.core.monolith.exception.BusinessException;
+import com.incede.nbfc.core.monolith.exception.ErrorCodes;
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.*;
+import com.incede.nbfc.core.monolith.masterdata.repository.*;
+import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
+import com.incede.nbfc.core.monolith.tenant.repository.TenantRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class BasicInformationServiceTest {
+
+    @Mock private CustomerRepository customerRepository;
+    @Mock private BasicInformationMapper customerMapper;
+    @Mock private GendersRepository gendersRepository;
+    @Mock private MaritalStatusRepository maritalStatusRepository;
+    @Mock private NationalityRepository nationalityRepository;
+    @Mock private TaxCategoryRepository taxCategoryRepository;
+    @Mock private OccupationRepository occupationRepository;
+    @Mock private LanguagesRepository languagesRepository;
+    @Mock private BranchesRepository branchesRepository;
+    @Mock private CustomerStatusRepository customerStatusRepository;
+    @Mock private ResidentialStatusesRepository residentialStatusesRepository;
+    @Mock private SalutationTypesRepository salutationRepository;
+    @Mock private TenantRepository tenantRepository;
+
+    @InjectMocks
+    private BasicInformationService service;
+
+    private BasicInformationRequestDto requestDto;
+    private Customer customer;
+    private BasicInformationResponseDto responseDto;
+    private Tenant tenant;
+    private UUID customerId;
+    private UUID tenantId;
+
+    @BeforeEach
+    void setUp() {
+        customerId = UUID.randomUUID();
+        tenantId = UUID.randomUUID();
+
+        // Setup Tenant
+        tenant = new Tenant();
+        tenant.setTenantId(1);
+        tenant.setIdentity(tenantId);
+
+        // Setup Request DTO
+        requestDto = new BasicInformationRequestDto();
+        requestDto.setTenantId(tenantId);
+        requestDto.setAadharVault("vault123");
+        requestDto.setFirstName("John");
+        requestDto.setLastName("Doe");
+        requestDto.setAadharName("John Doe");
+        requestDto.setDob(LocalDate.of(1990, 1, 1));
+        requestDto.setMobileNumber("9999999999");
+        requestDto.setOtpVerified(true);
+        requestDto.setIsBusiness(true);
+        requestDto.setIsFirm(false);
+        requestDto.setGender(UUID.randomUUID());
+        requestDto.setMaritalStatus(UUID.randomUUID());
+        requestDto.setTaxCategory(UUID.randomUUID());
+        requestDto.setOccupation(UUID.randomUUID());
+        requestDto.setBranchId(UUID.randomUUID());
+        requestDto.setSalutation(UUID.randomUUID());
+        requestDto.setCustomerStatus(UUID.randomUUID());
+        requestDto.setIsMinor(false);
+        requestDto.setGuardianCustomerId(null);
+
+        // Setup Customer
+        customer = new Customer();
+        customer.setIdentity(customerId);
+        customer.setAadharVaultId("vault123");
+        customer.setFirstName("John");
+        customer.setLastName("Doe");
+        customer.setCreatedAt(LocalDateTime.now());
+
+        responseDto = new BasicInformationResponseDto();
+        responseDto.setIdentity(customerId);
+
+    }
+
+    // ===== Save Basic Information Tests =====
+    @Test
+    void saveBasicInformation_success() {
+        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
+        when(customerRepository.existsByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(false);
+        when(customerMapper.toEntity(requestDto)).thenReturn(customer);
+        when(customerRepository.save(any(Customer.class))).thenReturn(customer);
+        when(customerMapper.toResponseDto(customer)).thenReturn(responseDto);
+
+        // Mock reference repositories
+        mockAllReferenceRepositories();
+
+        BasicInformationResponseDto result = service.saveBasicInformation(requestDto);
+
+        assertNotNull(result);
+        assertEquals(customerId, result.getIdentity());
+        verify(customerRepository).save(any(Customer.class));
+        verify(customerMapper).toResponseDto(customer);
+    }
+
+    @Test
+    void saveBasicInformation_tenantNotFound() {
+        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.empty());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.saveBasicInformation(requestDto));
+
+        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
+        assertEquals(CommonConstants.TENANT_NOT_FOUND, ex.getMessage());
+        verify(customerRepository, never()).save(any());
+    }
+
+    @Test
+    void saveBasicInformation_duplicateAadhar() {
+        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
+        when(customerRepository.existsByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(true);
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.saveBasicInformation(requestDto));
+
+        assertEquals(ErrorCodes.CONFLICT, ex.getErrorCode());
+        assertEquals(CommonConstants.CUSTOMER_CONFLICT_MESSAGE, ex.getMessage());
+        verify(customerRepository, never()).save(any());
+    }
+
+    @Test
+    void saveBasicInformation_dataIntegrityViolation() {
+        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
+        when(customerRepository.existsByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(false);
+        when(customerMapper.toEntity(requestDto)).thenReturn(customer);
+        when(customerRepository.save(any())).thenThrow(new DataIntegrityViolationException("duplicate"));
+
+        mockAllReferenceRepositories();
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.saveBasicInformation(requestDto));
+
+        assertEquals(ErrorCodes.CONSTRAINT_VIOLATION, ex.getErrorCode());
+        assertEquals(CommonConstants.CONSTRAIN_VIOLATION, ex.getMessage());
+        assertNotNull(ex.getCause());
+    }
+
+    @Test
+    void saveBasicInformation_withMinorAndGuardian() {
+        UUID guardianId = UUID.randomUUID();
+        Customer guardian = new Customer();
+        guardian.setIdentity(guardianId);
+
+        requestDto.setIsMinor(true);
+        requestDto.setGuardianCustomerId(guardianId);
+
+        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
+        when(customerRepository.existsByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(false);
+        when(customerMapper.toEntity(requestDto)).thenReturn(customer);
+        when(customerRepository.findByIdentity(guardianId)).thenReturn(Optional.of(guardian));
+        when(customerRepository.save(any(Customer.class))).thenReturn(customer);
+        when(customerMapper.toResponseDto(customer)).thenReturn(responseDto);
+
+        mockAllReferenceRepositories();
+
+        BasicInformationResponseDto result = service.saveBasicInformation(requestDto);
+
+        assertNotNull(result);
+        verify(customerRepository).findByIdentity(guardianId);
+        verify(customerRepository).save(any(Customer.class));
+    }
+
+    @Test
+    void saveBasicInformation_guardianNotFound() {
+        UUID guardianId = UUID.randomUUID();
+        requestDto.setIsMinor(true);
+        requestDto.setGuardianCustomerId(guardianId);
+
+        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
+        when(customerRepository.existsByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(false);
+        when(customerMapper.toEntity(requestDto)).thenReturn(customer);
+        when(customerRepository.findByIdentity(guardianId)).thenReturn(Optional.empty());
+
+        mockAllReferenceRepositories();
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.saveBasicInformation(requestDto));
+
+        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
+        assertEquals(CommonConstants.GUARDIAN_NOT_FOUND, ex.getMessage());
+    }
+
+    // ===== Update Basic Information Tests =====
+    @Test
+    void updateBasicInformation_success() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
+        when(customerRepository.findByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(Optional.of(customer));
+        when(customerRepository.save(any(Customer.class))).thenReturn(customer);
+        when(customerMapper.toResponseDto(customer)).thenReturn(responseDto);
+
+        mockAllReferenceRepositories();
+
+        BasicInformationResponseDto result = service.updateBasicInformation(customerId, requestDto);
+
+        assertNotNull(result);
+        verify(customerRepository).save(customer);
+        verify(customerMapper).updateEntityFromDto(customer, requestDto);
+    }
+
+    @Test
+    void updateBasicInformation_customerNotFound() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.updateBasicInformation(customerId, requestDto));
+
+        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
+        assertEquals(CommonConstants.CUSTOMER_NOT_FOUND, ex.getMessage());
+        verify(customerRepository, never()).save(any());
+    }
+
+    @Test
+    void updateBasicInformation_tenantNotFound() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.empty());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.updateBasicInformation(customerId, requestDto));
+
+        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
+        assertEquals(CommonConstants.TENANT_NOT_FOUND, ex.getMessage());
+    }
+
+    @Test
+    void updateBasicInformation_duplicateAadharForDifferentCustomer() {
+        UUID differentCustomerId = UUID.randomUUID();
+        Customer differentCustomer = new Customer();
+        differentCustomer.setIdentity(differentCustomerId);
+
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
+        when(customerRepository.findByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(Optional.of(differentCustomer));
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.updateBasicInformation(customerId, requestDto));
+
+        assertEquals(ErrorCodes.CONFLICT, ex.getErrorCode());
+        assertEquals(CommonConstants.CUSTOMER_CONFLICT_MESSAGE, ex.getMessage());
+    }
+
+    @Test
+    void updateBasicInformation_dataIntegrityViolation() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
+        when(customerRepository.findByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(Optional.of(customer));
+        when(customerRepository.save(any())).thenThrow(new DataIntegrityViolationException("duplicate"));
+
+        mockAllReferenceRepositories();
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.updateBasicInformation(customerId, requestDto));
+
+        assertEquals(ErrorCodes.CONSTRAINT_VIOLATION, ex.getErrorCode());
+        assertEquals(CommonConstants.CONSTRAIN_VIOLATION, ex.getMessage());
+    }
+
+    @Test
+    void updateBasicInformation_withMinorAndGuardian() {
+        UUID guardianId = UUID.randomUUID();
+        Customer guardian = new Customer();
+        guardian.setIdentity(guardianId);
+
+        requestDto.setIsMinor(true);
+        requestDto.setGuardianCustomerId(guardianId);
+
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
+        when(customerRepository.findByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(Optional.of(customer));
+        when(customerRepository.findByIdentity(guardianId)).thenReturn(Optional.of(guardian));
+        when(customerRepository.save(any(Customer.class))).thenReturn(customer);
+        when(customerMapper.toResponseDto(customer)).thenReturn(responseDto);
+
+        mockAllReferenceRepositories();
+
+        BasicInformationResponseDto result = service.updateBasicInformation(customerId, requestDto);
+
+        assertNotNull(result);
+        verify(customerRepository).findByIdentity(guardianId);
+    }
+
+    // ===== Get Basic Information Tests =====
+    @Test
+    void getBasicInformationByUuid_success() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(customerMapper.toResponseDto(customer)).thenReturn(responseDto);
+
+        BasicInformationResponseDto result = service.getBasicInformationByUuid(customerId);
+
+        assertNotNull(result);
+        assertEquals(customerId, result.getIdentity());
+        verify(customerRepository).findByIdentity(customerId);
+        verify(customerMapper).toResponseDto(customer);
+    }
+
+    @Test
+    void getBasicInformationByUuid_notFound() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.getBasicInformationByUuid(customerId));
+
+        assertEquals(ErrorCodes.NOT_FOUND, ex.getErrorCode());
+        assertEquals(CommonConstants.CUSTOMER_NOT_FOUND, ex.getMessage());
+    }
+
+    // ===== Customer Retrieval Tests =====
+    @Test
+    void getCustomerWithCustomerId_success() {
+        String customerCode = "CUST123";
+        when(customerRepository.findByCustomerCode(customerCode)).thenReturn(Optional.of(customer));
+
+        CustomerDto result = service.getCustomerWithCustomerId(customerCode);
+
+        assertNotNull(result);
+        assertEquals(customer.getFirstName(), result.getFirstname());
+        assertEquals(customer.getLastName(), result.getLastname());
+        assertEquals(customer.getIdentity(), result.getIdentity());
+        verify(customerRepository).findByCustomerCode(customerCode);
+    }
+
+    @Test
+    void getCustomerWithCustomerId_notFound() {
+        String customerCode = "CUST123";
+        when(customerRepository.findByCustomerCode(customerCode)).thenReturn(Optional.empty());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.getCustomerWithCustomerId(customerCode));
+
+        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
+        assertEquals(CommonConstants.CUSTOMER_NOT_FOUND, ex.getMessage());
+    }
+
+    @Test
+    void getCustomerWithCustomerIdentity_success() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+
+        CustomerDto result = service.getCustomerWithCustomerIdentity(customerId);
+
+        assertNotNull(result);
+        assertEquals(customer.getFirstName(), result.getFirstname());
+        assertEquals(customer.getLastName(), result.getLastname());
+        assertEquals(customer.getIdentity(), result.getIdentity());
+        verify(customerRepository).findByIdentity(customerId);
+    }
+
+    @Test
+    void getCustomerWithCustomerIdentity_notFound() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.getCustomerWithCustomerIdentity(customerId));
+
+        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
+        assertEquals(CommonConstants.CUSTOMER_NOT_FOUND, ex.getMessage());
+    }
+
+
+
+    @Test
+    void generateCustomerCode_nullTenantId() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.generateCustomerCode(null));
+
+        assertEquals("Tenant ID cannot be null", ex.getMessage());
+    }
+
+    // ===== Reference Validation Tests =====
+    @Test
+    void saveBasicInformation_genderNotFound() {
+        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
+        when(customerRepository.existsByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(false);
+        when(customerMapper.toEntity(requestDto)).thenReturn(customer);
+        when(gendersRepository.findByIdentity(requestDto.getGender())).thenReturn(Optional.empty());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.saveBasicInformation(requestDto));
+
+        assertEquals(ErrorCodes.VALIDATION_FAILED, ex.getErrorCode());
+        assertEquals(CommonConstants.INVALID_GENDER, ex.getMessage());
+    }
+
+    @Test
+    void saveBasicInformation_maritalStatusNotFound() {
+        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
+        when(customerRepository.existsByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(false);
+        when(customerMapper.toEntity(requestDto)).thenReturn(customer);
+        when(gendersRepository.findByIdentity(requestDto.getGender())).thenReturn(Optional.of(new Genders()));
+        when(maritalStatusRepository.findByIdentity(requestDto.getMaritalStatus())).thenReturn(Optional.empty());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.saveBasicInformation(requestDto));
+
+        assertEquals(ErrorCodes.VALIDATION_FAILED, ex.getErrorCode());
+        assertEquals(CommonConstants.INVALID_MARITAL_STATUS, ex.getMessage());
+    }
+
+    // Helper method to mock all reference repositories
+    private void mockAllReferenceRepositories() {
+        when(gendersRepository.findByIdentity(any(UUID.class))).thenReturn(Optional.of(new Genders()));
+        when(maritalStatusRepository.findByIdentity(any(UUID.class))).thenReturn(Optional.of(new MaritalStatus()));
+        when(taxCategoryRepository.findByIdentity(any(UUID.class))).thenReturn(Optional.of(new TaxCategory()));
+        when(occupationRepository.findByIdentity(any(UUID.class))).thenReturn(Optional.of(new Occupation()));
+        when(branchesRepository.findByIdentity(any(UUID.class))).thenReturn(Optional.of(new Branches()));
+        when(salutationRepository.findByIdentity(any(UUID.class))).thenReturn(Optional.of(new SalutationTypes()));
+        when(customerStatusRepository.findByIdentity(any(UUID.class))).thenReturn(Optional.of(new CustomerStatus()));
+    }
+}

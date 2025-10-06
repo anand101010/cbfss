@@ -45,7 +45,6 @@ class BasicInformationControllerTest {
         UUID customerStatus = UUID.randomUUID();
         UUID guardianCustomerId = UUID.randomUUID();
 
-        // Minimal request DTO
         requestDto = BasicInformationRequestDto.builder()
                 .salutation(salutation)
                 .branchId(branchId)
@@ -73,7 +72,6 @@ class BasicInformationControllerTest {
                 .guardianCustomerId(guardianCustomerId)
                 .build();
 
-        // Minimal response DTO
         BasicInformationResponseDto.Basic basic = BasicInformationResponseDto.Basic.builder()
                 .firstName("John")
                 .lastName("Doe")
@@ -153,4 +151,28 @@ class BasicInformationControllerTest {
 
         assertTrue(exception.getMessage().contains("Customer"));
     }
+
+    @Test
+    void testUpdateBasicInfo_WhenNotFound_ThrowsException() {
+        when(basicInformationService.updateBasicInformation(any(UUID.class), any()))
+                .thenThrow(new ResourceNotFoundException("Customer", customerId.toString()));
+
+        Exception exception = assertThrows(ResourceNotFoundException.class, () ->
+                basicInformationController.updateBasicInfo(customerId, requestDto));
+
+        assertTrue(exception.getMessage().contains("Customer"));
+    }
+
+    @Test
+    void testGetBasicInfoByUuid_WhenNotFound_ThrowsException() {
+        when(basicInformationService.getBasicInformationByUuid(customerId))
+                .thenThrow(new ResourceNotFoundException("Customer", customerId.toString()));
+
+        Exception exception = assertThrows(ResourceNotFoundException.class, () ->
+                basicInformationController.getBasicInfoByUuid(customerId));
+
+        assertTrue(exception.getMessage().contains("Customer"));
+    }
+
+
 }

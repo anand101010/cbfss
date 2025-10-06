@@ -223,6 +223,7 @@ public class ReferenceMasterDataServiceTest {
 
     @Test
     void testGetPincodeDetails_withData() {
+
         Pincodes pincode = new Pincodes();
         pincode.setPincodeId(1);
         pincode.setPincode("682030");
@@ -234,13 +235,22 @@ public class ReferenceMasterDataServiceTest {
         pincode.setCities(city);
         pincode.setStates(state);
         pincode.setDistricts(district);
+        pincode.setIdentity(UUID.randomUUID());
 
         PostOffices po = new PostOffices();
         po.setOfficeName("Ernakulam");
+        po.setIdentity(UUID.randomUUID());
         po.setPincode(pincode);
 
         PincodeDto dto = new PincodeDto();
         dto.setPincode("682030");
+        dto.setCityName("Kochi");
+        dto.setStateName("Kerala");
+        dto.setDistrictName("Ernakulam");
+        dto.setIdentity(pincode.getIdentity());
+
+        PostOfficesResponseDto poDto = new PostOfficesResponseDto(po.getOfficeName(), po.getIdentity());
+        dto.setPostOffices(List.of(poDto));
 
         when(pincodesRepository.findByPincodeWithDetails("682030")).thenReturn(List.of(pincode));
         when(postOfficesRepository.findByPincode_PincodeIdIn(List.of(1))).thenReturn(List.of(po));
@@ -254,7 +264,11 @@ public class ReferenceMasterDataServiceTest {
         assertThat(resultDto.getCityName()).isEqualTo("Kochi");
         assertThat(resultDto.getStateName()).isEqualTo("Kerala");
         assertThat(resultDto.getDistrictName()).isEqualTo("Ernakulam");
-        assertThat(resultDto.getPostOfficeNames()).contains("Ernakulam");
+
+        assertThat(resultDto.getPostOffices()).hasSize(1);
+        PostOfficesResponseDto resultPo = resultDto.getPostOffices().get(0);
+        assertThat(resultPo.getOfficeName()).isEqualTo("Ernakulam");
+        assertThat(resultPo.getIdentity()).isEqualTo(po.getIdentity());
     }
 
     @Test
@@ -265,6 +279,7 @@ public class ReferenceMasterDataServiceTest {
 
         assertThat(result).isEmpty();
     }
+
 
     @Test
     void testGetAllPincodes_withData() {

@@ -9,6 +9,7 @@ import com.incede.nbfc.core.monolith.customer.repository.CustomerNotificationPre
 import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.exception.ErrorCodes;
+import com.incede.nbfc.core.monolith.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -64,6 +65,29 @@ class CustomerNotificationPreferenceServiceTest {
     }
 
     @Test
+    void testSaveNotification_CustomerNotFound() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.saveNotification(customerId, requestDto));
+
+        assertEquals(CommonConstants.NOT_FOUND_MESSAGE, ex.getMessage());
+        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
+    }
+
+    @Test
+    void testSaveNotification_AlreadyExists() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(notificationRepository.findByCustomer(customer)).thenReturn(Optional.of(entity));
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.saveNotification(customerId, requestDto));
+
+        assertEquals(CommonConstants.CONFLICT_MESSAGE, ex.getMessage());
+        assertEquals(ErrorCodes.CONFLICT, ex.getErrorCode());
+    }
+
+    @Test
     void testUpdateNotification_Success() {
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(notificationRepository.findByCustomer(customer)).thenReturn(Optional.of(entity));
@@ -73,6 +97,29 @@ class CustomerNotificationPreferenceServiceTest {
 
         assertNotNull(result);
         verify(notificationRepository).save(entity);
+    }
+
+    @Test
+    void testUpdateNotification_CustomerNotFound() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.updateNotification(customerId, requestDto));
+
+        assertEquals(CommonConstants.NOT_FOUND_MESSAGE, ex.getMessage());
+        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
+    }
+
+    @Test
+    void testUpdateNotification_PreferenceNotFound() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(notificationRepository.findByCustomer(customer)).thenReturn(Optional.empty());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> service.updateNotification(customerId, requestDto));
+
+        assertEquals(CommonConstants.NOT_FOUND_MESSAGE, ex.getMessage());
+        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
     }
 
     @Test
@@ -86,59 +133,13 @@ class CustomerNotificationPreferenceServiceTest {
     }
 
     @Test
-    void testSaveNotification_CustomerNotFound() {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
-
-        BusinessException ex = assertThrows(BusinessException.class,
-                () -> service.saveNotification(customerId, requestDto));
-
-        assertEquals(CommonConstants.CUSTOMER_NOT_FOUND, ex.getMessage());
-        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
-    }
-
-    @Test
-    void testSaveNotification_AlreadyExists() {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(notificationRepository.findByCustomer(customer)).thenReturn(Optional.of(entity));
-
-        BusinessException ex = assertThrows(BusinessException.class,
-                () -> service.saveNotification(customerId, requestDto));
-
-        assertEquals(CommonConstants.NOTIFICATION_PREFERENCE_ALREADY_EXIST, ex.getMessage());
-        assertEquals(ErrorCodes.CONFLICT, ex.getErrorCode());
-    }
-
-    @Test
-    void testUpdateNotification_CustomerNotFound() {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
-
-        BusinessException ex = assertThrows(BusinessException.class,
-                () -> service.updateNotification(customerId, requestDto));
-
-        assertEquals(CommonConstants.CUSTOMER_NOT_FOUND, ex.getMessage());
-        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
-    }
-
-    @Test
-    void testUpdateNotification_PreferenceNotFound() {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(notificationRepository.findByCustomer(customer)).thenReturn(Optional.empty());
-
-        BusinessException ex = assertThrows(BusinessException.class,
-                () -> service.updateNotification(customerId, requestDto));
-
-        assertEquals(CommonConstants.NOTIFICATION_PREFERENCE_NOT_FOUND, ex.getMessage());
-        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
-    }
-
-    @Test
     void testGetNotificationPreferences_CustomerNotFound() {
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
 
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.getNotificationPreferences(customerId));
 
-        assertEquals(CommonConstants.CUSTOMER_NOT_FOUND, ex.getMessage());
+        assertEquals(CommonConstants.NOT_FOUND_MESSAGE, ex.getMessage());
         assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
     }
 
@@ -150,7 +151,36 @@ class CustomerNotificationPreferenceServiceTest {
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.getNotificationPreferences(customerId));
 
-        assertEquals(CommonConstants.NOTIFICATION_PREFERENCE_NOT_FOUND, ex.getMessage());
+        assertEquals(CommonConstants.NOT_FOUND_MESSAGE, ex.getMessage());
         assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
+    }
+
+
+    @Test
+    void testDeleteNotificationPreference_Success() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(notificationRepository.findByCustomer(customer)).thenReturn(Optional.of(entity));
+
+        CustomerNotificationPreferenceResponseDto result = service.deleteNotificationPreference(customerId);
+
+        assertNotNull(result);
+        verify(notificationRepository).delete(entity);
+    }
+
+    @Test
+    void testDeleteNotificationPreference_CustomerNotFound() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> service.deleteNotificationPreference(customerId));
+    }
+
+    @Test
+    void testDeleteNotificationPreference_PreferenceNotFound() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(notificationRepository.findByCustomer(customer)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> service.deleteNotificationPreference(customerId));
     }
 }

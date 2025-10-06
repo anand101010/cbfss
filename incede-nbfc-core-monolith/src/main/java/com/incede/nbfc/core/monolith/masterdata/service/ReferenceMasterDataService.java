@@ -127,10 +127,10 @@ public class ReferenceMasterDataService {
 
         List<PostOffices> postOffices = postOfficesRepository.findByPincode_PincodeIdIn(pincodeIds);
 
-        Map<Integer, List<String>> postOfficeMap = postOffices.stream()
+        Map<Integer, List<PostOfficesResponseDto>> postOfficeMap = postOffices.stream()
                 .collect(Collectors.groupingBy(
                         po -> po.getPincode().getPincodeId(),
-                        Collectors.mapping(PostOffices::getOfficeName, Collectors.toList())
+                        Collectors.mapping(po -> new PostOfficesResponseDto(po.getOfficeName(), po.getIdentity()), Collectors.toList())
                 ));
 
         return entities.stream()
@@ -139,9 +139,10 @@ public class ReferenceMasterDataService {
                     dto.setCityName(pincode.getCities().getCity());
                     dto.setStateName(pincode.getStates().getState());
                     dto.setDistrictName(pincode.getDistricts().getDistrict());
+                    dto.setIdentity(pincode.getIdentity());
 
-                    List<String> officeNames = postOfficeMap.getOrDefault(pincode.getPincodeId(), List.of());
-                    dto.setPostOfficeNames(officeNames);
+                    List<PostOfficesResponseDto> officeDtos = postOfficeMap.getOrDefault(pincode.getPincodeId(), List.of());
+                    dto.setPostOffices(officeDtos);
 
                     return dto;
                 })

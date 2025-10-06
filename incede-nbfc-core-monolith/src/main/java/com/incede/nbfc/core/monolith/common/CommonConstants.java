@@ -13,6 +13,11 @@ public final class CommonConstants {
 
 
     public static final String CUSTOMER_TYPE = "TEST";
+    public static final String FILE_REQUIRED ="File required" ;
+    public static final String CUSTOMER_GROUP_NOT_FOUND = "Customer group not found";
+    public static final String CUSTOMER_RISK_CATEGORY_NOT_FOUND ="Customer risk-category not found" ;
+    public static final String CATEGORY_NOT_FOUND = "Category not found";
+    public static final String CATEGORY_CODE ="000" ;
 
     private CommonConstants() {
         // Utility class - prevent instantiation
@@ -235,5 +240,7 @@ public final class CommonConstants {
     public static final String INVALID_ADDRESS_PROOF_TYPE = "Invalid address proof type";
     public static final String IS_SAME_AS_PERMANENT_CONSTRAINT = "Document file must be provided if 'isSameAsPermanent' is true";
     public static final String NO_ACTIVE_ADDRESSES_FOUND_FOR_CUSTOMER = "No active address found for the customer";
+    public static final String DUPLICATE_IDENTIFIER = "DUPLICATE_IDENTIFIER" ;
+    public static final String FILE_UPLOAD_FAILED ="File upload failed" ;
 
 }

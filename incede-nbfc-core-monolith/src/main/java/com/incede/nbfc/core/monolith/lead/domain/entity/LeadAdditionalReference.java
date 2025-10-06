@@ -13,7 +13,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Entity
 @Table(name = "lead_additional_references", schema = "lead")
-public class LeadAdditionalReference extends leadBaseEntity implements Serializable {
+public class LeadAdditionalReference extends LeadBaseEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

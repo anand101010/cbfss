@@ -19,6 +19,6 @@ public class PincodeDto {
     private String cityName;
     private String districtName;
     private String stateName;
-    private List<String> postOfficeNames;
+    List<PostOfficesResponseDto> postOffices;
     private UUID identity;
 }

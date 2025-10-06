@@ -10,9 +10,8 @@ import com.incede.nbfc.core.monolith.customer.repository.*;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.exception.ErrorCodes;
 import com.incede.nbfc.core.monolith.masterdata.repository.*;
-import io.swagger.v3.oas.annotations.Operation;
+import com.incede.nbfc.core.monolith.tenant.repository.TenantRepository;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,9 +53,9 @@ public class CustomerAdditionalInfoService {
     private final LanguagesRepository languagesRepository;
     private final CustomerAdditionalReferenceNameRepository customerAdditionalReferenceNameRepository;
     private final CustomerAdditionalReferenceValueRepository customerAdditionalReferenceValueRepository;
-    private final CustomerGroupRepository customerGroupRepository;
-    private final CustomerRiskProfileRepository customerRiskProfileRepository;
-    private final CustomerCategoryMappingRepository categoryMappingRepository;
+    private final CustomerGroupMasterRepository customerGroupMasterRepository;
+    private final RiskCategoryRepository riskCategoryRepository;
+    private final CustomerCategoryRepository customerCategoryRepository;
 
     /**
      * Save additional information for a given customer.
@@ -114,6 +113,7 @@ public class CustomerAdditionalInfoService {
             assetRepository.save(asset);
 
 
+
             Customer updatedCustomer = customerAdditionalInfoMapper.updateCustomerFromAdditionalInfo(customer, dto.getAdditional().getCustomer());
             updatedCustomer.setNationality(nationalityRepository.findByIdentity(dto.getAdditional().getCustomer().getNationality())
                     .orElseThrow(() -> new BusinessException(CommonConstants.NATIONALITY_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
@@ -121,9 +121,12 @@ public class CustomerAdditionalInfoService {
                     .orElseThrow(() -> new BusinessException(CommonConstants.PREFERRED_LANGUAGE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
             updatedCustomer.setResidentialStatusId(residentialStatusesRepository.findByIdentity(dto.getAdditional().getCustomer().getResidentialStatusId())
                     .orElseThrow(() -> new BusinessException(CommonConstants.RESIDENTIAL_STATUS_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
-            updatedCustomer.setCustomerGroupId(customerGroupRepository.findByIdentity(dto.getAdditional().getCustomer().getCustomerGroupId()).orElse(null));
-            updatedCustomer.setRiskCategory(customerRiskProfileRepository.findByIdentity(dto.getAdditional().getCustomer().getRiskCategory()).orElse(null));
-            updatedCustomer.setCategoryId(categoryMappingRepository.findByIdentity(dto.getAdditional().getCustomer().getCategoryId()).orElse(null));
+            updatedCustomer.setCustomerGroupId(customerGroupMasterRepository.findByIdentity(dto.getAdditional().getCustomer().getCustomerGroupId())
+                    .orElseThrow(() -> new BusinessException(CommonConstants.CUSTOMER_GROUP_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
+            updatedCustomer.setRiskCategory(riskCategoryRepository.findByIdentity(dto.getAdditional().getCustomer().getRiskCategory())
+                    .orElseThrow(() -> new BusinessException(CommonConstants.CUSTOMER_RISK_CATEGORY_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
+            updatedCustomer.setCategoryId(customerCategoryRepository.findByIdentity(dto.getAdditional().getCustomer().getCategoryId())
+                    .orElseThrow(() -> new BusinessException(CommonConstants.CATEGORY_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
             customerRepository.save(updatedCustomer);
 
 

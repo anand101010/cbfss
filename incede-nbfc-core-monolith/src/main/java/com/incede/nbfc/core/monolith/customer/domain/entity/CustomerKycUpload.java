@@ -34,10 +34,9 @@ public class CustomerKycUpload extends CustomerBaseEntity implements Serializabl
             foreignKey = @ForeignKey(name = "fk_customer_kyc_upload_customer"))
     private Customer customer;
 
-    @NotBlank(message = "Document reference must not be blank")
-    @Size(max = 255, message = "Document reference must not exceed 255 characters")
+    @NotNull(message = "Document reference must not be blank")
     @Column(name = "document_reference", nullable = false, length = 255)
-    private String documentReference;
+    private Integer documentReference;
 
     @Size(max = 255, message = "File name must not exceed 255 characters")
     @Column(name = "file_name", length = 255)
@@ -63,22 +62,8 @@ public class CustomerKycUpload extends CustomerBaseEntity implements Serializabl
     @Column(name = "response_payload")
     private String responsePayload;
 
-    @NotNull(message = "Identity UUID is required")
-    @Column(name = "identity", nullable = false, unique = true)
-    private UUID identity;
 
-    @PrePersist
-    protected void onCreate() {
-        if (this.identity == null) {
-            this.identity = UUID.randomUUID();
-        }
-        if (this.uploadStatus == null) {
-            this.uploadStatus = UploadStatus.PENDING;
-        }
-        if (this.version == null) {
-            this.version = 1;
-        }
-    }
+
 
 
     public void markAsSuccess(String response) {
