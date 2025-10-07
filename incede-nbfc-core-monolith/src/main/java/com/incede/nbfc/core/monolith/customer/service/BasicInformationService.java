@@ -2,13 +2,16 @@ package com.incede.nbfc.core.monolith.customer.service;
 
 import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
+import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerContact;
 import com.incede.nbfc.core.monolith.customer.dto.BasicInformationRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.BasicInformationResponseDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerDto;
 import com.incede.nbfc.core.monolith.customer.mapper.BasicInformationMapper;
+import com.incede.nbfc.core.monolith.customer.repository.CustomerContactRepository;
 import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.exception.ErrorCodes;
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.ContactTypes;
 import com.incede.nbfc.core.monolith.masterdata.repository.*;
 import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
 import com.incede.nbfc.core.monolith.tenant.repository.TenantRepository;
@@ -39,13 +42,12 @@ public class BasicInformationService {
     private final NationalityRepository nationalityRepository;
     private final TaxCategoryRepository taxCategoryRepository;
     private final OccupationRepository occupationRepository;
-    private final LanguagesRepository languagesRepository;
     private final BranchesRepository branchesRepository;
     private final CustomerStatusRepository customerStatusRepository;
-    private final ResidentialStatusesRepository residentialStatusesRepository;
     private final SalutationTypesRepository salutationRepository;
     private final TenantRepository tenantRepository;
-
+    private final CustomerContactRepository contactRepository;
+    private final ContactTypesRepository contactTypesRepository;
 
     /**
      * Save basic information of a new customer.
@@ -62,9 +64,11 @@ public class BasicInformationService {
         Tenant tenant = tenantRepository.findByIdentity(dto.getTenantId())
                 .orElseThrow(() -> new BusinessException(CommonConstants.TENANT_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
 
-
-        if (customerRepository.existsByTenantAndAadharVaultId(tenant, dto.getAadharVault())) {
+        if(customerRepository.existsByTenantAndAadharVaultId(tenant,dto.getAadharVault())){
             throw new BusinessException(CommonConstants.CUSTOMER_CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
+        }
+        if (customerRepository.existsByTenantAndMobileNumber(tenant, dto.getMobileNumber())) {
+            throw new BusinessException(CommonConstants.MOBILE_NUMBER_CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
         }
 
         try {
@@ -75,8 +79,13 @@ public class BasicInformationService {
             customer.setIdentity(UUID.randomUUID());
             customer.setCustomerCode(generateCustomerCode(tenant.getTenantId()));
             customer.setOnboardingStatus(CommonConstants.IN_PROGRESS);
+            customer.setTenant(tenant);
 
-            return customerMapper.toResponseDto(customerRepository.save(customer));
+            Customer savedCustomer = customerRepository.save(customer);
+
+            savePrimaryContact(savedCustomer, dto.getMobileNumber());
+
+            return customerMapper.toResponseDto(savedCustomer);
         } catch (DataIntegrityViolationException e) {
             throw new BusinessException(CommonConstants.CONSTRAIN_VIOLATION, ErrorCodes.CONSTRAINT_VIOLATION, e);
         }
@@ -112,9 +121,57 @@ public class BasicInformationService {
 
             populateReferences(existingCustomer, dto);
 
-            return customerMapper.toResponseDto(customerRepository.save(existingCustomer));
+            Customer updatedCustomer = customerRepository.save(existingCustomer);
+
+            // Update or create primary contact using mapper
+            saveOrUpdatePrimaryContact(updatedCustomer, dto.getMobileNumber());
+
+            return customerMapper.toResponseDto(updatedCustomer);
         } catch (DataIntegrityViolationException e) {
             throw new BusinessException(CommonConstants.CONSTRAIN_VIOLATION, ErrorCodes.CONSTRAINT_VIOLATION, e);
+        }
+    }
+
+    /**
+     * Save mobile number as primary contact for customer
+     *
+     * @param customer    Customer entity
+     * @param mobileNumber Mobile number to save as primary contact
+     */
+    private void savePrimaryContact(Customer customer, String mobileNumber) {
+        // Find the MOBILE contact type from the database
+        ContactTypes mobileContactType = contactTypesRepository.findByContactTypeAndIsActiveTrue("MOBILE")
+                .orElseThrow(() -> new BusinessException("Mobile contact type not found", ErrorCodes.RESOURCE_NOT_FOUND));
+
+        // Use mapper to create CustomerContact entity
+        CustomerContact contact = customerMapper.toCustomerContact(customer, mobileNumber, mobileContactType);
+
+        contactRepository.save(contact);
+        log.info("Primary contact saved for customer: {}", customer.getIdentity());
+    }
+
+    /**
+     * Save or update primary contact for customer
+     *
+     * @param customer    Customer entity
+     * @param mobileNumber Mobile number to save/update as primary contact
+     */
+    private void saveOrUpdatePrimaryContact(Customer customer, String mobileNumber) {
+        // Find the MOBILE contact type from the database
+        ContactTypes mobileContactType = contactTypesRepository.findByContactTypeAndIsActiveTrue("MOBILE")
+                .orElseThrow(() -> new BusinessException("Mobile contact type not found", ErrorCodes.RESOURCE_NOT_FOUND));
+
+        Optional<CustomerContact> existingContact = contactRepository.findByCustomerAndContactTypeAndIsPrimaryTrue(customer, mobileContactType);
+
+        if (existingContact.isPresent()) {
+            // Update existing primary contact using mapper
+            CustomerContact contact = existingContact.get();
+            customerMapper.updateCustomerContact(contact, mobileNumber);
+            contactRepository.save(contact);
+            log.info("Primary contact updated for customer: {}", customer.getIdentity());
+        } else {
+            // Create new primary contact
+            savePrimaryContact(customer, mobileNumber);
         }
     }
 

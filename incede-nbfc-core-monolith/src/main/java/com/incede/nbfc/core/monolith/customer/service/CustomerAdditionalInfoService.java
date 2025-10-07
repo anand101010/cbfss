@@ -108,8 +108,10 @@ public class CustomerAdditionalInfoService {
 
             CustomerAsset asset = assetRepository.findByCustomer(customer).orElseGet(CustomerAsset::new);
             customerAdditionalInfoMapper.createAsset(asset, dto.getAdditional().getCustomerAsset(), customer);
-            asset.setAssetTypeId(assetTypesRepository.findByIdentity(dto.getAdditional().getCustomerAsset().getAssetTypeId())
-                    .orElseThrow(() -> new BusinessException(CommonConstants.ASSET_TYPE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
+            if(dto.getAdditional().getCustomerAsset().getOwnsAsset().equals(Boolean.TRUE)) {
+                asset.setAssetTypeId(assetTypesRepository.findByIdentity(dto.getAdditional().getCustomerAsset().getAssetTypeId())
+                        .orElseThrow(() -> new BusinessException(CommonConstants.ASSET_TYPE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
+            }
             assetRepository.save(asset);
 
 

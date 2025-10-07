@@ -12,6 +12,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.*;
 
@@ -61,6 +64,8 @@ public class BankMasterDataServiceTest {
     private CustomerGroupMasterRepository customerGroupMasterRepository;
     @Mock
     private RiskCategoryRepository riskCategoryRepository;
+    @Mock
+    private  CustomerCategoryRepository customerCategoryRepository;
     @Mock
     private IfscCodeMapper ifscCodeMapper;
     @Mock
@@ -431,61 +436,6 @@ public class BankMasterDataServiceTest {
     }
 
     @Test
-    void testGetAllIfscCodes_withData() {
-
-        IfscCodes ifsc = new IfscCodes();
-        ifsc.setIfscCode("SBIN0001234");
-        ifsc.setPincodeId(1);
-
-        Pincodes pincode = new Pincodes();
-        pincode.setPincodeId(1);
-        pincode.setPincode("682030");
-
-        IfscCodesDto dto = new IfscCodesDto();
-        dto.setIfscCode("SBIN0001234");
-
-        when(ifscCodesRepository.findAllIfscCodeByIsDelFalse()).thenReturn(List.of(ifsc));
-        when(pincodesRepository.findByPincodeIdIn(Set.of(1))).thenReturn(List.of(pincode));
-        when(ifscCodeMapper.convertToDto(ifsc)).thenReturn(dto);
-
-        List<IfscCodesDto> result = bankMasterDataService.getAllIfscCodes();
-
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getIfscCode()).isEqualTo("SBIN0001234");
-        assertThat(result.get(0).getPincodes()).isEqualTo(682030);
-    }
-
-    @Test
-    void testGetAllIfscCodes_empty() {
-        when(ifscCodesRepository.findAllIfscCodeByIsDelFalse()).thenReturn(List.of());
-
-        List<IfscCodesDto> result = bankMasterDataService.getAllIfscCodes();
-
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    void testGetAllIfscCodes_missingPincodeMapping() {
-
-        IfscCodes ifsc = new IfscCodes();
-        ifsc.setIfscCode("SBIN0005678");
-        ifsc.setPincodeId(99);
-
-        IfscCodesDto dto = new IfscCodesDto();
-        dto.setIfscCode("SBIN0005678");
-
-        when(ifscCodesRepository.findAllIfscCodeByIsDelFalse()).thenReturn(List.of(ifsc));
-        when(pincodesRepository.findByPincodeIdIn(Set.of(99))).thenReturn(List.of());
-        when(ifscCodeMapper.convertToDto(ifsc)).thenReturn(dto);
-
-        List<IfscCodesDto> result = bankMasterDataService.getAllIfscCodes();
-
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getIfscCode()).isEqualTo("SBIN0005678");
-        assertThat(result.get(0).getPincodes()).isNull();
-    }
-
-    @Test
     void testGetAllCustomerGroups_withData() {
         CustomerGroupMasterView mockView = mock(CustomerGroupMasterView.class);
         when(mockView.getCustomerGroup()).thenReturn("Retail");
@@ -510,6 +460,46 @@ public class BankMasterDataServiceTest {
 
         assertThat(result).isEmpty();
     }
+
+    @Test
+    void testGetCustomerCategoryView_WhenDataExists() {
+        UUID id = UUID.randomUUID();
+
+        CustomerCategoryView mockView = mock(CustomerCategoryView.class);
+        when(mockView.getCategoryName()).thenReturn("Retail");
+        when(mockView.getIdentity()).thenReturn(id);
+
+        when(customerCategoryRepository.findByIsDelFalseAndIsActiveTrue()).thenReturn(List.of(mockView));
+
+        List<CustomerCategoryView> result = bankMasterDataService.getCustomerCategoryView();
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("Retail", result.get(0).getCategoryName());
+        assertEquals(id, result.get(0).getIdentity());
+    }
+
+    @Test
+    void testGetCustomerCategoryView_WhenDataEmpty() {
+        when(customerCategoryRepository.findByIsDelFalseAndIsActiveTrue()).thenReturn(Collections.emptyList());
+
+        List<CustomerCategoryView> result = bankMasterDataService.getCustomerCategoryView();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+    @Test
+    void testGetCustomerCategoryView_WhenRepositoryThrowsException() {
+        when(customerCategoryRepository.findByIsDelFalseAndIsActiveTrue())
+                .thenThrow(new RuntimeException("DB error"));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                bankMasterDataService.getCustomerCategoryView());
+
+        assertEquals("DB error", ex.getMessage());
+    }
+
+
 
     @Test
     void testGetAllRiskCategories_withData() {
@@ -574,4 +564,42 @@ public class BankMasterDataServiceTest {
         assertThat(result.getPincodes()).isEqualTo(682016);
         verify(pincodesRepository).findById(101);
     }
+
+    @Test
+    void testGetAllIfscCodes_WithPagination() {
+        IfscCodes mockEntity = new IfscCodes();
+        mockEntity.setIfscCode("SBIN0016400");
+        mockEntity.setBranchName("Main Branch");
+        mockEntity.setBranchPlace("Kochi");
+        mockEntity.setRbiFlag(true);
+        mockEntity.setIsActive(true);
+        mockEntity.setPincodeId(1);
+        mockEntity.setIdentity(UUID.randomUUID());
+
+        IfscCodesDto mockDto = new IfscCodesDto();
+        mockDto.setIfscCode("SBIN0016400");
+        mockDto.setBranchName("Main Branch");
+        mockDto.setBranchPlace("Kochi");
+        mockDto.setRbiFlag(true);
+        mockDto.setIsActive(true);
+        mockDto.setIdentity(mockEntity.getIdentity());
+        mockDto.setPincodes(682031);
+
+        Pincodes mockPincode = new Pincodes();
+        mockPincode.setPincodeId(1);
+        mockPincode.setPincode("682031");
+
+        Page<IfscCodes> mockPage = new PageImpl<>(List.of(mockEntity), PageRequest.of(0, 10), 1);
+        when(ifscCodesRepository.findByIsDelFalse(PageRequest.of(0, 10))).thenReturn(mockPage);
+        when(pincodesRepository.findByPincodeIdIn(Set.of(1))).thenReturn(List.of(mockPincode));
+        when(ifscCodeMapper.convertToDto(mockEntity)).thenReturn(mockDto);
+
+        Page<IfscCodesDto> result = bankMasterDataService.getAllIfscCodes(PageRequest.of(0, 10));
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        assertEquals("SBIN0016400", result.getContent().get(0).getIfscCode());
+        assertEquals(682031, result.getContent().get(0).getPincodes());
+    }
+
 }

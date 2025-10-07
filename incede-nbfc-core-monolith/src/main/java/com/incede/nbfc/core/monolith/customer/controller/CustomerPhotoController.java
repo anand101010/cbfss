@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,6 +17,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/customers/")
 @RequiredArgsConstructor
+
 public class CustomerPhotoController {
 
     private final CustomerPhotoService customerPhotoService;
@@ -27,6 +29,7 @@ public class CustomerPhotoController {
      * @param requestJson DTO containing photo details
      * @return ResponseEntity with created photo details
      */
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping(value = "{customerUUID}/photo", consumes = {"multipart/form-data"})
     public ResponseEntity<CustomerPhotoResponseDto> createPhoto(
             @PathVariable UUID customerUUID,
@@ -47,6 +50,7 @@ public class CustomerPhotoController {
      * @param customerUUID the unique identity of the customer
      * @return ResponseEntity with customer photo details
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("{customerUUID}/photo")
     public ResponseEntity<CustomerPhotoResponseDto> getPhoto(@PathVariable UUID customerUUID) {
         CustomerPhotoResponseDto photoResponse = customerPhotoService.getCustomerPhotos(customerUUID);

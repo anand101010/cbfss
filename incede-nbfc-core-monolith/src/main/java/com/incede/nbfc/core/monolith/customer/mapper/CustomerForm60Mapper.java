@@ -4,6 +4,7 @@ import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerForm60;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerForm60RequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerForm60ResponseDto;
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.Branches;
 import com.incede.nbfc.core.monolith.masterdata.domain.entity.DocumentMaster;
 import org.springframework.stereotype.Component;
 
@@ -12,14 +13,13 @@ import java.util.UUID;
 
 @Component
 public class CustomerForm60Mapper {
-    public CustomerForm60 toEntity(CustomerForm60RequestDto dto,
-                                   Customer customer,
-                                   DocumentMaster pidDocument,
-                                   DocumentMaster addDocument) {
+    public CustomerForm60 toEntity(CustomerForm60RequestDto dto, Customer customer, Branches branch, DocumentMaster pidDoc, DocumentMaster addDoc) {
         CustomerForm60 form60 = new CustomerForm60();
         form60.setCustomerId(customer);
-        form60.setBranchId(dto.getBranchId());
-
+        form60.setCustomerId(customer);
+        form60.setBranchId(branch);
+        form60.setPidDocument(pidDoc);
+        form60.setAddDocument(addDoc);
         form60.setTransactionAmount(dto.getTransactionAmount());
         form60.setTransactionDate(dto.getTransactionDate());
         form60.setModeOfTransaction(dto.getModeOfTransaction());
@@ -33,11 +33,9 @@ public class CustomerForm60Mapper {
         form60.setPanCardApplicationDate(dto.getPanCardApplicationDate());
         form60.setPanCardApplicationAckNo(dto.getPanCardApplicationAckNo());
 
-        form60.setPidDocument(pidDocument);
         form60.setPidDocumentNo(dto.getPidDocumentNo());
         form60.setPidIssuingAuthority(dto.getPidIssuingAuthority());
 
-        form60.setAddDocument(addDocument);
         form60.setAddDocumentNo(dto.getAddDocumentNo());
         form60.setAddIssuingAuthority(dto.getAddIssuingAuthority());
 
@@ -68,7 +66,11 @@ public class CustomerForm60Mapper {
                 .addIssuingAuthority(entity.getAddIssuingAuthority())
                 .submissionDate(entity.getSubmissionDate())
                 .formFileId(entity.getFormFileId())
-                .identity(UUID.randomUUID())
+                .identity(entity.getIdentity())
+                .telephoneNumber(entity.getTelephoneNumber())
+                .nameOfPremises(entity.getNameOfPremises())
+                .floorNumber(entity.getFloorNumber())
+                .maskedAdhar(entity.getMaskedAdhar())
                 .build();
     }
 
@@ -84,7 +86,6 @@ public class CustomerForm60Mapper {
                                     DocumentMaster addDocument) {
         Objects.requireNonNull(dto, "CustomerForm60RequestDto must not be null");
 
-        entity.setBranchId(dto.getBranchId());
         entity.setTransactionAmount(dto.getTransactionAmount());
         entity.setTransactionDate(dto.getTransactionDate());
         entity.setModeOfTransaction(dto.getModeOfTransaction());
@@ -104,6 +105,9 @@ public class CustomerForm60Mapper {
         entity.setSubmissionDate(dto.getSubmissionDate());
         entity.setFormFileId(dto.getFormFileId());
         entity.setUpdatedBy(dto.getUpdatedBy());
+        entity.setTelephoneNumber(dto.getTelephoneNumber());
+        entity.setNameOfPremises(dto.getNameOfPremises());
+        entity.setFloorNumber(dto.getFloorNumber());
     }
 
 

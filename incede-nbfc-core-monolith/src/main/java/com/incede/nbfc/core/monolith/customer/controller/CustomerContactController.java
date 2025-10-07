@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -28,6 +29,7 @@ public class CustomerContactController {
      * @param request    DTO containing contact details
      * @return ResponseEntity with created contact details
      */
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping("/{customerIdentity}/contacts")
     @Operation(summary = "Create Contact", description = "Creates a new contact for a customer and returns created details")
     public ResponseEntity<CustomerContactResponseDto> createContact(
@@ -46,6 +48,7 @@ public class CustomerContactController {
      * @param request    DTO containing updated contact details
      * @return ResponseEntity with updated contact details
      */
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/{customerIdentity}/contacts/{contactIdentity}")
     @Operation(summary = "Update Contact", description = "Updates an existing contact for a customer using contact UUID")
     public ResponseEntity<CustomerContactResponseDto> updateContact(
@@ -63,6 +66,7 @@ public class CustomerContactController {
      * @param customerIdentity Customer UUID
      * @return ResponseEntity with list of customer's contacts
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/{customerIdentity}/contacts")
     @Operation(summary = "Get Contacts", description = "Fetches all contacts for a given customer UUID")
     public ResponseEntity<CustomerContactResponseDto> getContacts(@PathVariable UUID customerIdentity) {

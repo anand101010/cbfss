@@ -33,8 +33,9 @@ public class CustomerForm60 extends CustomerBaseEntity implements Serializable {
     @JoinColumn(name = "customer_id", referencedColumnName = "customer_id")
     private Customer customerId;
 
-    @Column (name = "branch_id")
-    private Integer branchId;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "branch_id", referencedColumnName = "branch_id")
+    private Branches branchId;
 
     @Column(name = "transaction_amount", precision = 15, scale = 2)
     private BigDecimal transactionAmount;
@@ -91,5 +92,17 @@ public class CustomerForm60 extends CustomerBaseEntity implements Serializable {
 
     @Column(name = "form_file_id")
     private Integer formFileId;
+
+    @Column(name = "masked_adhar", length = 50)
+    private String maskedAdhar;
+
+    @Column(name = "telephone_number")
+    private String telephoneNumber;
+
+    @Column(name = "floor_number")
+    private String floorNumber;
+
+    @Column(name = "name_of_premises")
+    private String nameOfPremises;
 
 }

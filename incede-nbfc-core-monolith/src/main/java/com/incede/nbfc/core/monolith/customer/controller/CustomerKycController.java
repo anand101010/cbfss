@@ -5,6 +5,7 @@ import com.incede.nbfc.core.monolith.customer.service.CustomerKycService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,6 +24,7 @@ public class CustomerKycController {
      * @param file
      * @return
      */
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping(value = "/addKyc", consumes = {"multipart/form-data"})
     public ResponseEntity<CustomerKycResponseDto> createInitialCustomer(
             @RequestPart("request") String requestJson,
@@ -34,6 +36,7 @@ public class CustomerKycController {
 
 
 
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("{customerIdentity}/addKyc")
     public ResponseEntity<CustomerKycResponseDto> addKycDocument(
             @RequestPart("request") String requestJson,

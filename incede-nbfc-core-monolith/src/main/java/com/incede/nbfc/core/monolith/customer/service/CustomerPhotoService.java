@@ -12,10 +12,10 @@ import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.exception.ErrorCodes;
 import com.incede.nbfc.core.monolith.exception.ResourceNotFoundException;
+import com.incede.nbfc.core.monolith.user.domain.entity.User;
+import com.incede.nbfc.core.monolith.user.repository.UserRepository;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -41,6 +41,7 @@ public class CustomerPhotoService {
     private final CustomerPhotoRepository photoRepository;
     private final CustomerPhotoMapper customerPhotoMapper;
     private final ObjectMapper objectMapper;
+    private final UserRepository userRepository;
 
     Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
@@ -56,6 +57,7 @@ public class CustomerPhotoService {
         Customer customer = customerRepository.findByIdentity(identity)
                 .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.CUSTOMER_NOT_FOUND));
 
+
         try {
             CustomerPhotoRequestDto requestDTO = objectMapper.readValue(requestJson, CustomerPhotoRequestDto.class);
 
@@ -69,8 +71,13 @@ public class CustomerPhotoService {
                 throw new BusinessException(errorMsg, ErrorCodes.VALIDATION_FAILED);
             }
 
+            User capturedBy = userRepository.findByIdentity(requestDTO.getCapturedBy())
+                    .orElseThrow(() -> new BusinessException(CommonConstants.CAPTURED_BY_NOT_FOUND, ErrorCodes.NOT_FOUND));
+
+
             CustomerPhoto photo = customerPhotoMapper.toEntity(requestDTO);
             photo.setCustomer(customer);
+            photo.setCapturedBy(capturedBy);
 
             Integer photoRefId = uploadPhoto(file);
             photo.setPhotoRefId(photoRefId);

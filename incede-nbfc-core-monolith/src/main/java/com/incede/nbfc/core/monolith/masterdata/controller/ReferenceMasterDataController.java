@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class ReferenceMasterDataController {
      *
      * @return List of all address-types
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/address-types")
     @Operation(summary = "Get all address types", description = "Retrieves all address types from the system")
     public ResponseEntity<List<AddressTypeView>> getAllAddressTypes() {
@@ -39,6 +41,7 @@ public class ReferenceMasterDataController {
      *
      * @return List of all Address Proof Types
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/address-proof-type")
     @Operation(summary = "Get all Address Proof Types", description = "Retrieves all Address Proof Types from the system")
     public ResponseEntity<List<AddressProofTypeView>> getAllAddressProofTypes() {
@@ -53,6 +56,7 @@ public class ReferenceMasterDataController {
      * Get all Residential Statuses .
      *
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/residential-statuses")
     @Operation(summary = "Get all Residential Statuses", description = "Retrieves all Residential Statuses from the system")
     public ResponseEntity<List<ResidentialStatusesView>> getAllResidentialStatuses() {
@@ -68,6 +72,7 @@ public class ReferenceMasterDataController {
      * @return List of all contact-types
      */
 
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/contact-types")
     @Operation(summary = "Get all contact types", description = "Retrieves all contact types from the system")
     public ResponseEntity<List<ContactTypesView>> getAllContactTypes() {
@@ -82,6 +87,7 @@ public class ReferenceMasterDataController {
      * Get all pincodes .
      *
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/pincodes")
     @Operation(summary = "Get pincodes with pagination", description = "Retrieves paginated pincodes from the system")
     public ResponseEntity<Page<PincodeDto>> getAllPincodes(
@@ -101,6 +107,7 @@ public class ReferenceMasterDataController {
      * @param pincode pincode number
      * @return list of PincodeDto
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/pincodes/{pincode}")
     @Operation(summary = "Get Pincode Details",
             description = "Fetches all post offices, district and state for given pincode")

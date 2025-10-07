@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -16,6 +17,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/customers")
 @RequiredArgsConstructor
+
 @Tag(name = "Customer Notification Preference API", description = "APIs for managing customer notification preferences")
 public class CustomerNotificationPreferenceController {
 
@@ -28,6 +30,7 @@ public class CustomerNotificationPreferenceController {
      * @param request    DTO containing notification preference details
      * @return ResponseEntity with created notification preferences
      */
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping("/{customerId}/notification-preferences")
     @Operation(summary = "Create Notification Preference", description = "Creates notification preferences for a customer")
     public ResponseEntity<CustomerNotificationPreferenceResponseDto> createNotificationPreference(
@@ -45,6 +48,7 @@ public class CustomerNotificationPreferenceController {
      * @param request    DTO containing updated notification preferences
      * @return ResponseEntity with updated notification preferences
      */
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/{customerId}/notification-preferences")
     @Operation(summary = "Update Notification Preference", description = "Updates notification preferences for a customer")
     public ResponseEntity<CustomerNotificationPreferenceResponseDto> updateNotificationPreference(
@@ -61,6 +65,7 @@ public class CustomerNotificationPreferenceController {
      * @param customerId Customer UUID
      * @return ResponseEntity with customer's notification preferences
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/{customerId}/notification-preferences")
     @Operation(summary = "Get Notification Preferences", description = "Fetches notification preferences for a customer")
     public ResponseEntity<CustomerNotificationPreferenceResponseDto> getNotificationPreferences(

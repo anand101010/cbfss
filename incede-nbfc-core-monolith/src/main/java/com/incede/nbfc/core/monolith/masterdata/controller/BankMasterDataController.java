@@ -1,17 +1,16 @@
 package com.incede.nbfc.core.monolith.masterdata.controller;
 
-import com.incede.nbfc.core.monolith.masterdata.domain.entity.RiskCategory;
 import com.incede.nbfc.core.monolith.masterdata.dto.*;
 import com.incede.nbfc.core.monolith.masterdata.service.BankMasterDataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 @RestController
@@ -30,6 +29,7 @@ public class BankMasterDataController
 
     private final BankMasterDataService bankMasterDataService;
 
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/account-types")
     @Operation(summary = "Get all account types", description = "Retrieves all account types from the system")
     public ResponseEntity<List<AccountTypeMasterView>> getAllAccountTypes() {
@@ -39,7 +39,7 @@ public class BankMasterDataController
         return ResponseEntity.ok(accountTypes);
     }
 
-
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/branches")
     @Operation(summary = "Get all branches", description = "Retrieves all branches from the system")
     public ResponseEntity<List<BranchesDto>> getAllBranches() {
@@ -54,6 +54,7 @@ public class BankMasterDataController
      *
      * @return List of all customer-statuses
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/customer-statuses")
     @Operation(summary = "Get all customer statuses", description = "Retrieves all customer statuses from the system")
     public ResponseEntity<List<CustomerStatusView>> getAllCustomerStatuses() {
@@ -72,6 +73,7 @@ public class BankMasterDataController
      *
      * @return List of all Account Statuses
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/account-statuses")
     @Operation(summary = "Get all Account Statuses", description = "Retrieves all Account Statuses from the system")
     public ResponseEntity<List<AccountStatusesView>> getAllAccountStatuses(){
@@ -88,6 +90,7 @@ public class BankMasterDataController
      *
      * @return List of all banks
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/banks")
     @Operation(summary = "Get all banks", description = "Retrieves all banks from the system")
     public ResponseEntity<List<BanksView>> getAllBanks(){
@@ -102,6 +105,7 @@ public class BankMasterDataController
      *
      * @return List of all banks
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/branch-contact")
     @Operation(summary = "Get all branch contacts", description = "Retrieves all branch contacts from the system")
     public ResponseEntity<List<BranchContactView>> getAllBranchContact(){
@@ -115,6 +119,7 @@ public class BankMasterDataController
      * Get all branch week schedule .
      *
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/branch-week-schedule")
     @Operation(summary = "Get all branch week schedule", description = "Retrieves all branch week schedule from the system")
     public ResponseEntity<List<BranchWeekScheduleView>> getAllBranchWeekSchedule(){
@@ -123,15 +128,24 @@ public class BankMasterDataController
         log.info("Found {} branch week schedule", branchWeekScheduleView.size());
         return ResponseEntity.ok(branchWeekScheduleView);
     }
-    
+
+
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/ifsc-codes")
-    @Operation(summary = "Get all ifsc codes", description = "Retrieves all ifsc codes from the system")
-    public ResponseEntity<List<IfscCodesDto>> getAllIfscCodes(){
-        log.info("Fetching all the ifsc codes");
-        List<IfscCodesDto> ifscCodes = bankMasterDataService.getAllIfscCodes();
-        log.info("Found {} ifsc codes", ifscCodes.size());
+    @Operation(summary = "Get IFSC codes with pagination", description = "Retrieves paginated IFSC codes from the system")
+    public ResponseEntity<Page<IfscCodesDto>> getAllIfscCodes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        log.info("Fetching IFSC codes - page: {}, size: {}", page, size);
+        Page<IfscCodesDto> ifscCodes = bankMasterDataService.getAllIfscCodes(PageRequest.of(page, size));
+        log.info("Found {} IFSC codes", ifscCodes.getNumberOfElements());
+
         return ResponseEntity.ok(ifscCodes);
     }
+
+
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/ifsc-codes/{ifscCode}")
     @Operation(summary = "Get IFSC code details", description = "Retrieves details for a specific IFSC code")
     public ResponseEntity<IfscCodesDto> getIfscCodeDetails(@PathVariable String ifscCode) {
@@ -147,6 +161,7 @@ public class BankMasterDataController
         return ResponseEntity.ok(dto);
     }
 
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/customer-category")
     @Operation(summary = "Get all  customer category", description = "Retrieves all customer category from the system")
     public ResponseEntity<List<CustomerCategoryView>> getAllCustomerCategory(){
@@ -156,6 +171,7 @@ public class BankMasterDataController
         return ResponseEntity.ok(customerCategoryView);
     }
 
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/customer-group")
     @Operation(summary = "Get all customer groups", description = "Retrieves all customer groups from the system")
     public ResponseEntity<List<CustomerGroupMasterView>> getAllCustomerGroups() {
@@ -165,6 +181,8 @@ public class BankMasterDataController
         return ResponseEntity.ok(customerGroups);
     }
 
+
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/risk-category")
     @Operation(summary = "Get all risk categories", description = "Retrieves all active risk categories from the system")
     public ResponseEntity<List<RiskCategoryView>> getAllRiskCategories() {

@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/customers")
 @RequiredArgsConstructor
+
 public class NomineeDetailsController {
 
     private final NomineeDetailsService nomineeDetailsService;
@@ -26,6 +28,7 @@ public class NomineeDetailsController {
      * @param requestDto DTO containing nominee details
      * @return ResponseEntity with created nominee details including customer identity
      */
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping("{customerIdentity}/nominees")
     public ResponseEntity<NomineeDetailsResponseDto> createNominee(
             @PathVariable UUID customerIdentity,
@@ -43,6 +46,7 @@ public class NomineeDetailsController {
      * @return ResponseEntity with HTTP 200 OK and the updated nominee details
      */
 
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("{customerIdentity}/nominees/{nomineeIdentity}")
     public ResponseEntity<NomineeDetailsResponseDto> updateNominee(
             @PathVariable UUID customerIdentity,
@@ -60,6 +64,7 @@ public class NomineeDetailsController {
      * @return ResponseEntity with HTTP 200 OK and list of nominee details
      */
 
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("{customerIdentity}/nominees")
     public ResponseEntity<NomineeDetailsResponseDto> getNomineesByCustomerIdentity(
             @PathVariable("customerIdentity") UUID customerIdentity) {
@@ -75,6 +80,7 @@ public class NomineeDetailsController {
      * @param nomineeIdentity  UUID of the nominee to delete
      * @return ResponseEntity with HTTP 204 No Content
      */
+    @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("{customerIdentity}/nominees/{nomineeIdentity}")
     public ResponseEntity<NomineeDetailsResponseDto> deleteNominee(
             @PathVariable UUID customerIdentity,

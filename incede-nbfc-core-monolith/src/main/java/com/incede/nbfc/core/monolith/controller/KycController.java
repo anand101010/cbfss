@@ -13,6 +13,7 @@ import com.incede.nbfc.core.monolith.service.KycService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
  * these are connected with the service
  */
 @RestController
+@PreAuthorize("hasRole('STAFF')")
 @RequestMapping("/ext/ekyc")
 @Slf4j
 public class KycController

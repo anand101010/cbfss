@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,6 +28,7 @@ public class ProfileMasterDataController
      *
      * @return List of all salutation-types
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/salutation-types")
     @Operation(summary = "Get all salutation types", description = "Retrieves all salutation types from the system")
     public ResponseEntity<List<SalutationTypesView>> getAllSalutationTypes() {
@@ -40,6 +42,7 @@ public class ProfileMasterDataController
      *
      * @return List of all customer-statuses
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/nationalities")
     @Operation(summary = "Get all natinalities", description = "Retrieves all natinalities from the system")
     public ResponseEntity<List<NationalityView>> getAllNationalities(){
@@ -55,6 +58,7 @@ public class ProfileMasterDataController
      *
      * @return List of all occupations
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/occupations")
     @Operation(summary = "Get all occupations", description = "Retrieves all occupations from the system")
     public ResponseEntity<List<OccupationView>> getAllOccupations(){
@@ -70,6 +74,7 @@ public class ProfileMasterDataController
      *
      * @return List of all relationships
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/relationships")
     @Operation(summary = "Get all relationships", description = "Retrieves all relationships from the system")
     public ResponseEntity<List<RelationshipsView>> getAllRelationships() {
@@ -84,6 +89,7 @@ public class ProfileMasterDataController
      *
      * @return List of all languages
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/languages")
     @Operation(summary = "Get all languages", description = "Retrieves all languages from the system")
     public ResponseEntity<List<LanguagesView>> getAllLanguages() {
@@ -99,6 +105,7 @@ public class ProfileMasterDataController
      *
      * @return List of all genders
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/genders")
     @Operation(summary = "Get all genders", description = "Retrieves all genders from the system")
     public ResponseEntity<List<GendersView>> getAllGenders(){
@@ -113,6 +120,7 @@ public class ProfileMasterDataController
      *
      * @return List of all marital-status
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/marital-status")
     @Operation(summary = "Get all marital status", description = "Retrieves all marital status from the system")
     public ResponseEntity<List<MaritalStatusView>> getAllMaritalStatus(){
@@ -125,6 +133,7 @@ public class ProfileMasterDataController
      * Get all Designations   .
      *
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/designations")
     @Operation(summary = "Get all designations", description = "Retrieves all designations from the system")
     public ResponseEntity<List<DesignationsView>> getAllDesignations(){
@@ -139,6 +148,7 @@ public class ProfileMasterDataController
      *
      * @return List of all tax-category
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/tax-category")
     @Operation(summary = "Get all tax category", description = "Retrieves all tax category from the system")
     public ResponseEntity<List<TaxCategoryView>> getAllTaxCategories(){
@@ -152,6 +162,7 @@ public class ProfileMasterDataController
      * Get all Purpose .
      *
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/purpose")
     @Operation(summary = "Get all purpose", description = "Retrieves all purpose from the system")
     public ResponseEntity<List<PurposeView>> getAllPurpose(){
@@ -165,6 +176,7 @@ public class ProfileMasterDataController
      * Get all Source Of Income Type .
      *
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/source-of-income")
     @Operation(summary = "Get all Source Of Income Type", description = "Retrieves all Source Of Income Type from the system")
     public ResponseEntity<List<SourceOfIncomeTypeView>> getAllSourceOfIncomeType(){
@@ -174,6 +186,7 @@ public class ProfileMasterDataController
         return ResponseEntity.ok(sourceOfIncomeTypeView);
     }
 
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/referral_source")
     @Operation(summary = "Get all referral source", description = "Retrieves all referral source from the system")
     public ResponseEntity<List<ReferralSourcesView>> getAllReferralSource(){
@@ -183,6 +196,7 @@ public class ProfileMasterDataController
         return ResponseEntity.ok(referralSourcesView);
     }
 
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/education-level")
     @Operation(summary = "Get all education level", description = "Retrieves all education level from the system")
     public ResponseEntity<List<EducationLevelsView>> getAllEducationLevels(){

@@ -2,10 +2,13 @@ package com.incede.nbfc.core.monolith.customer.mapper;
 
 import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
+import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerContact;
 import com.incede.nbfc.core.monolith.customer.dto.BasicInformationRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.BasicInformationResponseDto;
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.ContactTypes;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
@@ -125,7 +128,45 @@ public class BasicInformationMapper {
                 .basic(basic)
                 .build();
     }
+    /**
+     * Maps mobile number to CustomerContact entity
+     *
+     * @param customer Customer entity
+     * @param mobileNumber Mobile number
+     * @param contactType ContactTypes entity for MOBILE
+     * @return CustomerContact entity
+     */
+    public CustomerContact toCustomerContact(Customer customer, String mobileNumber, ContactTypes contactType) {
+        if (customer == null || mobileNumber == null || contactType == null) {
+            return null;
+        }
 
+        CustomerContact contact = new CustomerContact();
+        contact.setCustomer(customer);
+        contact.setContactType(contactType);
+        contact.setContactValue(mobileNumber);
+        contact.setIsPrimary(true);
+        contact.setIsActive(true);
+        contact.setIsPromotionalOptOut(false);
+        contact.setCreatedAt(LocalDateTime.now());
+        contact.setCreatedBy(getCreatedBy());
+
+        return contact;
+    }
+
+    /**
+     * Updates existing CustomerContact entity with new mobile number
+     *
+     * @param contact Existing CustomerContact entity
+     * @param mobileNumber New mobile number
+     */
+    public void updateCustomerContact(CustomerContact contact, String mobileNumber) {
+        if (contact != null && mobileNumber != null) {
+            contact.setContactValue(mobileNumber);
+            contact.setUpdatedAt(LocalDateTime.now());
+            contact.setUpdatedBy(getUpdatedBy());
+        }
+    }
     public Integer getCreatedBy() {
         return CommonConstants.CREATED_BY;
     }

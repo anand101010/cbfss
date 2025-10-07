@@ -1,7 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.incede.nbfc.core.monolith.customer.enums.PhotoStatus;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -19,8 +18,7 @@ public class CustomerPhotoRequestDto {
 
 
     @NotNull(message = "CapturedBy is required")
-    @Min(value = 1, message = "CapturedBy must be a positive integer")
-    private Integer capturedBy;
+    private UUID capturedBy;
 
     @ToString.Exclude
     @Digits(integer = 9, fraction = 6, message = "Latitude must have up to 9 digits and 6 decimals")

@@ -65,6 +65,14 @@ spring:
         order_updates: true
         batch_versioned_data: true
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://10.199.232.3:8088/realms/incede-dev
+          jwk-set-uri: http://10.199.232.3:8088/realms/incede-dev/protocol/openid-connect/certs
+
+
 server:
   port: 8080
 

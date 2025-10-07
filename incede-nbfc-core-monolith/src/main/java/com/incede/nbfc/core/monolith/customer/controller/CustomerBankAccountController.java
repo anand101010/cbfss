@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,6 +27,7 @@ public class CustomerBankAccountController {
      * @param file
      * @return
      */
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping("/{customerIdentity}/bank-accounts")
     public ResponseEntity<CustomerBankAccountResponseDto> createBankAccount(
             @PathVariable UUID customerIdentity,
@@ -40,6 +42,7 @@ public class CustomerBankAccountController {
     /**
      * Update an existing bank account for the given customer.
      */
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/{customerIdentity}/bank-accounts/{bankAccountId}")
     public ResponseEntity<CustomerBankAccountResponseDto> updateBankAccount(
             @PathVariable UUID customerIdentity,
@@ -53,6 +56,7 @@ public class CustomerBankAccountController {
     /**
      * Get all active bank accounts for the given customer.
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/{customerIdentity}/bank-accounts")
     public ResponseEntity<CustomerBankAccountResponseDto> getActiveBankAccounts(
             @PathVariable UUID customerIdentity) {

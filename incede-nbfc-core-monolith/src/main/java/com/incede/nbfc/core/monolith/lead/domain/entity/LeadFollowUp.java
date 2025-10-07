@@ -1,6 +1,8 @@
 package com.incede.nbfc.core.monolith.lead.domain.entity;
 
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.FollowUpType;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Table(name = "lead_follow_ups", schema = "lead")
@@ -30,12 +33,12 @@ public class LeadFollowUp extends LeadBaseEntity implements Serializable {
 
     @Column(name = "staff_id", nullable = false)
     @NotNull(message = "Staff ID must not be null")
-    private Integer staffId;
+    private int staffId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "follow_up_type_id", nullable = false, referencedColumnName = "follow_up_type_id")
     @NotNull(message = "Follow-up type ID must not be null")
-    private Integer followUpTypeId;
+    private FollowUpType followUpType;
 
     @Column(name = "follow_up_date", nullable = false)
     @NotNull(message = "Follow-up date must not be null")

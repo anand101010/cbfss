@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,6 +27,7 @@ public class DocumentMasterDataController
      * Get all Kyc Types   .
      *
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/kyc-types")
     @Operation(summary = "Get all kyc types", description = "Retrieves all kyc types from the system")
     public ResponseEntity<List<KycTypesView>> getAllKycTypes(){
@@ -41,6 +43,7 @@ public class DocumentMasterDataController
      *
      * @return List of all document-master
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/document-master")
     @Operation(summary = "Get all document master", description = "Retrieves all document master from the system")
     public ResponseEntity<List<DocumentMasterView>> getAllDocumentMasters(){
@@ -56,6 +59,7 @@ public class DocumentMasterDataController
      * Get all Document -types   .
      *
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/document-types")
     @Operation(summary = "Get all document types", description = "Retrieves all document types from the system")
     public ResponseEntity<List<DocumentTypeView>> getAllDocumentType(){
@@ -69,6 +73,7 @@ public class DocumentMasterDataController
      * Get all Canvassed Types  .
      *
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/canvassed-types")
     @Operation(summary = "Get all canvassed types", description = "Retrieves all canvassed types from the system")
     public ResponseEntity<List<CanvassedTypesView>> getAllCanvassedTypes(){
@@ -84,6 +89,7 @@ public class DocumentMasterDataController
      *
      * @return List of all Asset Types
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/asset-types")
     @Operation(summary = "Get all asset Types", description = "Retrieves all asset Types from the system")
     public ResponseEntity<List<AssetTypesView>> getAllAssetTypes(){

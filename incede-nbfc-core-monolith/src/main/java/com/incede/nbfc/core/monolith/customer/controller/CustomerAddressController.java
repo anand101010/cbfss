@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,6 +27,7 @@ public class CustomerAddressController {
      * @param customerIdentity UUID of the customer
      * @return ResponseEntity with created address DTO
      */
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping(value = "/{customerIdentity}/addresses", consumes = {"multipart/form-data"})
     public ResponseEntity<CustomerAddressResponseDto> createAddress(
             @PathVariable UUID customerIdentity,
@@ -48,6 +50,7 @@ public class CustomerAddressController {
      * @param file             Optional document file
      * @return ResponseEntity with updated address DTO
      */
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping(value = "/{customerIdentity}/addresses/{addressIdentity}", consumes = {"multipart/form-data"})
     public ResponseEntity<CustomerAddressResponseDto> updateAddress(
             @PathVariable UUID customerIdentity,
@@ -65,6 +68,7 @@ public class CustomerAddressController {
      * @param customerIdentity UUID of the customer
      * @return ResponseEntity with active addresses
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/{customerIdentity}/addresses")
     public ResponseEntity<CustomerAddressResponseDto> getActiveAddresses(@PathVariable UUID customerIdentity) {
 
@@ -79,6 +83,7 @@ public class CustomerAddressController {
      * @param addressIdentity Address ID
      * @return ResponseEntity with no content
      */
+    @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/{customerIdentity}/addresses/{addressIdentity}")
     public ResponseEntity<Void> deleteAddress(@PathVariable UUID customerIdentity,
                                               @PathVariable UUID addressIdentity) {

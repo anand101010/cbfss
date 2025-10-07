@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -28,6 +29,7 @@ public class BasicInformationController {
      * @param request DTO containing customer basic info
      * @return ResponseEntity with created customer's basic info and generated identity
      */
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping("/basic")
     @Operation(summary = "Create Basic Info", description = "Creates basic info for a new customer and returns generated identity")
     public ResponseEntity<BasicInformationResponseDto> createBasicInfo(
@@ -37,6 +39,7 @@ public class BasicInformationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+
     /**
      * Update basic information for an existing customer.
      *
@@ -44,6 +47,7 @@ public class BasicInformationController {
      * @param request      DTO containing updated basic info
      * @return ResponseEntity with updated customer's basic info
      */
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/{customerUUID}/basic")
     @Operation(summary = "Update Basic Info", description = "Updates basic info for an existing customer using UUID")
     public ResponseEntity<BasicInformationResponseDto> updateBasicInfo(
@@ -59,6 +63,7 @@ public class BasicInformationController {
      * @param customerUUID Customer UUID
      * @return ResponseEntity with customer's basic info
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/{customerUUID}/basic")
     @Operation(summary = "Get Basic Info", description = "Fetches basic info of a customer by UUID")
     public ResponseEntity<BasicInformationResponseDto> getBasicInfoByUuid(@PathVariable UUID customerUUID) {

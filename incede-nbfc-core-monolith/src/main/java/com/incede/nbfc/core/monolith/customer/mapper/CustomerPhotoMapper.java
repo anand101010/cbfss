@@ -38,7 +38,6 @@ public class CustomerPhotoMapper {
         CustomerPhoto photo = new CustomerPhoto();
         photo.setLatitude(dto.getLatitude());
         photo.setAccuracy(dto.getAccuracy());
-        photo.setCapturedBy(dto.getCapturedBy());
         photo.setCaptureDevice(dto.getCaptureDevice());
         photo.setCaptureTime(LocalDateTime.parse(dto.getCaptureTime()));
 
@@ -73,7 +72,7 @@ public class CustomerPhotoMapper {
                 .status(entity.getStatus())
                 .latitude(entity.getLatitude())
                 .longitude(entity.getLongitude())
-                .capturedBy(entity.getCapturedBy())
+                .capturedBy(entity.getCapturedBy().getIdentity())
                 .captureTime(entity.getCaptureTime())
                 .accuracy(entity.getAccuracy())
                 .captureDevice(entity.getCaptureDevice())

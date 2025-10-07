@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -33,6 +34,7 @@ public class CustomerAdditionalInfoController {
      * @param request          the additional info details to save
      * @return ResponseEntity with created (201) status and saved additional info
      */
+    @PreAuthorize("hasRole('STAFF')")
     @PutMapping("/{customerIdentity}/additional")
     @Operation(summary = "Create Additional Info", description = "Creates Additional info for a customer")
     public ResponseEntity<CustomerAdditionalInfoResponseDto> updateAdditionalInfo(
@@ -49,6 +51,8 @@ public class CustomerAdditionalInfoController {
      * @param customerIdentity the unique UUID of the customer
      * @return ResponseEntity with 200 OK status and additional info data
      */
+
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/{customerIdentity}/additional")
     @Operation(summary = "Get Additional Info", description = "Fetches Additional info for a customer")
     public ResponseEntity<CustomerAdditionalInfoResponseDto> getAdditionalInfo(

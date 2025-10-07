@@ -2,6 +2,7 @@ package com.incede.nbfc.core.monolith.customer.repository;
 
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,24 +34,40 @@ public interface CustomerRepository extends JpaRepository<Customer, Integer> {
 
     Optional<Customer> findByCustomerCode(String customerCode);
 
-    @Query("""
-        SELECT DISTINCT c FROM Customer c
-        LEFT JOIN FETCH c.branchId b
-        WHERE (:branchCode IS NULL OR b.branchCode = :branchCode)
-          AND (:branchId IS NULL OR b.branchId = :branchId)
-          AND (:mobileNumber IS NULL OR c.mobileNumber = :mobileNumber)
-          AND (:emailId IS NULL OR c.crmReferenceId = :emailId)
-          AND (:panCard IS NULL OR c.customerCode = :panCard)
-          AND (:aadhaarNumber IS NULL OR c.aadharVaultId = :aadhaarNumber)
-          AND (:voterId IS NULL OR c.crmReferenceId = :voterId)
-          AND (:passportNumber IS NULL OR c.crmReferenceId = :passportNumber)
-          AND (:customerName IS NULL OR LOWER(c.firstName) LIKE LOWER(CONCAT('%', :customerName, '%'))
-                                  OR LOWER(c.lastName) LIKE LOWER(CONCAT('%', :customerName, '%')))
-        """)
-    List<Customer> searchCustomers(
+    @Query(value = """
+    SELECT DISTINCT c.*
+    FROM customers.customer c
+    LEFT JOIN master_data.branches b ON b.branch_id = c.branch_id
+    WHERE
+        (:branchCode IS NULL OR b.branch_code = :branchCode)
+        AND (:branchId IS NULL OR c.branch_id = :branchId)
+        AND (:mobileNumber IS NULL OR c.mobile_number = :mobileNumber)
+        AND (:emailId IS NULL OR c.crm_reference_id = :emailId)
+        AND (:panCard IS NULL OR EXISTS (
+            SELECT 1 FROM customers.customer_kyc k 
+            WHERE k.customer_id = c.customer_id 
+              AND LOWER(k.id_number) = LOWER(:panCard)
+        ))
+        AND (:aadhaarNumber IS NULL OR c.aadhar_vault_id = :aadhaarNumber)
+        AND (:voterId IS NULL OR EXISTS (
+            SELECT 1 FROM customers.customer_kyc k 
+            WHERE k.customer_id = c.customer_id 
+              AND LOWER(k.id_number) = LOWER(:voterId)
+        ))
+        AND (:passportNumber IS NULL OR EXISTS (
+            SELECT 1 FROM customers.customer_kyc k 
+            WHERE k.customer_id = c.customer_id 
+              AND LOWER(k.id_number) = LOWER(:passportNumber)
+        ))
+        AND (:customerName IS NULL OR 
+            LOWER(c.first_name::text) LIKE LOWER(CONCAT('%', :customerName, '%')) OR 
+            LOWER(c.last_name::text) LIKE LOWER(CONCAT('%', :customerName, '%'))
+        )
+    """, nativeQuery = true)
+    List<Customer> searchCustomersFlexible(
             @Param("branchCode") String branchCode,
             @Param("branchId") Integer branchId,
-            @Param("mobileNumber") Integer mobileNumber,
+            @Param("mobileNumber") String mobileNumber,
             @Param("emailId") String emailId,
             @Param("panCard") String panCard,
             @Param("aadhaarNumber") String aadhaarNumber,
@@ -58,6 +75,7 @@ public interface CustomerRepository extends JpaRepository<Customer, Integer> {
             @Param("passportNumber") String passportNumber,
             @Param("customerName") String customerName
     );
-    }
 
 
+    boolean existsByTenantAndMobileNumber(Tenant tenant,String mobileNumber);
+}

@@ -13,7 +13,7 @@ public class CustomerSearchRequestDto {
     @NotNull
     private String branchCode;
     private Integer branchId;
-    private Integer mobileNumber;
+    private String mobileNumber;
     private String emailId;
     private String panCard;
     private String aadhaarNumber;

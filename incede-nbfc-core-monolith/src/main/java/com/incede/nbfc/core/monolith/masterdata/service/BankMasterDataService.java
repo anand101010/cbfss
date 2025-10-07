@@ -4,6 +4,8 @@ import com.incede.nbfc.core.monolith.masterdata.domain.entity.*;
 import com.incede.nbfc.core.monolith.masterdata.dto.*;
 import com.incede.nbfc.core.monolith.masterdata.mapper.*;
 import com.incede.nbfc.core.monolith.masterdata.repository.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -226,15 +228,15 @@ public class BankMasterDataService {
      *
      */
     @Transactional(readOnly = true)
-    public List<IfscCodesDto> getAllIfscCodes() {
+    public Page<IfscCodesDto> getAllIfscCodes(Pageable pageable) {
+        Page<IfscCodes> ifscCodesPage = ifscCodesRepository.findByIsDelFalse(pageable);
 
-        List<IfscCodes> ifscCodes = ifscCodesRepository.findAllIfscCodeByIsDelFalse();
-
-        if (ifscCodes.isEmpty()) {
+        if (ifscCodesPage.isEmpty()) {
             log.warn("No IFSC codes found");
-            return Collections.emptyList();
+            return Page.empty();
         }
-        Set<Integer> pincodeIds = ifscCodes.stream()
+
+        Set<Integer> pincodeIds = ifscCodesPage.stream()
                 .map(IfscCodes::getPincodeId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
@@ -242,28 +244,27 @@ public class BankMasterDataService {
         Map<Integer, Pincodes> pincodeMap = pincodesRepository.findByPincodeIdIn(pincodeIds).stream()
                 .collect(Collectors.toMap(Pincodes::getPincodeId, Function.identity()));
 
-        List<IfscCodesDto> ifscDtos = ifscCodes.stream()
-                .map(entity -> {
-                    IfscCodesDto dto = ifscCodeMapper.convertToDto(entity);
+        Page<IfscCodesDto> dtoPage = ifscCodesPage.map(entity -> {
+            IfscCodesDto dto = ifscCodeMapper.convertToDto(entity);
 
-                    if (entity.getPincodeId() != null) {
-                        Pincodes pincode = pincodeMap.get(entity.getPincodeId());
-                        if (pincode != null) {
-                            dto.setPincodes(Integer.valueOf(pincode.getPincode()));
-                            log.info("Mapped IFSC {} to Pincode {}", entity.getIfscCode(), pincode.getPincode());
-                        } else {
-                            log.warn("No Pincode found for IFSC {} with pincodeId {}",
-                                    entity.getIfscCode(), entity.getPincodeId());
-                        }
-                    }
+            Integer pincodeId = entity.getPincodeId();
+            if (pincodeId != null) {
+                Pincodes pincode = pincodeMap.get(pincodeId);
+                if (pincode != null) {
+                    dto.setPincodes(Integer.valueOf(pincode.getPincode()));
+                    log.info("Mapped IFSC {} to Pincode {}", entity.getIfscCode(), pincode.getPincode());
+                } else {
+                    log.warn("No Pincode found for IFSC {} with pincodeId {}", entity.getIfscCode(), pincodeId);
+                }
+            }
 
-                    return dto;
-                })
-                .toList();
+            return dto;
+        });
 
-        log.info("Fetched {} IFSC codes with pincodes", ifscDtos.size());
-        return Collections.unmodifiableList(ifscDtos);
+        log.info("Fetched {} IFSC codes with pincodes", dtoPage.getTotalElements());
+        return dtoPage;
     }
+
 
 
     @Transactional(readOnly = true)

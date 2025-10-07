@@ -1,5 +1,7 @@
 package com.incede.nbfc.core.monolith.common;
 
+
+
 /**
  * Common constants used throughout the application.
  * 
@@ -18,6 +20,8 @@ public final class CommonConstants {
     public static final String CUSTOMER_RISK_CATEGORY_NOT_FOUND ="Customer risk-category not found" ;
     public static final String CATEGORY_NOT_FOUND = "Category not found";
     public static final String CATEGORY_CODE ="000" ;
+    public static final String MOBILE_NUMBER_CONFLICT_MESSAGE = "Customer already exist with this mobile number";
+    public static final String CAPTURED_BY_NOT_FOUND = "Captured user does not  exist";
 
     private CommonConstants() {
         // Utility class - prevent instantiation
@@ -87,8 +91,6 @@ public final class CommonConstants {
     public static final String FORBIDDEN_MESSAGE = "Access denied";
 
     public static final String CONFLICT_MESSAGE ="Resource already exist";
-    public static final String CUSTOMER_CONFLICT_MESSAGE ="Customer with this Aadhar-vault-id already exist";
-
     public static final String CONSTRAIN_VIOLATION =" Constrain Violation";
     //customer onboarding
     public static  String DRAFT="DRAFT";
@@ -114,8 +116,6 @@ public final class CommonConstants {
 
 
 
-
-
     //Fallback Constants
     public static final String SERVICE_UNAVAILABLE="Service unavailable. Please try again later.";
     public static final String FAILURE = "failure";
@@ -128,6 +128,7 @@ public final class CommonConstants {
     public static final boolean PDFOUT =true;
     public static final boolean DETECTIONBASEDMASKING =false;
     public static final String FAILUREMESSAGE = "FAILURE";
+    public static final String SUCCESS = "SUCCESS";
     public static final String KYCCONSENT="Y";
     public static final String FALLBACKMESSAGE="Service unavailable. Please try again later.";
 
@@ -168,6 +169,7 @@ public final class CommonConstants {
 
     public static final String COMPLETED = "COMPLETED";
     public static final String CUSTOMER_NOT_FOUND = "Customer not found";
+    public static final String CUSTOMER_CONFLICT_MESSAGE ="Customer with this Aadhar-vault-id already exist";
     public static final String INVALID_GENDER = "Invalid gender";
     public static final String INVALID_MARITAL_STATUS = "Invalid marital status";
     public static final String INVALID_TAX_CATEGORY = "Invalid tax category";
@@ -242,5 +244,12 @@ public final class CommonConstants {
     public static final String NO_ACTIVE_ADDRESSES_FOUND_FOR_CUSTOMER = "No active address found for the customer";
     public static final String DUPLICATE_IDENTIFIER = "DUPLICATE_IDENTIFIER" ;
     public static final String FILE_UPLOAD_FAILED ="File upload failed" ;
+    // CUSTOMER LEADS
+    public static final String LEAD_FOLLOW_UP_CREATED   = "Follow-up Created";
+    public static final String LEAD_FOLLOW_UP_UPDATED   = "Follow-up Updated";
+    public static final String LEAD_FOLLOW_UP_FETCHED   = "Fetched successfully";
 
+
+    public static final String LEAD_FOLLOW_UP_HISTORY_CREATED   = "Follow-up-history Created";
+    public static final String LEAD_FOLLOW_UP_HISTORY_FETCHED   = "Fetched successfully";
 }

@@ -19,6 +19,10 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -184,33 +188,6 @@ public class BankMasterDataControllerTest {
         assertThat(result.getIdentity()).isEqualTo(id);
     }
 
-
-    @Test
-    void testGetAllIfscCodes() {
-        IfscCodesDto dto = new IfscCodesDto();
-        dto.setIfscCode("SBIN0001234");
-        dto.setBankName("State Bank of India");
-        dto.setBranchName("Ernakulam");
-        dto.setPincodes(682030);
-
-        List<IfscCodesDto> mockList = List.of(dto);
-
-        when(bankMasterDataService.getAllIfscCodes()).thenReturn(mockList);
-
-        ResponseEntity<List<IfscCodesDto>> response = bankMasterDataController.getAllIfscCodes();
-
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).hasSize(1);
-
-        IfscCodesDto result = response.getBody().get(0);
-        assertThat(result.getIfscCode()).isEqualTo("SBIN0001234");
-        assertThat(result.getBankName()).isEqualTo("State Bank of India");
-        assertThat(result.getBranchName()).isEqualTo("Ernakulam");
-        assertThat(result.getPincodes()).isEqualTo(682030);
-    }
-
-
     @Test
     void testGetAllCustomerGroups() {
         CustomerGroupMasterView mockView = mock(CustomerGroupMasterView.class);
@@ -270,6 +247,31 @@ public class BankMasterDataControllerTest {
         assertThat(response.getBody().getBankName()).isEqualTo("State Bank of India");
         assertThat(response.getBody().getBranchName()).isEqualTo("MG Road");
         assertThat(response.getBody().getPincodes()).isEqualTo(682016);
+    }
+
+    @Test
+    void testGetAllIfscCodes_WithPagination() {
+
+        IfscCodesDto mockDto = new IfscCodesDto();
+        mockDto.setIfscCode("SBIN0016400");
+        mockDto.setBankName("State Bank of India");
+        mockDto.setBranchName("Main Branch");
+        mockDto.setBranchPlace("Kochi");
+        mockDto.setPincodes(682031);
+        mockDto.setRbiFlag(true);
+        mockDto.setIsActive(true);
+        mockDto.setIdentity(UUID.randomUUID());
+
+        Page<IfscCodesDto> mockPage = new PageImpl<>(List.of(mockDto), PageRequest.of(0, 10), 1);
+
+        when(bankMasterDataService.getAllIfscCodes(PageRequest.of(0, 10))).thenReturn(mockPage);
+
+        ResponseEntity<Page<IfscCodesDto>> response = bankMasterDataController.getAllIfscCodes(0, 10);
+
+        assertNotNull(response);
+        assertEquals(1, response.getBody().getTotalElements());
+        assertEquals("SBIN0016400", response.getBody().getContent().get(0).getIfscCode());
+        assertEquals("State Bank of India", response.getBody().getContent().get(0).getBankName());
     }
 
 

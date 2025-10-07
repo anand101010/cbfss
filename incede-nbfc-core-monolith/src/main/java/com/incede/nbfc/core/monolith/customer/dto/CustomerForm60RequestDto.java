@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.dto;
 
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -16,14 +18,14 @@ public class CustomerForm60RequestDto {
     private Long form60Id;
 
     @NotNull(message = "Customer ID is required")
-    private Integer customerId;
+    private UUID customerId;
 
     @NotNull(message = "Branch ID is required")
-    private Integer branchId;
+    private UUID branchId;
 
-    private Integer pidDocumentId;
+    private UUID pidDocumentId;
 
-    private Integer addDocumentId;
+    private UUID addDocumentId;
 
     @DecimalMin(value = "0.01", inclusive = true, message = "Transaction amount must be greater than 0")
     private BigDecimal transactionAmount;
@@ -70,6 +72,14 @@ public class CustomerForm60RequestDto {
     private LocalDate submissionDate;
 
     private Integer formFileId;
+
+    private String telephoneNumber;
+
+    private String floorNumber;
+
+    private String nameOfPremises;
+
+    private String maskedAdhar;
 
     @NotNull(message = "Created by is required")
     private Integer createdBy;

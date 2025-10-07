@@ -3,6 +3,7 @@ package com.incede.nbfc.core.monolith.customer.mapper;
 import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerAddress;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressDetailDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressResponseDto;
 import org.slf4j.Logger;
@@ -122,5 +123,32 @@ public class CustomerAddressMapper {
     public Integer getUpdatedBy() {
         log.debug("Returning updatedBy constant: {}", CommonConstants.UPDATED_BY);
         return CommonConstants.UPDATED_BY;
+    }
+
+    public CustomerAddressDetailDto mapToCustomerAddressDetailDto(Customer customer, CustomerAddress address) {
+        return new CustomerAddressDetailDto(
+                customer.getIdentity(),
+                customer.getCustomerCode(),
+//                customer.getStatus(),
+                address.getIdentity(),
+                address.getAddressType().getIdentity(),
+                address.getDoorNumber(),
+                address.getAddressLine1(),
+                address.getAddressLine2(),
+                address.getLandmark(),
+                address.getPlaceName(),
+                address.getCity(),
+                address.getDistrict(),
+                address.getState(),
+                address.getCountry(),
+                address.getPincode(),
+                address.getPostOffice() != null ? address.getPostOffice().getIdentity() : null,
+                address.getLatitude(),
+                address.getLongitude(),
+                address.getGeoAccuracy(),
+                address.getAddressProofType() != null ? address.getAddressProofType().getIdentity() : null,
+                address.getIsActive(),
+                address.getDigipin()
+        );
     }
 }

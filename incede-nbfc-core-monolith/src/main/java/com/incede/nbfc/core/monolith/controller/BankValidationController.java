@@ -4,6 +4,7 @@ import com.incede.nbfc.core.monolith.domain.dto.BankValidateRequestDto;
 import com.incede.nbfc.core.monolith.service.BankValidationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
  *  typically using a "penny drop" mechanism to confirm account validity.
  */
 @RestController
+@PreAuthorize("hasRole('STAFF')")
 @RequestMapping("/ext/bank/")
 @Slf4j
 public class BankValidationController {

@@ -38,6 +38,13 @@ public class CustomerForm60ResponseDto {
 
     private LocalDate submissionDate;
     private Integer formFileId;
+
+    private String telephoneNumber;
+    private String floorNumber;
+    private String nameOfPremises;
+    private String maskedAdhar;
+    private Integer branchId;
+
     private UUID identity;
 
 

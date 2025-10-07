@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.domain.entity;
 import com.incede.nbfc.core.monolith.customer.enums.PhotoStatus;
+import com.incede.nbfc.core.monolith.user.domain.entity.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -33,9 +34,9 @@ public class CustomerPhoto  extends CustomerBaseEntity implements Serializable {
     @Min(value = 1, message = "Photo reference id must be a positive integer")
     private Integer photoRefId;
 
-    @Column(name = "captured_by")
-    @Min(value = 1, message = "Captured by id must be a positive integer")
-    private Integer capturedBy;
+    @JoinColumn(name = "captured_by", referencedColumnName = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private User capturedBy;
 
     @ToString.Exclude
     @Digits(integer = 9, fraction = 6)

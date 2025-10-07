@@ -29,7 +29,7 @@ public class CustomerPhotoResponseDto {
         private String firstname;
         private Integer photoId;
         private Integer photoRefId;
-        private Integer capturedBy;
+        private UUID capturedBy;
         private BigDecimal latitude;
         private BigDecimal longitude;
         private LocalDateTime captureTime;

@@ -2,6 +2,7 @@ package com.incede.nbfc.core.monolith.customer.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.incede.nbfc.core.monolith.client.dto.User;
 import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerPhoto;
@@ -47,6 +48,7 @@ class CustomerPhotoServiceTest {
     void setup() {
         customer = new Customer();
         customer.setIdentity(customerId);
+
     }
 
     private CustomerPhotoRequestDto createValidDto() {
@@ -55,14 +57,13 @@ class CustomerPhotoServiceTest {
         dto.setLocationDescription("Office");
         dto.setCaptureDevice("Mobile");
         dto.setAccuracy(BigDecimal.valueOf(99.99));
-        dto.setCapturedBy(1);
+        dto.setCapturedBy(UUID.randomUUID());
         dto.setPhotoLivenessStatus("LIVE");
         dto.setLongitude(BigDecimal.valueOf(77.5946));
         dto.setLatitude(BigDecimal.valueOf(12.9716));
         return dto;
     }
 
-    // ---------------------- Happy Path ----------------------
 
     @Test
     void createPhoto_success() throws Exception {
@@ -124,7 +125,6 @@ class CustomerPhotoServiceTest {
     void createPhoto_validationFails() throws Exception {
         CustomerPhotoRequestDto dto = new CustomerPhotoRequestDto();
 
-        @SuppressWarnings("unchecked")
         ConstraintViolation<CustomerPhotoRequestDto> violation = mock(ConstraintViolation.class);
         Path path = mock(Path.class);
         when(path.toString()).thenReturn("capturedBy");

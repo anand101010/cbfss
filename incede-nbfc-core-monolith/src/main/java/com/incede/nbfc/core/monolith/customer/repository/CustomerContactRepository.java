@@ -31,5 +31,9 @@ public interface CustomerContactRepository extends JpaRepository<CustomerContact
     boolean existsByContactValueAndIsPrimaryTrueAndIsActiveTrue( String contactDetails);
 
     boolean existsByContactValueAndIdentityNotAndIsPrimaryTrueAndIsActiveTrue( String contactDetails, UUID contactId);
+
+    Optional<CustomerContact> findByCustomerAndIsPrimaryTrue(Customer customer);
+
+    Optional<CustomerContact> findByCustomerAndContactTypeAndIsPrimaryTrue(Customer customer, ContactTypes mobileContactType);
 }
 
