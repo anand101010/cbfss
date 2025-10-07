@@ -11,10 +11,11 @@ import java.util.List;
 @Repository
 public interface LeadRepository extends JpaRepository<Lead, Integer> {
 
-    @Query("SELECT l FROM Lead l WHERE " +
-            "(:mobileNumber IS NULL OR l.contactNumber = :mobileNumber) AND " +
-            "(:email IS NULL OR LOWER(CAST(l.email AS string)) = LOWER(:email)) AND " +
-            "(:fullName IS NULL OR LOWER(CAST(l.fullName AS string)) LIKE LOWER(CONCAT('%', :fullName, '%')))")
+    @Query(value = "SELECT * FROM lead.leads l WHERE " +
+            "(:mobileNumber IS NULL OR l.contact_number = :mobileNumber) AND " +
+            "(:email IS NULL OR l.email ILIKE CAST(:email AS text)) AND " +
+            "(:fullName IS NULL OR l.full_name ILIKE '%' || CAST(:fullName AS text) || '%')",
+            nativeQuery = true)
     List<Lead> searchLeads(
             @Param("mobileNumber") String mobileNumber,
             @Param("email") String email,
