@@ -22,6 +22,8 @@ public final class CommonConstants {
     public static final String CATEGORY_CODE ="000" ;
     public static final String MOBILE_NUMBER_CONFLICT_MESSAGE = "Customer already exist with this mobile number";
     public static final String CAPTURED_BY_NOT_FOUND = "Captured user does not  exist";
+    public static final String KYC_NOT_FOUND = "No KYC document found ";
+    public static final String MOBILE_NOT_FOUND ="Mobile contact type not found" ;
 
     private CommonConstants() {
         // Utility class - prevent instantiation
@@ -151,19 +153,19 @@ public final class CommonConstants {
     public static final String KEY = "key";
     public static final String APIV2VALIADTOR = "v2/kyc";
 
-
+    // Entity Names
     public static final String ENTITY_CUSTOMER = "Customer";
     public static final String ENTITY_ADDRESS = "Address";
     public static final String ENTITY_BANK_ACCOUNT = "CustomerBankAccount";
     public static final String ADDRESS_TYPE_PERMANENT = "PERMANENT";
     public static final String ENTITY_NOMINEE = "Nominee";
 
-
+    // Customer Address Status
     public static final String CUSTOMER_ADDRESS_STATUS_IN_PROGRESS = "IN_PROGRESS";
     public static final String CUSTOMER_ADDRESS_STATUS_UPDATED = "UPDATED";
     public static final String CUSTOMER_ADDRESS_STATUS_SUCCESS = "SUCCESS";
 
-
+    //  Customer Bank Account Status
     public static final String CUSTOMER_STATUS_IN_PROGRESS = "IN_PROGRESS";
     public static final String CUSTOMER_STATUS_ACTIVE = "ACTIVE";
 
@@ -252,4 +254,4 @@ public final class CommonConstants {
 
     public static final String LEAD_FOLLOW_UP_HISTORY_CREATED   = "Follow-up-history Created";
     public static final String LEAD_FOLLOW_UP_HISTORY_FETCHED   = "Fetched successfully";
-}
+} 

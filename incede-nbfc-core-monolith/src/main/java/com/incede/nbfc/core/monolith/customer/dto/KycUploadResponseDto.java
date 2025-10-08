@@ -1,7 +1,10 @@
 package com.incede.nbfc.core.monolith.customer.dto;
 
+import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerKycUpload;
 import lombok.Builder;
 import lombok.Data;
+
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -12,7 +15,7 @@ public class KycUploadResponseDto {
     private String documentReference;
     private String fileName;
     private String fileType;
-    private String uploadStatus;
+    private CustomerKycUpload.UploadStatus uploadStatus;
     private Integer version;
-    private OffsetDateTime uploadDate;
+    private LocalDate uploadDate;
 }

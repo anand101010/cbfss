@@ -55,6 +55,10 @@ public class CustomerContact extends CustomerBaseEntity implements Serializable 
     @NotNull(message = "Active status must be specified")
     private Boolean isActive;
 
+    @Column(name = "is_verified")
+    @NotNull(message = "Active status must be specified")
+    private Boolean isVerified;
+
     @Column(name = "is_primary")
     private Boolean isPrimary = false;
 

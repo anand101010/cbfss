@@ -89,4 +89,17 @@ public class LeadMasterDataController {
         return ResponseEntity.ok(statuses);
     }
 
+    /**
+     * Retrieves all active and non-deleted product services.
+     *
+     * @return HTTP 200 OK with a list of {@link ProductServiceView}
+     */
+    @GetMapping("/product-services")
+    @Operation(summary = "Get all product services", description = "Retrieves all active product services")
+    public ResponseEntity<List<ProductServiceView>> getAllProductServices() {
+        log.info("Fetching all product services");
+        List<ProductServiceView> products = leadMasterDataService.getAllProductServices();
+        return ResponseEntity.ok(products);
+    }
+
 }

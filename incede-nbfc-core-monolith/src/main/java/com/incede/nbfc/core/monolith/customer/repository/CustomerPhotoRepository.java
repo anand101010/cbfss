@@ -10,5 +10,7 @@ import java.util.UUID;
 @Repository
 public interface CustomerPhotoRepository extends JpaRepository<CustomerPhoto,Integer> {
     List<CustomerPhoto> findByCustomerIdentityAndIsDelFalseOrderByCaptureTimeDesc(UUID identity);
+
+    List<CustomerPhoto> findByCustomerCustomerIdAndIsDelFalse(Integer customerId);
 }
 

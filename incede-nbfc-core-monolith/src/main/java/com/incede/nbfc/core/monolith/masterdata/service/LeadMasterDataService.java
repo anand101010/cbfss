@@ -20,6 +20,7 @@ public class LeadMasterDataService {
     private final LeadStageRepository leadStageRepository;
     private final FollowUpTypeRepository followUpTypeRepository;
     private final LeadStatusRepository leadStatusRepository;
+    private final ProductServiceRepository productServiceRepository;
 
     /**
      * Retrieves all active and non-deleted additional reference configurations.
@@ -101,4 +102,21 @@ public class LeadMasterDataService {
         return Collections.unmodifiableList(statuses);
     }
 
+    /**
+     * Retrieves all active and non-deleted product services.
+     *
+     * @return an unmodifiable list of {@link ProductServiceView}; empty if none found
+     */
+    @Transactional(readOnly = true)
+    public List<ProductServiceView> getAllProductServices() {
+
+        List<ProductServiceView> statuses = productServiceRepository.findByIsDelFalseAndIsActiveTrue();
+        if (statuses.isEmpty()) {
+            log.warn("No product service found");
+            return statuses;
+        }
+        log.info("Fetched {} product service", statuses.size());
+        return Collections.unmodifiableList(statuses);
+
+    }
 }

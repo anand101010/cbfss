@@ -52,7 +52,7 @@ public class CustomerSearchService {
             String name = searchRequest.getCustomerName() != null && !searchRequest.getCustomerName().trim().isEmpty() ?
                     searchRequest.getCustomerName().trim() : null;
 
-            List<Lead> leads = leadRepository.searchLeads(mobile, email, name);
+            List<Lead> leads = leadRepository.searchLeadDetails(mobile, email, name);
             log.info("Found {} leads matching search criteria", leads.size());
 
             return leads.stream()
@@ -65,7 +65,7 @@ public class CustomerSearchService {
                 .collect(Collectors.toList());
     }
 
-    private CustomerSearchResponseDto mapToSearchResponseDto(Customer customer) {
+    public CustomerSearchResponseDto mapToSearchResponseDto(Customer customer) {
         return CustomerSearchResponseDto.builder()
                 .customerIdentity(customer.getIdentity())
                 .isCustomerExist(true)
@@ -79,7 +79,7 @@ public class CustomerSearchService {
                 .build();
     }
 
-    private CustomerSearchResponseDto mapLeadToSearchResponseDto(Lead lead) {
+    public CustomerSearchResponseDto mapLeadToSearchResponseDto(Lead lead) {
         return CustomerSearchResponseDto.builder()
                 .customerCode(lead.getLeadCode())
                 .isLeadExist(true)

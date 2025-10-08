@@ -5,6 +5,7 @@ import com.incede.nbfc.core.monolith.masterdata.service.LeadMasterDataService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -111,4 +112,21 @@ class LeadMasterDataControllerTest {
         assertThat(response.getBody()).hasSize(1);
         assertThat(response.getBody().get(0).getName()).isEqualTo("Converted");
     }
+    @Test
+    void testGetAllProductServices() {
+        ProductServiceView mockProduct = mock(ProductServiceView.class);
+        given(mockProduct.getName()).willReturn("Loan Processing");
+        given(mockProduct.getIsActive()).willReturn(true);
+
+        given(leadMasterDataService.getAllProductServices()).willReturn(List.of(mockProduct));
+
+        ResponseEntity<List<ProductServiceView>> response = leadMasterDataController.getAllProductServices();
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).getName()).isEqualTo("Loan Processing");
+        assertThat(response.getBody().get(0).getIsActive()).isTrue();
+    }
+
 }

@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -49,10 +50,11 @@ public class LeadAddress extends LeadBaseEntity implements Serializable {
     @Column(name = "landmark", length = 100)
     private String landmark;
 
-    @Column(name = "pincode")
-    @Min(value = 100000, message = "Pincode must be >= 100000")
-    @Max(value = 999999, message = "Pincode must be <= 999999")
-    private Integer pincode;
+
+    @Column(name = "pincode", length = 6)
+    @Pattern(regexp = "^[0-9]{6}$", message = "Pincode must be exactly 6 digits")
+    private String pincode;
+
 
     @Column(name = "country_id")
     private String  country;

@@ -86,7 +86,7 @@ public class CustomerKycMapper {
     private KycDocumentResponseDto toKycDocumentResponseDto(CustomerKyc customerKyc,MultipartFile file) {
         return KycDocumentResponseDto.builder()
                 .identity(customerKyc.getIdentity())
-                .idType(customerKyc.getIdType() != null ? customerKyc.getIdType().getDisplayName() : null)
+                .idType(customerKyc.getIdType().getIdentity())
                 .idNumber(customerKyc.getIdNumber())
                 .placeOfIssue(customerKyc.getPlaceOfIssue())
                 .issuingAuthority(customerKyc.getIssuingAuthority())
@@ -144,7 +144,7 @@ public class CustomerKycMapper {
                 .documentReference("DOC_REF_" + (customerKyc.getDocumentRefId() != null ? customerKyc.getDocumentRefId() : "UNKNOWN"))
                 .fileName(originalFilename != null ? originalFilename : "document")
                 .fileType(fileType != null ? fileType : "application/octet-stream")
-                .uploadStatus("UPLOADED")
+                .uploadStatus(CustomerKycUpload.UploadStatus.SUCCESS)
                 .version(1)
                 .build());
     }

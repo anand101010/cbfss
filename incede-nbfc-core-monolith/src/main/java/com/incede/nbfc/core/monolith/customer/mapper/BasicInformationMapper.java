@@ -136,8 +136,8 @@ public class BasicInformationMapper {
      * @param contactType ContactTypes entity for MOBILE
      * @return CustomerContact entity
      */
-    public CustomerContact toCustomerContact(Customer customer, String mobileNumber, ContactTypes contactType) {
-        if (customer == null || mobileNumber == null || contactType == null) {
+    public CustomerContact toCustomerContact(Customer customer, String mobileNumber, ContactTypes contactType,Boolean isVerified) {
+        if (customer == null || mobileNumber == null || contactType == null||isVerified==null) {
             return null;
         }
 
@@ -147,6 +147,7 @@ public class BasicInformationMapper {
         contact.setContactValue(mobileNumber);
         contact.setIsPrimary(true);
         contact.setIsActive(true);
+        contact.setIsVerified(isVerified);
         contact.setIsPromotionalOptOut(false);
         contact.setCreatedAt(LocalDateTime.now());
         contact.setCreatedBy(getCreatedBy());
@@ -160,11 +161,14 @@ public class BasicInformationMapper {
      * @param contact Existing CustomerContact entity
      * @param mobileNumber New mobile number
      */
-    public void updateCustomerContact(CustomerContact contact, String mobileNumber) {
+    public void updateCustomerContact(CustomerContact contact, String mobileNumber,Boolean isVerified) {
         if (contact != null && mobileNumber != null) {
             contact.setContactValue(mobileNumber);
             contact.setUpdatedAt(LocalDateTime.now());
             contact.setUpdatedBy(getUpdatedBy());
+            contact.setIsVerified(isVerified);
+            contact.setIsPrimary(true);
+            contact.setIsVerified(true);
         }
     }
     public Integer getCreatedBy() {

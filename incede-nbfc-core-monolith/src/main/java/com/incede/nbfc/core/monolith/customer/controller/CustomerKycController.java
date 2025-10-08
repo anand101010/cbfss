@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -46,4 +47,14 @@ public class CustomerKycController {
         CustomerKycResponseDto customerKycResponseDto = customerKycService.addKycDocument(requestJson, file, customerIdentity);
         return ResponseEntity.status(HttpStatus.CREATED).body(customerKycResponseDto);
     }
+
+    @PreAuthorize("hasRole('STAFF')")
+    @GetMapping("/{customerIdentity}/getKyc")
+    public ResponseEntity<CustomerKycResponseDto> getKycDocuments(
+            @PathVariable UUID customerIdentity
+    ) {
+        CustomerKycResponseDto customerKycResponseDtos = customerKycService.getKycDocuments(customerIdentity);
+        return ResponseEntity.status(HttpStatus.OK).body(customerKycResponseDtos);
+    }
+
 }

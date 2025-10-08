@@ -19,4 +19,6 @@ public interface CustomerAddressRepository extends JpaRepository<CustomerAddress
 
 
     List<CustomerAddress> findByCustomerAndAddressTypeAndIsActiveTrueAndIsDelFalse(Customer customer, AddressType permanentAddressType);
+
+    List<CustomerAddress> findByCustomerCustomerIdAndIsDelFalse(Integer customerId);
 }

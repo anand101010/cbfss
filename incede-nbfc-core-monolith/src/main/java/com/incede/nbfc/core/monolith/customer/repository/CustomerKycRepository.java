@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -20,4 +21,5 @@ public interface CustomerKycRepository extends JpaRepository<CustomerKyc, Intege
     List<CustomerKyc> findByCustomer(Customer savedCustomer);
 
     Optional<CustomerKyc> findByIdTypeAndIdNumber(DocumentType documentType, @NotBlank(message = "ID number must not be blank") @Size(max = 50, message = "ID number must not exceed 50 characters") String idNumber);
+
 }

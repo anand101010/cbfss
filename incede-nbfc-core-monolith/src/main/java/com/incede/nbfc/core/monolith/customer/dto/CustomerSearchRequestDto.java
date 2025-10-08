@@ -1,16 +1,17 @@
 package com.incede.nbfc.core.monolith.customer.dto;
 
-
-
-
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @Data
-@RequiredArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class CustomerSearchRequestDto {
-    @NotNull
+
     private String branchCode;
     private Integer branchId;
     private String mobileNumber;
@@ -21,5 +22,3 @@ public class CustomerSearchRequestDto {
     private String passportNumber;
     private String customerName;
 }
-
-

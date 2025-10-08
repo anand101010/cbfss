@@ -2,7 +2,6 @@ package com.incede.nbfc.core.monolith.customer.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.incede.nbfc.core.monolith.client.dto.User;
 import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerPhoto;
@@ -13,6 +12,8 @@ import com.incede.nbfc.core.monolith.customer.repository.CustomerPhotoRepository
 import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.exception.ResourceNotFoundException;
+import com.incede.nbfc.core.monolith.user.domain.entity.User;
+import com.incede.nbfc.core.monolith.user.repository.UserRepository;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Path;
 import jakarta.validation.Validator;
@@ -39,6 +40,7 @@ class CustomerPhotoServiceTest {
     @Mock private CustomerPhotoMapper customerPhotoMapper;
     @Mock private ObjectMapper objectMapper;
     @Mock private MultipartFile file;
+    @Mock private UserRepository userRepository;
     @InjectMocks private CustomerPhotoService service;
 
     private final UUID customerId = UUID.randomUUID();
@@ -71,8 +73,11 @@ class CustomerPhotoServiceTest {
         CustomerPhoto entity = new CustomerPhoto();
         CustomerPhoto saved = new CustomerPhoto();
         CustomerPhotoResponseDto response = new CustomerPhotoResponseDto();
+        User capturedByUser = new User();
+        capturedByUser.setIdentity(dto.getCapturedBy());
 
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(userRepository.findByIdentity(dto.getCapturedBy())).thenReturn(Optional.of(capturedByUser));
         when(objectMapper.readValue(anyString(), eq(CustomerPhotoRequestDto.class))).thenReturn(dto);
         when(customerPhotoMapper.toEntity(dto)).thenReturn(entity);
         when(photoRepository.save(entity)).thenReturn(saved);
@@ -149,14 +154,18 @@ class CustomerPhotoServiceTest {
     void createPhoto_constraintViolation() throws Exception {
         CustomerPhotoRequestDto dto = createValidDto();
         CustomerPhoto entity = new CustomerPhoto();
+        User capturedByUser = new User();
+        capturedByUser.setIdentity(dto.getCapturedBy());
 
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(userRepository.findByIdentity(dto.getCapturedBy())).thenReturn(Optional.of(capturedByUser));
         when(objectMapper.readValue(anyString(), eq(CustomerPhotoRequestDto.class))).thenReturn(dto);
         when(customerPhotoMapper.toEntity(dto)).thenReturn(entity);
         when(photoRepository.save(entity)).thenThrow(new DataIntegrityViolationException("constraint"));
 
-        assertThrows(BusinessException.class,
+        BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.createPhoto(customerId, "{}", file));
+        assertTrue(ex.getMessage().contains(CommonConstants.CONSTRAIN_VIOLATION));
     }
 
 

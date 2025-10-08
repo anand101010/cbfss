@@ -21,4 +21,8 @@ public interface NomineeRepository extends JpaRepository<Nominee, Integer> {
     @Query("SELECT n FROM Nominee n WHERE n.customer.identity = :customerIdentity AND n.isDel = false")
     List<Nominee> findByCustomerIdentityAndIsDelFalse(UUID customerIdentity);
     boolean existsByCustomerAndFullNameAndRelationshipAndIsDelFalse(Customer customer, String fullName, Relationships relationship);
+
+    List<Nominee> findByCustomerCustomerIdAndIsDelFalse(Integer customerId);
+
 }
+

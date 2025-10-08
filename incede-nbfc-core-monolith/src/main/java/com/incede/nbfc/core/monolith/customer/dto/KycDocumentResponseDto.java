@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.dto;
 
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.DocumentType;
 import lombok.Builder;
 import lombok.Data;
 import java.time.OffsetDateTime;
@@ -10,7 +11,7 @@ import java.util.UUID;
 @Builder
 public class KycDocumentResponseDto {
     private UUID identity;
-    private String idType;
+    private UUID idType;
     private String idNumber;
     private String placeOfIssue;
     private String issuingAuthority;

@@ -2,6 +2,7 @@ package com.incede.nbfc.core.monolith.customer.controller;
 
 import com.incede.nbfc.core.monolith.customer.dto.BasicInformationRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.BasicInformationResponseDto;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerDetailResponseDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerDto;
 import com.incede.nbfc.core.monolith.customer.service.BasicInformationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -70,7 +71,7 @@ public class BasicInformationController {
         BasicInformationResponseDto response = customerOnboardingService.getBasicInformationByUuid(customerUUID);
         return ResponseEntity.ok(response);
     }
-
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/{customerCode}/guardian")
     @Operation(summary = "Get Basic Info", description = "Fetches basic info of a customer by UUID")
     public ResponseEntity<CustomerDto> getCustomerByCustomerCode(@PathVariable String customerCode) {
@@ -78,11 +79,19 @@ public class BasicInformationController {
         return ResponseEntity.ok(response);
 
     }
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/{customerIdentity}/identity/guardian")
     @Operation(summary = "Get Basic Info", description = "Fetches basic info of a customer by UUID")
     public ResponseEntity<CustomerDto> getCustomerByCustomerIdentity(@PathVariable UUID customerIdentity) {
         CustomerDto response = customerOnboardingService.getCustomerWithCustomerIdentity(customerIdentity);
         return ResponseEntity.ok(response);
 
+    }
+    @PreAuthorize("hasRole('STAFF')")
+    @GetMapping("/{customerIdentity}/allDetails")
+    @Operation(summary = "Get All details of customer all over the entities")
+    public ResponseEntity<CustomerDetailResponseDto> getAllDetails(@PathVariable UUID customerIdentity){
+        CustomerDetailResponseDto response = customerOnboardingService.getCustomerWithDetails(customerIdentity);
+        return ResponseEntity.ok(response);
     }
 }

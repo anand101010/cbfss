@@ -17,7 +17,6 @@ public class CustomerKycRequestDto {
     private UUID idType;
 
     @NotNull(message = "branchId  is required")
-
     private UUID branchId;
     @NotBlank(message = "ID number must not be blank")
     @ToString.Exclude

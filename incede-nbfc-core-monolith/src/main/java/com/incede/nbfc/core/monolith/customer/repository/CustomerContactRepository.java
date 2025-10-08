@@ -35,5 +35,7 @@ public interface CustomerContactRepository extends JpaRepository<CustomerContact
     Optional<CustomerContact> findByCustomerAndIsPrimaryTrue(Customer customer);
 
     Optional<CustomerContact> findByCustomerAndContactTypeAndIsPrimaryTrue(Customer customer, ContactTypes mobileContactType);
+
+    List<CustomerContact> findByCustomerCustomerIdAndIsDelFalse(Integer customerId);
 }
 

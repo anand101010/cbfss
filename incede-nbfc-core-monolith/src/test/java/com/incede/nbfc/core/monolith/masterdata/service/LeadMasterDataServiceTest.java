@@ -19,6 +19,7 @@ class LeadMasterDataServiceTest {
     private LeadStageRepository leadStageRepository;
     private FollowUpTypeRepository followUpTypeRepository;
     private LeadStatusRepository leadStatusRepository;
+    private ProductServiceRepository productServiceRepository;
 
     private LeadMasterDataService leadMasterDataService;
 
@@ -35,7 +36,8 @@ class LeadMasterDataServiceTest {
                 leadSourceRepository,
                 leadStageRepository,
                 followUpTypeRepository,
-                leadStatusRepository
+                leadStatusRepository,
+                productServiceRepository
         );
     }
 
@@ -199,4 +201,6 @@ class LeadMasterDataServiceTest {
         RuntimeException ex = assertThrows(RuntimeException.class, () -> leadMasterDataService.getAllLeadStatuses());
         assertEquals("DB error", ex.getMessage());
     }
+
+
 }

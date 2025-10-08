@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -53,6 +54,7 @@ class BankValidationControllerTest {
      */
     @Test
     @DisplayName("Test validateBankAccount - success case")
+//    @WithMockUser(roles = "STAFF")
     void testValidateBankAccount_success() throws Exception {
         // Arrange
         BankValidationResponseDto responseDto = new BankValidationResponseDto();
@@ -72,6 +74,7 @@ class BankValidationControllerTest {
         MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders
                 .post("/ext/bank/account/verify")
                 .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
                 .content(content);
 
         mockMvc.perform(requestBuilder)
@@ -104,6 +107,7 @@ class BankValidationControllerTest {
         MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders
                 .post("/ext/bank/account/verify")
                 .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
                 .content(content);
 
         mockMvc.perform(requestBuilder)

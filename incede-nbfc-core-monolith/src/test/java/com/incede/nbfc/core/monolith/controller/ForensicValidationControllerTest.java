@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.incede.nbfc.core.monolith.client.dto.PhotoLivenessCheckResponseDto;
 import com.incede.nbfc.core.monolith.client.dto.PhotoLivenessCheckResponseDto.DataDto;
+import com.incede.nbfc.core.monolith.controller.ForensicValidationController;
 import com.incede.nbfc.core.monolith.domain.dto.FaceMatchingRequestDto;
 import com.incede.nbfc.core.monolith.domain.dto.PhotoLivenessRequestDto;
 import com.incede.nbfc.core.monolith.exception.GlobalExceptionHandler;
@@ -70,6 +71,7 @@ class ForensicValidationControllerTest {
         MockHttpServletRequestBuilder requestBuilder =
                 MockMvcRequestBuilders.post("/ext/forensic/image/liveness")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
                         .content(content);
         MockMvcBuilders.standaloneSetup(forensicValidationController)
                 .setControllerAdvice(globalExceptionHandler)
@@ -132,6 +134,7 @@ class ForensicValidationControllerTest {
         MockHttpServletRequestBuilder requestBuilder =
                 MockMvcRequestBuilders.post("/ext/forensic/image/liveness")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
                         .content(content);
         MockMvcBuilders.standaloneSetup(forensicValidationController)
                 .setControllerAdvice(globalExceptionHandler)
@@ -152,6 +155,7 @@ class ForensicValidationControllerTest {
         MockHttpServletRequestBuilder requestBuilder =
                 MockMvcRequestBuilders.post("/ext/forensic/image/verify")
                         .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaType.APPLICATION_JSON)
                         // missing aadhaarImageBase64
                         .param("liveImageBase64", "base64LiveImage");
 

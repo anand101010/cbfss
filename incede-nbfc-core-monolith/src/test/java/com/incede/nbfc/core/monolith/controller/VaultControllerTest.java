@@ -1,6 +1,7 @@
 package com.incede.nbfc.core.monolith.controller;
 
 import com.incede.nbfc.core.monolith.client.dto.FinaVaultResponseDto;
+import com.incede.nbfc.core.monolith.controller.VaultController;
 import com.incede.nbfc.core.monolith.service.VaultService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

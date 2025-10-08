@@ -76,7 +76,7 @@ public class BasicInformationRequestDto {
     @NotNull(message = "IsFirm cannot be null")
     private Boolean isFirm;
 
-
+    private Boolean isVerified;
     @ToString.Exclude
     private String spouseName;
 

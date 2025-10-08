@@ -9,6 +9,8 @@ import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerKyc;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerKycUpload;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerKycRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerKycResponseDto;
+import com.incede.nbfc.core.monolith.customer.dto.KycDocumentResponseDto;
+import com.incede.nbfc.core.monolith.customer.dto.KycUploadResponseDto;
 import com.incede.nbfc.core.monolith.customer.mapper.CustomerKycMapper;
 import com.incede.nbfc.core.monolith.customer.repository.CustomerKycRepository;
 import com.incede.nbfc.core.monolith.customer.repository.CustomerKycUploadRepository;
@@ -30,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -209,5 +212,76 @@ public class CustomerKycService {
         return "XXXX XXXX " + idNumber.substring(idNumber.length() - 4);
     }
 
+    @Transactional(readOnly = true)
+    public CustomerKycResponseDto getKycDocuments(UUID customerIdentity) {
+        try {
+            Customer customer = customerRepository.findByIdentity(customerIdentity)
+                    .orElseThrow(() -> new ResourceNotFoundException("Customer not found with ID: " + customerIdentity));
+
+            List<CustomerKyc> kycs = customerKycRepository.findByCustomer(customer);
+
+            return buildKycResponseDto(customer, kycs);
+
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error fetching KYC documents for customer: {}", customerIdentity, e);
+            throw new BusinessException("Failed to fetch KYC documents", ErrorCodes.INTERNAL_SERVER_ERROR, e);
+        }
+    }
+
+    private CustomerKycResponseDto buildKycResponseDto(Customer customer, List<CustomerKyc> kycs) {
+        List<KycDocumentResponseDto> kycDocuments = kycs.stream()
+                .map(this::mapToKycDocumentDto)
+                .collect(Collectors.toList());
+
+        return CustomerKycResponseDto.builder()
+                .identity(customer.getIdentity())
+                .customerCode(customer.getCustomerCode())
+                .firstName(customer.getFirstName())
+                .lastName(customer.getLastName())
+                .dob(customer.getDob() != null ? customer.getDob().toString() : null)
+                .gender(customer.getGender() != null ? customer.getGender().getIdentity() : null)
+                .customerStatus(customer.getCustomerStatus() != null ? customer.getCustomerStatus().getIdentity() : null)
+                .onboardingStatus(customer.getOnboardingStatus())
+                .branchId(customer.getBranchId() != null ? customer.getBranchId().getIdentity() : null)
+                .kycDocuments(kycDocuments)
+                .build();
+    }
+
+    private KycDocumentResponseDto mapToKycDocumentDto(CustomerKyc kyc) {
+        return KycDocumentResponseDto.builder()
+                .identity(kyc.getIdentity())
+                .idType(kyc.getIdType().getIdentity() ) // Use UUID instead of display name
+                .idNumber(kyc.getIdNumber())
+                .placeOfIssue(kyc.getPlaceOfIssue())
+                .issuingAuthority(kyc.getIssuingAuthority())
+                .validFrom(kyc.getValidFrom() != null ? kyc.getValidFrom().toString() : null)
+                .validTo(kyc.getValidTo() != null ? kyc.getValidTo().toString() : null)
+                .isVerified(kyc.getIsVerified())
+                .isActive(kyc.getIsActive())
+                .build();
+    }
+
+    private List<KycUploadResponseDto> mapToUploadDtos(List<CustomerKycUpload> uploads) {
+        if (uploads == null || uploads.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return uploads.stream()
+                .map(this::mapToUploadDto)
+                .collect(Collectors.toList());
+    }
+
+    private KycUploadResponseDto mapToUploadDto(CustomerKycUpload upload) {
+        return KycUploadResponseDto.builder()
+                .identity(upload.getIdentity())
+                .documentReference(upload.getDocumentReference() != null ? upload.getDocumentReference().toString() : null)
+                .fileName(upload.getFileName())
+                .fileType(upload.getFileType())
+                .uploadStatus(upload.getUploadStatus())
+                .version(upload.getVersion())
+                .build();
+    }
 
 }

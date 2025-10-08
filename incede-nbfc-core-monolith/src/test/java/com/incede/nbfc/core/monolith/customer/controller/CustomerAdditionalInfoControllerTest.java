@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -40,8 +41,10 @@ class CustomerAdditionalInfoControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
         objectMapper = new ObjectMapper();
+        mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
+                .build();
         customerIdentity = UUID.randomUUID();
     }
 
@@ -55,6 +58,7 @@ class CustomerAdditionalInfoControllerTest {
 
         mockMvc.perform(put("/api/v1/customers/" + customerIdentity + "/additional")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.identity").value(customerIdentity.toString()))
@@ -71,7 +75,8 @@ class CustomerAdditionalInfoControllerTest {
         when(additionalInfoService.getAdditionalInfo(customerIdentity)).thenReturn(responseDto);
 
         mockMvc.perform(get("/api/v1/customers/" + customerIdentity + "/additional")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)) // Ensure JSON response is expected
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.identity").value(customerIdentity.toString()))
                 .andExpect(jsonPath("$.customerCode").value("CUST123"))

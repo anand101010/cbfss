@@ -1,14 +1,10 @@
 package com.incede.nbfc.core.monolith.customer.service;
 
 import com.incede.nbfc.core.monolith.common.CommonConstants;
-import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
-import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerContact;
-import com.incede.nbfc.core.monolith.customer.dto.BasicInformationRequestDto;
-import com.incede.nbfc.core.monolith.customer.dto.BasicInformationResponseDto;
-import com.incede.nbfc.core.monolith.customer.dto.CustomerDto;
+import com.incede.nbfc.core.monolith.customer.domain.entity.*;
+import com.incede.nbfc.core.monolith.customer.dto.*;
 import com.incede.nbfc.core.monolith.customer.mapper.BasicInformationMapper;
-import com.incede.nbfc.core.monolith.customer.repository.CustomerContactRepository;
-import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
+import com.incede.nbfc.core.monolith.customer.repository.*;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.exception.ErrorCodes;
 import com.incede.nbfc.core.monolith.masterdata.domain.entity.ContactTypes;
@@ -25,9 +21,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +46,13 @@ public class BasicInformationService {
     private final TenantRepository tenantRepository;
     private final CustomerContactRepository contactRepository;
     private final ContactTypesRepository contactTypesRepository;
+
+    private final CustomerAddressRepository customerAddressRepository;
+    private final CustomerPhotoRepository customerPhotoRepository;
+    private final NomineeRepository nomineeRepository;
+    private final CustomerBankAccountRepository bankAccountRepository;
+    private final CustomerContactRepository customerContactRepository;
+    private final CustomerAdditionalInfoService customerAdditionalInfoService;
 
     /**
      * Save basic information of a new customer.
@@ -83,7 +88,7 @@ public class BasicInformationService {
 
             Customer savedCustomer = customerRepository.save(customer);
 
-            savePrimaryContact(savedCustomer, dto.getMobileNumber());
+            savePrimaryContact(savedCustomer, dto.getMobileNumber(),dto.getIsVerified());
 
             return customerMapper.toResponseDto(savedCustomer);
         } catch (DataIntegrityViolationException e) {
@@ -123,8 +128,7 @@ public class BasicInformationService {
 
             Customer updatedCustomer = customerRepository.save(existingCustomer);
 
-            // Update or create primary contact using mapper
-            saveOrUpdatePrimaryContact(updatedCustomer, dto.getMobileNumber());
+            saveOrUpdatePrimaryContact(updatedCustomer, dto.getMobileNumber(),dto.getIsVerified());
 
             return customerMapper.toResponseDto(updatedCustomer);
         } catch (DataIntegrityViolationException e) {
@@ -138,13 +142,11 @@ public class BasicInformationService {
      * @param customer    Customer entity
      * @param mobileNumber Mobile number to save as primary contact
      */
-    private void savePrimaryContact(Customer customer, String mobileNumber) {
-        // Find the MOBILE contact type from the database
-        ContactTypes mobileContactType = contactTypesRepository.findByContactTypeAndIsActiveTrue("MOBILE")
-                .orElseThrow(() -> new BusinessException("Mobile contact type not found", ErrorCodes.RESOURCE_NOT_FOUND));
+    private void savePrimaryContact(Customer customer, String mobileNumber,Boolean isVerified) {
+        ContactTypes mobileContactType = contactTypesRepository.findActiveContact("MOBILE")
+                .orElseThrow(() -> new BusinessException(CommonConstants.MOBILE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
 
-        // Use mapper to create CustomerContact entity
-        CustomerContact contact = customerMapper.toCustomerContact(customer, mobileNumber, mobileContactType);
+        CustomerContact contact = customerMapper.toCustomerContact(customer, mobileNumber, mobileContactType,isVerified);
 
         contactRepository.save(contact);
         log.info("Primary contact saved for customer: {}", customer.getIdentity());
@@ -156,24 +158,21 @@ public class BasicInformationService {
      * @param customer    Customer entity
      * @param mobileNumber Mobile number to save/update as primary contact
      */
-    private void saveOrUpdatePrimaryContact(Customer customer, String mobileNumber) {
-        // Find the MOBILE contact type from the database
-        ContactTypes mobileContactType = contactTypesRepository.findByContactTypeAndIsActiveTrue("MOBILE")
-                .orElseThrow(() -> new BusinessException("Mobile contact type not found", ErrorCodes.RESOURCE_NOT_FOUND));
+    private void saveOrUpdatePrimaryContact(Customer customer, String mobileNumber,Boolean isVerified) {
+        ContactTypes mobileContactType = contactTypesRepository
+                .findActiveContact("Mobile")
+                .orElseThrow(() -> new BusinessException(CommonConstants.MOBILE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
 
-        Optional<CustomerContact> existingContact = contactRepository.findByCustomerAndContactTypeAndIsPrimaryTrue(customer, mobileContactType);
+        CustomerContact contact = contactRepository
+                .findByCustomerAndContactTypeAndIsPrimaryTrue(customer, mobileContactType)
+                .orElseGet(() -> customerMapper.toCustomerContact(customer, mobileNumber, mobileContactType,isVerified));
 
-        if (existingContact.isPresent()) {
-            // Update existing primary contact using mapper
-            CustomerContact contact = existingContact.get();
-            customerMapper.updateCustomerContact(contact, mobileNumber);
-            contactRepository.save(contact);
-            log.info("Primary contact updated for customer: {}", customer.getIdentity());
-        } else {
-            // Create new primary contact
-            savePrimaryContact(customer, mobileNumber);
-        }
+        customerMapper.updateCustomerContact(contact, mobileNumber,isVerified);
+        contactRepository.save(contact);
+
+        log.info("Primary contact saved/updated for customer: {}", customer.getIdentity());
     }
+
 
     /**
      * Retrieve basic information for a customer by UUID.
@@ -277,4 +276,227 @@ public class BasicInformationService {
         customerDto.setLastname(customer.getLastName());
         return  customerDto;
     }
+
+
+
+
+    @Transactional(readOnly = true)
+    public CustomerDetailResponseDto getCustomerWithDetails(UUID customerId) {
+        Customer customer = customerRepository.findByIdentityAndIsDelFalse(customerId)
+                .orElseThrow(() -> new RuntimeException(CommonConstants.CUSTOMER_NOT_FOUND));
+
+        List<CustomerAddress> addresses = customerAddressRepository.findByCustomerCustomerIdAndIsDelFalse(customer.getCustomerId());
+
+        List<CustomerPhoto> customerPhotos =  customerPhotoRepository.findByCustomerCustomerIdAndIsDelFalse(customer.getCustomerId());
+        List<Nominee> customerNominees = nomineeRepository.findByCustomerCustomerIdAndIsDelFalse(customer.getCustomerId());
+        List<CustomerBankAccount> bankAccounts = bankAccountRepository.findByCustomerCustomerIdAndIsDelFalse(customer.getCustomerId());
+        List<CustomerContact> contacts = customerContactRepository.findByCustomerCustomerIdAndIsDelFalse(customer.getCustomerId());
+        CustomerAdditionalInfoResponseDto additionalInfo =
+                customerAdditionalInfoService.getAdditionalInfo(customer.getIdentity());
+        return mapToResponse(customer, addresses,customerPhotos, customerNominees,bankAccounts,contacts,additionalInfo);
+
+    }
+
+    private CustomerDetailResponseDto mapToResponse(Customer customer,
+                                                    List<CustomerAddress> addresses,
+                                                    List<CustomerPhoto> customerPhotos,
+                                                    List<Nominee> nomineeList,
+                                                    List<CustomerBankAccount> bankAccounts,
+                                                    List<CustomerContact> customerContacts,
+                                                    CustomerAdditionalInfoResponseDto additionalInfo
+
+
+    ) {
+        return CustomerDetailResponseDto.builder()
+                .customerCode(customer.getCustomerCode())
+                .firstName(customer.getFirstName())
+                .middleName(customer.getMiddleName())
+                .lastName(customer.getLastName())
+                .displayName(customer.getDisplayName())
+                .dob(customer.getDob())
+                .gender(customer.getGender() != null ? customer.getGender().getGender() : null)
+                .branchName(customer.getBranchId() != null ? customer.getBranchId().getBranchName() : null)
+                .mobileNumber(customer.getMobileNumber())
+                .tenantCode(customer.getTenant() != null ? customer.getTenant().getTenantCode() : null)
+                .addresses(mapAddressDetails(addresses))
+                .customerPhotoResponseDtos(mapPhotoDetail(customerPhotos))
+                .nomineeResponseDtos(mapNomineeDetails(nomineeList))
+                .bankAccountResponseDtos(mapBankAccounts(bankAccounts))
+                .contactResponseDtos(mapContacts(customerContacts))
+                .additionalInfo(mapAdditionalInfo(additionalInfo))
+                .build();
+    }
+
+    private List<CustomerAddressResponseDto.AddressDetail> mapAddressDetails(List<CustomerAddress> addresses) {
+        if (addresses == null || addresses.isEmpty()) return List.of();
+
+        return addresses.stream()
+                .map(addr -> CustomerAddressResponseDto.AddressDetail.builder()
+                        .addressIdentity(addr.getIdentity())
+                        .addressType(addr.getAddressType() != null ? addr.getAddressType().getIdentity() : null)
+                        .doorNumber(addr.getDoorNumber())
+                        .addressLine1(addr.getAddressLine1())
+                        .addressLine2(addr.getAddressLine2())
+                        .landmark(addr.getLandmark())
+                        .placeName(addr.getPlaceName())
+                        .city(addr.getCity())
+                        .district(addr.getDistrict())
+                        .state(addr.getState())
+                        .country(addr.getCountry())
+                        .pincode(addr.getPincode())
+                        .postOffice(addr.getPostOffice() != null ? addr.getPostOffice().getIdentity() : null)
+                        .latitude(addr.getLatitude())
+                        .longitude(addr.getLongitude())
+                        .geoAccuracy(addr.getGeoAccuracy())
+                        .addressProofType(addr.getAddressProofType() != null ? addr.getAddressProofType().getIdentity() : null)
+                        .isActive(addr.getIsActive())
+                        .digipin(addr.getDigipin())
+                        .build())
+                .collect(Collectors.toList());
+    }
+    private List<CustomerPhotoResponseDto.PhotoDetail> mapPhotoDetail(List<CustomerPhoto> customerPhotos) {
+        if (customerPhotos == null || customerPhotos.isEmpty()) return List.of();
+
+        return customerPhotos.stream()
+                .map(photo -> CustomerPhotoResponseDto.PhotoDetail.builder()
+                        .firstname(photo.getCustomer() != null ? photo.getCustomer().getFirstName() : null)
+                        .photoId(photo.getPhotoId())
+                        .photoRefId(photo.getPhotoRefId())
+                        .capturedBy(photo.getCapturedBy().getIdentity())
+                        .latitude(photo.getLatitude())
+                        .longitude(photo.getLongitude())
+                        .captureTime(photo.getCaptureTime())
+                        .status(photo.getStatus())
+                        .accuracy(photo.getAccuracy())
+                        .captureDevice(photo.getCaptureDevice())
+                        .locationDescription(photo.getLocationDescription())
+                        .filePath(photo.getFilePath())
+                        .build())
+                .collect(Collectors.toList());
+    }
+    private List<NomineeDetailsResponseDto.NomineeResponseDto> mapNomineeDetails(List<Nominee> nominees) {
+        if (nominees == null || nominees.isEmpty()) return List.of();
+
+        return nominees.stream()
+                .map(nominee -> NomineeDetailsResponseDto.NomineeResponseDto.builder()
+                        .nomineeIdentity(nominee.getIdentity())
+                        .fullName(nominee.getFullName())
+                        .relationship(nominee.getRelationship() != null ? nominee.getRelationship().getIdentity() : null)
+                        .dob(nominee.getDob())
+                        .contactNumber(nominee.getContactNumber())
+                        .isSameAddress(nominee.getIsSameAddress())
+                        .percentageShare(nominee.getPercentageShare())
+                        .isMinor(nominee.getIsMinor())
+                        .guardianName(nominee.getGuardianName())
+                        .guardianDob(nominee.getGuardianDob())
+                        .guardianEmail(nominee.getGuardianEmail())
+                        .guardianContactNumber(nominee.getGuardianContactNumber())
+                        .addressTypeId(nominee.getAddressTypeId() != null ? nominee.getAddressTypeId().getIdentity() : null)
+                        .doorNumber(nominee.getHouseNumber())
+                        .addressLine1(nominee.getHouseNumber())
+                        .landmark(nominee.getLandmark())
+                        .placeName(nominee.getPlaceName())
+                        .city(nominee.getCity())
+                        .district(nominee.getDistrict())
+                        .state(nominee.getState())
+                        .country(nominee.getCountry())
+                        .pincode(nominee.getPincode())
+                        .postOfficeId(nominee.getPostOfficeId() != null ? nominee.getPostOfficeId().getIdentity() : null)
+                        .latitude(nominee.getLatitude())
+                        .longitude(nominee.getLongitude())
+                        .digipin(nominee.getDigipin())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+
+    private List<CustomerBankAccountResponseDto.BankAccount> mapBankAccounts(List<CustomerBankAccount> bankAccounts) {
+        if (bankAccounts == null || bankAccounts.isEmpty()) return List.of();
+
+        return bankAccounts.stream()
+                .map(account -> CustomerBankAccountResponseDto.BankAccount.builder()
+                        .bankName(account.getBankName())
+                        .branchName(account.getBranchName())
+                        .ifscCode(account.getIfscCode())
+                        .upiId(account.getUpiId())
+                        .accountNumber(account.getAccountNumber())
+                        .maskedAccountNumber(maskAccountNumber(account.getAccountNumber()))
+                        .accountHolderName(account.getAccountHolderName())
+                        .accountType(account.getAccountType() != null ? account.getAccountType().getIdentity() : null)
+                        .accountStatus(account.getAccountStatus() != null ? account.getAccountStatus().getIdentity() : null)
+                        .isPrimary(account.getIsPrimary())
+                        .pdStatus(account.getPdStatus())
+                        .upiVerified(account.getUpiVerified())
+                        .isActive(account.getIsActive())
+                        .bankProofDocumentRefId(account.getBankProofDocumentRefId())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    private String maskAccountNumber(String accountNumber) {
+        if (accountNumber == null || accountNumber.length() < 4) return "****";
+        return "****" + accountNumber.substring(accountNumber.length() - 4);
+    }
+
+    private List<CustomerContactResponseDto.Contact> mapContacts(List<CustomerContact> contacts) {
+        if (contacts == null || contacts.isEmpty()) return List.of();
+
+        return contacts.stream()
+                .map(contact -> CustomerContactResponseDto.Contact.builder()
+                        .contactType(contact.getContactType() != null ? contact.getContactType().getIdentity() : null)
+                        .isPrimary(contact.getIsPrimary())
+                        .isActive(contact.getIsActive())
+                        .isOptOutPromotionalNotification(contact.getIsPromotionalOptOut())
+                        .build())
+                .collect(Collectors.toList());
+    }
+    private List<CustomerForm60ResponseDto> mapForm60Details(List<CustomerForm60> form60List) {
+        if (form60List == null || form60List.isEmpty()) return List.of();
+
+        return form60List.stream()
+                .map(form60 -> CustomerForm60ResponseDto.builder()
+                        .transactionAmount(form60.getTransactionAmount())
+                        .transactionDate(form60.getTransactionDate())
+                        .modeOfTransaction(form60.getModeOfTransaction())
+                        .numberOfPersons(form60.getNumberOfPersons())
+
+                        .agriculturalIncome(form60.getAgriculturalIncome())
+                        .otherIncome(form60.getOtherIncome())
+                        .taxableIncome(form60.getTaxableIncome())
+                        .nonTaxableIncome(form60.getNonTaxableIncome())
+
+                        .panCardApplicationDate(form60.getPanCardApplicationDate())
+                        .panCardApplicationAckNo(form60.getPanCardApplicationAckNo())
+
+                        .pidDocumentId(form60.getPidDocument().getDocId())
+                        .pidDocumentNo(form60.getPidDocumentNo())
+                        .pidIssuingAuthority(form60.getPidIssuingAuthority())
+
+                        .addDocumentNo(form60.getAddDocumentNo())
+                        .addIssuingAuthority(form60.getAddIssuingAuthority())
+
+                        .submissionDate(form60.getSubmissionDate())
+                        .formFileId(form60.getFormFileId())
+                        .identity(form60.getIdentity())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+
+    private CustomerDetailResponseDto.AdditionalInfo mapAdditionalInfo(CustomerAdditionalInfoResponseDto dto) {
+        if (dto == null) return null;
+
+        return CustomerDetailResponseDto.AdditionalInfo.builder()
+                .employment(dto.getAdditional() != null ? dto.getAdditional().getEmployment() : null)
+                .referrals(dto.getAdditional() != null ? dto.getAdditional().getReferrals() : null)
+                .profileExtra(dto.getAdditional() != null ? dto.getAdditional().getProfileExtra() : null)
+                .assets(dto.getAdditional() != null ? dto.getAdditional().getAssets() : null)
+                .additionalReferenceValues(dto.getAdditional() != null ? dto.getAdditional().getAdditionalReferenceValueDto() : List.of())
+                .build();
+    }
+
+
+
+
+
 }
