@@ -1,0 +1,59 @@
+# Co-lending Management Service Configuration
+spring:
+  application:
+    name: incede-nbfc-co-lending-management-service
+  profiles:
+    active: dev
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres123
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: co_lending_management_schema
+        format_sql: true
+        show_sql: false
+  security:
+    enabled: true
+  autoconfigure:
+    exclude: []
+
+server:
+  port: 8084
+  servlet:
+    context-path: /
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+logging:
+  level:
+    com.incede.nbfc: INFO
+    org.springframework.security: INFO
+    org.hibernate.SQL: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# Service specific configuration
+app:
+  service:
+    name: Co-lending Management Service
+    version: 1.0.0
+    description: Co-lending partnerships and management
+  database:
+    schema: co_lending_management_schema
+  security:
+    jwt:
+      secret: ${JWT_SECRET:co-lending-management-secret-key}
+      expiration: 86400000 # 24 hours 

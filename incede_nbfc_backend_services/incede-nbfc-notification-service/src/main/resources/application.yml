@@ -1,0 +1,141 @@
+# Notification Service Configuration
+spring:
+  application:
+    name: incede-nbfc-notification-service
+  profiles:
+    active: dev
+  datasource:
+    url: jdbc:postgresql://10.199.232.3:5432/testincededb
+    driver-class-name: org.postgresql.Driver
+    username: incedetestuser
+    password: incedetestuser
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: notification
+        format_sql: true
+        show_sql: false
+  autoconfigure:
+    exclude: []
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://10.199.232.3:8088/realms/incede-dev
+          jwk-set-uri: http://10.199.232.3:8088/realms/incede-dev/protocol/openid-connect/certs
+
+
+server:
+  port: 8085
+  servlet:
+    context-path: /
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+logging:
+  level:
+    com.incede.nbfc: INFO
+    org.springframework.security: INFO
+    org.hibernate.SQL: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# Service specific configuration
+app:
+  service:
+    name: Notification Service
+    version: 1.0.0
+    description: Customer notification delivery service
+  database:
+    schema: notification_service_schema
+  security:
+    jwt:
+      secret: ${JWT_SECRET:notification-service-secret-key}
+      expiration: 86400000 # 24 hours
+
+otp-vendor:
+  api:
+    url: https://otp2.maccesssmspush.com/
+    otp: OTP_ACL_Web/OtpRequestListener
+    pusheid : indmotp
+    enterpriseid : indmotp
+    subEnterpriseid : indmotp
+    pushepwd : indmotp11
+    sender : INDOTP
+
+otp:
+  hash:
+    secretKey: 'nW8Y2uK1pQ7rF5xT9cH3vJ2zM8aL4sD6eN0bR1yU3iK5oP7qT9wX2yZ4aC6vB8nM'
+    saltLength: 16
+    hashLength: 32
+    parallelism: 1
+    memoryKb: 65536
+    iterations: 3
+  slotKey:
+    secret: 'Z3JpZC1zZWNyZXQtbWF4LXN0cmVuZ3RoLTY0Y2hhcnMtQUJDNDEyIT8rPQ=='
+  default:
+    length: 6
+    ttlSeconds: 300
+# Post API Configuration for Development (Free JSONPlaceholder API)
+post:
+  api:
+    base-url: https://jsonplaceholder.typicode.co
+# Feign Client Configuration for Development
+feign:
+  circuitbreaker:
+    enabled: true
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 10000
+        loggerLevel: FULL
+      post-api:
+        connectTimeout: 3000
+        readTimeout: 8000
+        loggerLevel: BASIC
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      post-api:
+        slidingWindowSize: 100
+        minimumNumberOfCalls: 10
+        permittedNumberOfCallsInHalfOpenState: 5
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 30s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 50
+        recordExceptions:
+          - java.net.UnknownHostException
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+          - feign.FeignException
+          - feign.RetryableException
+
+  retry:
+    instances:
+      post-api:
+        maxAttempts: 3
+        waitDuration: 1000ms
+        enableExponentialBackoff: true
+
+  bulkhead:
+    instances:
+      post-api:
+        maxConcurrentCalls: 20
+        maxWaitDuration: 2s
+
+
+

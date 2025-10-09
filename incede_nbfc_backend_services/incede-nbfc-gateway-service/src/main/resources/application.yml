@@ -1,0 +1,139 @@
+server:
+  port: 8090  # Gateway will run on port 8090
+
+spring:
+  application:
+    name: api-gateway  # Name of this application
+
+  cloud:
+    gateway:
+      routes:
+        # Route for Monolith Service
+        - id: core-monolith
+          uri: http://localhost:8080  # Downstream Monolith service URL
+          predicates:
+            - Path=/api/v1/master/**,/api/v1/customers/**,/ext/**  # Routes to match
+          filters:
+            - TokenRelay
+            - name: CircuitBreaker  # Enable circuit breaker for this route
+              args:
+                name: monolithCB  # Circuit breaker instance name
+                fallbackUri: forward:/fallback/monolith  # Fallback endpoint if service fails
+                statusCodes: BAD_GATEWAY, INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE  # Trigger fallback on these statuses
+
+        # Route for Notification Service
+        - id: notification-service
+          uri: http://localhost:8085  # Downstream Notification service URL
+          predicates:
+            - Path=/api/v1/otp/**
+          filters:
+            - PreserveHostHeader=true  # Keep original host header
+            - StripPrefix=0  # Do not strip path prefix
+            - name: CircuitBreaker
+              args:
+                name: notificationCB
+                fallbackUri: forward:/fallback/notification
+                statusCodes: BAD_GATEWAY, INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE
+
+      #added cors
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns:
+              - "http://localhost:*"
+              - "https://localhost:*"
+              - "http://127.0.0.1:*"
+              - "https://127.0.0.1:*"
+              - "http://*.incede.com"
+              - "https://*.incede.com"
+              - "http://192.168.1.65:*"
+              - "http://0.0.0.0:*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+              - HEAD
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+            maxAge: 3600
+
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://10.199.232.3:8088/realms/incede-dev
+
+# Resilience4j Circuit Breaker configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      # Monolith CB settings
+      monolithCB:
+        registerHealthIndicator: true
+        eventConsumerBufferSize: 10
+        failureRateThreshold: 50  # % failures to open CB
+        minimumNumberOfCalls: 5  # Minimum calls to evaluate
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 15000ms  # Wait time before trying half-open
+        permittedNumberOfCallsInHalfOpenState: 2
+        slidingWindowSize: 10
+        slidingWindowType: COUNT_BASED
+        recordExceptions:
+          - org.springframework.web.reactive.function.client.WebClientRequestException
+          - java.io.IOException
+
+      # Notification CB settings
+      notificationCB:
+        registerHealthIndicator: true
+        eventConsumerBufferSize: 10
+        failureRateThreshold: 50
+        minimumNumberOfCalls: 5
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowSize: 10
+        slidingWindowType: COUNT_BASED
+        recordExceptions:
+          - org.springframework.web.reactive.function.client.WebClientRequestException
+          - java.io.IOException
+
+  # Timeout settings for CBs
+  timelimiter:
+    instances:
+      monolithCB:
+        timeoutDuration: 15s
+      notificationCB:
+        timeoutDuration: 15s
+
+# Management and health endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,circuitbreakers  # Expose these endpoints
+  health:
+    circuitbreakers:
+      enabled: true  # Enable CB health checks
+  endpoint:
+    health:
+      show-details: always  # Show full details in /actuator/health
+
+
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: INFO
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    io.github.resilience4j: INFO
+    reactor.netty: WARN
+    org.springframework.web.reactive.function.client: WARN
+    org.springframework.boot.actuate: INFO
+
+  pattern:
+    console: "%msg%n"
