@@ -48,7 +48,7 @@ public class CustomerAsset extends CustomerBaseEntity implements Serializable {
 
     @Column(name = "owns_asset", nullable = false)
     @NotNull(message = "Ownership flag must be specified")
-    private Boolean ownsAsset = true;
+    private Boolean ownsAsset ;
 
     @Column(name = "asset_details", length = 100)
     @Size(max = 100, message = "Asset details must not exceed 100 characters")

@@ -4,10 +4,10 @@ package com.incede.nbfc.core.monolith.common;
 
 /**
  * Common constants used throughout the application.
- * 
+ *
  * Contains application-wide constants for configuration,
  * API paths, pagination, and other common values.
- * 
+ *
  * @author Incede NBFC Development Team
  * @version 1.0.0
  */
@@ -58,6 +58,7 @@ public final class CommonConstants {
     public static final int MAX_DESCRIPTION_LENGTH = 500;
     public static final int MIN_PHONE_LENGTH = 10;
     public static final int MAX_PHONE_LENGTH = 15;
+    public static final int MAXIMUM_FILE_SIZE = 50 * 1024 * 1024;
 
     // Security Constants
     public static final String JWT_TOKEN_PREFIX = "Bearer ";
@@ -68,7 +69,7 @@ public final class CommonConstants {
     // File Upload Constants
     public static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
     public static final String[] ALLOWED_FILE_TYPES = {
-        "application/pdf", "image/jpeg", "image/png", "image/gif"
+            "application/pdf", "image/jpeg", "image/png", "image/gif"
     };
 
     // Cache Constants
@@ -254,4 +255,12 @@ public final class CommonConstants {
 
     public static final String LEAD_FOLLOW_UP_HISTORY_CREATED   = "Follow-up-history Created";
     public static final String LEAD_FOLLOW_UP_HISTORY_FETCHED   = "Fetched successfully";
-} 
+
+    // CUSTOMER LEADS ASSIGNMENT
+    public static final String LEAD_ASSIGNMENT_UPDATED   = "Assignment updated";
+    public static final String LEAD_ASSIGNMENT_STATUS_ACTIVE   = "ACTIVE";
+    public static final String LEAD_ASSIGNMENT_STATUS_REASSIGNED   = "REASSIGNED";
+    public static final String LEAD_ASSIGNMENT_REMARK_REASSIGNED   = "Lead reassigned";
+
+
+}

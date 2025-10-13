@@ -1,19 +1,18 @@
 package com.incede.nbfc.core.monolith.lead.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.incede.nbfc.core.monolith.lead.dto.LeadRequestDto;
 import com.incede.nbfc.core.monolith.lead.dto.LeadResponseDto;
 import com.incede.nbfc.core.monolith.lead.dto.LeadSearchResponseDto;
 import com.incede.nbfc.core.monolith.lead.service.LeadService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -23,22 +22,28 @@ import java.util.UUID;
 public class LeadController {
 
     private final LeadService leadService;
+    private final ObjectMapper objectMapper;
 
     /**
-     * Create a new lead
+     *
+     * create new lead
+     * @param leadRequestDto
+     * @return
      */
+    @PreAuthorize("hasRole('STAFF')")
     @PostMapping
-    @Operation(summary = "Create Lead", description = "Creates a new lead and returns created details")
-    public ResponseEntity<LeadResponseDto> createLead(
-            @Valid @RequestBody LeadRequestDto request) {
-
-        LeadResponseDto response = leadService.createLead(request);
+    @Operation(summary = "Create Lead", description = "Create a new lead with optional address")
+    public ResponseEntity<LeadResponseDto> createLead(@RequestBody LeadRequestDto leadRequestDto) {
+        LeadResponseDto response = leadService.createLead(leadRequestDto); // now DTO is accepted
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
-     * Get lead by UUID
+     *
+     * @param leadIdentity
+     * @return
      */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/{leadIdentity}")
     @Operation(summary = "Get Lead", description = "Retrieve lead details by UUID")
     public ResponseEntity<LeadResponseDto> getLead(
@@ -48,20 +53,44 @@ public class LeadController {
         return ResponseEntity.ok(response);
     }
 
-
+    /**
+     * search lead
+     * @param fullName
+     * @param contactNumber
+     * @param email
+     * @param page
+     * @param size
+     * @return
+     */
+    @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/search")
     @Operation(
             summary = "Search Leads",
             description = "Search leads by optional parameters: fullName, contactNumber, email with pagination"
     )
     public ResponseEntity<Page<LeadSearchResponseDto>> searchLeads(
-            @RequestParam(name="fullName",required = true) String fullName,
-            @RequestParam(name="contactNumber",required = true) String contactNumber,
-            @RequestParam(name="email",required = true) String email,
+            @RequestParam(name="fullName",required = false) String fullName,
+            @RequestParam(name="contactNumber",required = false) String contactNumber,
+            @RequestParam(name="email",required = false) String email,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
         Page<LeadSearchResponseDto> response = leadService.searchLeads(fullName, contactNumber, email, page, size);
         return ResponseEntity.ok(response);
     }
+
+    /**
+     *
+     * @param leadIdentity
+     * @param dto
+     * @return
+     */
+    @PreAuthorize("hasRole('STAFF')")
+    @PutMapping("/{leadIdentity}")
+    public ResponseEntity<LeadResponseDto> updateLead(@PathVariable UUID leadIdentity,
+                                                      @RequestBody LeadRequestDto dto) {
+        LeadResponseDto response = leadService.updateLead(leadIdentity, dto);
+        return ResponseEntity.ok(response);
+    }
+
 }

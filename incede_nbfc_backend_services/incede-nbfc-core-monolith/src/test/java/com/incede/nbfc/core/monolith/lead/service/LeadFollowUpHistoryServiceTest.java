@@ -1,125 +1,146 @@
 package com.incede.nbfc.core.monolith.lead.service;
-
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.exception.ResourceNotFoundException;
 import com.incede.nbfc.core.monolith.lead.domain.entity.Lead;
-import com.incede.nbfc.core.monolith.lead.domain.entity.LeadFollowUp;
 import com.incede.nbfc.core.monolith.lead.domain.entity.LeadFollowUpHistory;
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.FollowUpType;
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.LeadStage;
 import com.incede.nbfc.core.monolith.lead.dto.LeadFollowUpHistoryRequestDto;
-import com.incede.nbfc.core.monolith.lead.dto.LeadFollowUpHistoryResponseDto;
 import com.incede.nbfc.core.monolith.lead.dto.LeadsFollowUpHistoryDto;
 import com.incede.nbfc.core.monolith.lead.repository.LeadFollowUpHistoryRepository;
-import com.incede.nbfc.core.monolith.lead.repository.LeadFollowUpRepository;
 import com.incede.nbfc.core.monolith.lead.repository.LeadRepository;
-import com.incede.nbfc.core.monolith.masterdata.domain.entity.FollowUpType;
 import com.incede.nbfc.core.monolith.masterdata.repository.FollowUpTypeRepository;
+import com.incede.nbfc.core.monolith.masterdata.repository.LeadStageRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.*;
+import org.mockito.*;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-@ExtendWith(MockitoExtension.class)
 class LeadFollowUpHistoryServiceTest {
-
-    @Mock
-    private LeadFollowUpHistoryRepository leadFollowUpHistoryRepository;
-    @Mock
-    private LeadFollowUpRepository leadFollowUpRepository;
-    @Mock
-    private LeadRepository leadRepository;
-    @Mock
-    private FollowUpTypeRepository followUpTypeRepository;
 
     @InjectMocks
     private LeadFollowUpHistoryService service;
 
-    private UUID leadIdentity;
-    private UUID followUpIdentity;
-    private UUID followUpTypeIdentity;
+    @Mock
+    private LeadFollowUpHistoryRepository leadFollowUpHistoryRepository;
+
+    @Mock
+    private LeadRepository leadRepository;
+
+    @Mock
+    private FollowUpTypeRepository followUpTypeRepository;
+
+    @Mock
+    private LeadStageRepository leadStageRepository;
+
+    private UUID leadId;
+    private UUID leadStageId;
+    private UUID followUpTypeId;
     private Lead lead;
-    private LeadFollowUp followUp;
+    private LeadStage leadStage;
     private FollowUpType followUpType;
+    private LeadFollowUpHistory history;
 
     @BeforeEach
     void setUp() {
-        leadIdentity = UUID.randomUUID();
-        followUpIdentity = UUID.randomUUID();
-        followUpTypeIdentity = UUID.randomUUID();
+        MockitoAnnotations.openMocks(this);
+
+        leadId = UUID.randomUUID();
+        leadStageId = UUID.randomUUID();
+        followUpTypeId = UUID.randomUUID();
 
         lead = new Lead();
-        lead.setIdentity(leadIdentity);
+        lead.setIdentity(leadId);
 
-        followUp = new LeadFollowUp();
-        followUp.setIdentity(followUpIdentity);
+        leadStage = new LeadStage();
+        leadStage.setIdentity(leadStageId);
 
         followUpType = new FollowUpType();
-        followUpType.setIdentity(followUpTypeIdentity);
+        followUpType.setIdentity(followUpTypeId);
+
+        history = new LeadFollowUpHistory();
+        history.setIdentity(UUID.randomUUID());
+        history.setLead(lead);
+    }
+
+    @Test
+    void testSaveFollowUpHistory_Success() {
+        LeadFollowUpHistoryRequestDto dto = createValidDto();
+
+        when(leadRepository.findByIdentityAndIsDelFalse(leadId)).thenReturn(Optional.of(lead));
+        when(leadStageRepository.findByIdentityAndIsDelFalseAndIsActiveTrue(leadStageId)).thenReturn(Optional.of(leadStage));
+        when(followUpTypeRepository.findByIdentity(followUpTypeId)).thenReturn(Optional.of(followUpType));
+        when(leadFollowUpHistoryRepository.save(any())).thenReturn(history);
+
+        LeadsFollowUpHistoryDto response = service.saveFollowUpHistory(leadId, dto);
+
+        assertNotNull(response);
+        assertEquals(leadId, response.getLeadIdentity());
+        verify(leadFollowUpHistoryRepository, times(1)).save(any());
+    }
+
+    @Test
+    void testSaveFollowUpHistory_LeadNotFound() {
+        LeadFollowUpHistoryRequestDto dto = createValidDto();
+        when(leadRepository.findByIdentityAndIsDelFalse(leadId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> service.saveFollowUpHistory(leadId, dto));
+    }
+
+    @Test
+    void testUpdateFollowUpHistory_Success() {
+        LeadFollowUpHistoryRequestDto dto = createValidDto();
+        UUID followUpHistoryId = UUID.randomUUID();
+
+        when(leadRepository.findByIdentityAndIsDelFalse(leadId)).thenReturn(Optional.of(lead));
+        when(leadFollowUpHistoryRepository.findByIdentityAndIsDelFalse(followUpHistoryId)).thenReturn(Optional.of(history));
+        when(leadStageRepository.findByIdentityAndIsDelFalseAndIsActiveTrue(leadStageId)).thenReturn(Optional.of(leadStage));
+        when(followUpTypeRepository.findByIdentity(followUpTypeId)).thenReturn(Optional.of(followUpType));
+        when(leadFollowUpHistoryRepository.save(any())).thenReturn(history);
+
+        LeadsFollowUpHistoryDto response = service.updateFollowUpHistory(leadId, followUpHistoryId, dto);
+
+        assertNotNull(response);
+        verify(leadFollowUpHistoryRepository, times(1)).save(any());
+    }
+
+    @Test
+    void testBulkSaveFollowUpHistory_Success() {
+        LeadFollowUpHistoryRequestDto dto1 = createValidDto();
+        LeadFollowUpHistoryRequestDto dto2 = createValidDto();
+
+        when(leadRepository.findByIdentityAndIsDelFalse(any())).thenReturn(Optional.of(lead));
+        when(leadStageRepository.findByIdentityAndIsDelFalseAndIsActiveTrue(any())).thenReturn(Optional.of(leadStage));
+        when(followUpTypeRepository.findByIdentity(any())).thenReturn(Optional.of(followUpType));
+        when(leadFollowUpHistoryRepository.save(any())).thenReturn(history);
+
+        List<LeadsFollowUpHistoryDto> result = service.bulkSaveFollowUpHistory(List.of(dto1, dto2));
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        verify(leadFollowUpHistoryRepository, times(2)).save(any());
     }
 
 
-
-    @Test
-    void saveFollowUpHistory_LeadFollowUpNotFound() {
+    private LeadFollowUpHistoryRequestDto createValidDto() {
         LeadFollowUpHistoryRequestDto dto = new LeadFollowUpHistoryRequestDto();
-        dto.setLeadFollowUpIdentity(followUpIdentity);
-
-        when(leadFollowUpRepository.findByIdentityAndIsDelFalseAndIsActiveTrue(followUpIdentity))
-                .thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class,
-                () -> service.saveFollowUpHistory(leadIdentity, dto));
-    }
-
-    @Test
-    void saveFollowUpHistory_ExceptionWhileSaving() {
-        LeadFollowUpHistoryRequestDto dto = new LeadFollowUpHistoryRequestDto();
-        dto.setLeadFollowUpIdentity(followUpIdentity);
-        dto.setFollowUpTypeIdentity(followUpTypeIdentity);
-
-        when(leadFollowUpRepository.findByIdentityAndIsDelFalseAndIsActiveTrue(followUpIdentity))
-                .thenReturn(Optional.of(followUp));
-        when(leadRepository.findByIdentityAndIsDelFalse(leadIdentity)).thenReturn(Optional.of(lead));
-        when(followUpTypeRepository.findByIdentity(followUpTypeIdentity)).thenReturn(Optional.of(followUpType));
-
-        when(leadFollowUpHistoryRepository.save(any())).thenThrow(new RuntimeException("DB error"));
-
-        assertThrows(BusinessException.class,
-                () -> service.saveFollowUpHistory(leadIdentity, dto));
-    }
-
-    @Test
-    void getFollowUpHistory_NoHistories() {
-        when(leadRepository.findByIdentityAndIsDelFalse(leadIdentity)).thenReturn(Optional.of(lead));
-        when(leadFollowUpHistoryRepository.findByLeadIdentityAndIsDelFalseOrderByFollowUpDateDesc(leadIdentity))
-                .thenReturn(Collections.emptyList());
-
-        assertThrows(ResourceNotFoundException.class,
-                () -> service.getFollowUpHistory(leadIdentity));
-    }
-
-
-
-    @Test
-    void searchFollowUpHistory_NoResults() {
-        Page<LeadFollowUpHistory> page = Page.empty();
-        when(leadFollowUpHistoryRepository.searchFollowUpHistory(
-                any(), any(), any(), any(), any(), any(), any(Pageable.class)))
-                .thenReturn(page);
-
-        assertThrows(ResourceNotFoundException.class,
-                () -> service.searchFollowUpHistory(
-                        leadIdentity, followUpIdentity, 1, followUpTypeIdentity,
-                        LocalDate.now(), LocalDate.now(), 0, 10));
+        dto.setLeadIdentity(leadId);
+        dto.setLeadStageIdentity(leadStageId);
+        dto.setStaffId(123);
+        dto.setFollowUpTypeIdentity(followUpTypeId);
+        dto.setFollowUpDate(LocalDate.now().plusDays(1));
+        dto.setNextFollowUpDate(LocalDate.now().plusDays(5));
+        dto.setFollowUpNotes("Test note");
+        dto.setChangeType("UPDATE");
+        dto.setStageChangeRemarks("Stage changed");
+        return dto;
     }
 }

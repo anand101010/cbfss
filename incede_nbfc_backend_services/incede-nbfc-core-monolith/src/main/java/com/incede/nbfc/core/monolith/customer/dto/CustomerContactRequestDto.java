@@ -22,6 +22,9 @@ public class CustomerContactRequestDto {
     @NotNull(message = "contactType should not be null")
     private Boolean isPrimary;
 
+    @NotNull
+    private Boolean isVerified;
+
     @NotNull(message = "isActive should not be null")
     private Boolean isActive;
 

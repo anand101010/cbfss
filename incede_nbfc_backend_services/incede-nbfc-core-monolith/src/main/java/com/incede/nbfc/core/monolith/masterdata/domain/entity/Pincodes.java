@@ -38,10 +38,10 @@ public class Pincodes extends BaseEntity implements Serializable {
     @Column(name = "pincode", nullable = false, length = 6, unique = true)
     private String pincode;
 
-    @Column(name = "latitude", precision = 10, scale = 7)
+    @Column(name = "latitude",nullable = true)
     private BigDecimal latitude;
 
-    @Column(name = "longitude", precision = 10, scale = 7)
+    @Column(name = "longitude",nullable = true)
     private BigDecimal longitude;
 
     @Column(name = "identity", nullable = false, unique = true)

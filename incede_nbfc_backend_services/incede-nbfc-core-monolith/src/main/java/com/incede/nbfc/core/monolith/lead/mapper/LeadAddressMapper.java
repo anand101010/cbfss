@@ -1,19 +1,15 @@
 package com.incede.nbfc.core.monolith.lead.mapper;
 
 import com.incede.nbfc.core.monolith.common.CommonConstants;
-import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
-import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerAddress;
-import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressRequestDto;
-import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressResponseDto;
 import com.incede.nbfc.core.monolith.lead.domain.entity.Lead;
 import com.incede.nbfc.core.monolith.lead.domain.entity.LeadAddress;
 import com.incede.nbfc.core.monolith.lead.dto.LeadAddressRequestDto;
 import com.incede.nbfc.core.monolith.lead.dto.LeadAddressResponseDto;
+import com.incede.nbfc.core.monolith.lead.dto.LeadRequestDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -21,103 +17,93 @@ public class LeadAddressMapper {
 
     private static final Logger log = LoggerFactory.getLogger(LeadAddressMapper.class);
 
-    /**
-     * Maps DTO to entity for creating a new CustomerAddress.
-     * Validates that createdBy is not null.
-     */
-    public LeadAddress toEntity(Lead lead, LeadAddressRequestDto leadAddressRequestDto) {
-     //   log.info("Mapping CustomerAddressRequestDto to CustomerAddress entity for customer: {}", lead.getCustomerCode());
-        java.util.Objects.requireNonNull(leadAddressRequestDto, "LeadAddressRequestDto must not be null");
+    public LeadAddress toEntity(Lead lead, LeadAddressRequestDto dto) {
+        log.info("Mapping LeadAddressRequestDto to LeadAddress entity for lead: {}", lead.getLeadCode());
+        java.util.Objects.requireNonNull(dto, "LeadAddressRequestDto must not be null");
 
         LeadAddress address = new LeadAddress();
         address.setLead(lead);
-        address.setHouseNo(leadAddressRequestDto.getDoorNumber());
-        address.setStreetName(leadAddressRequestDto.getStreetName());
-        address.setLandmark(leadAddressRequestDto.getLandmark());
-        address.setPlaceName(leadAddressRequestDto.getPlaceName());
-        address.setCity(leadAddressRequestDto.getCity());
-        address.setDistrict(leadAddressRequestDto.getDistrict());
-        address.setState(leadAddressRequestDto.getState());
-        address.setCountry(leadAddressRequestDto.getCountry());
-        address.setPincode(leadAddressRequestDto.getPincode());
-        address.setLatitude(leadAddressRequestDto.getLatitude());
-        address.setLongitude(leadAddressRequestDto.getLongitude());
-     //   address.setIsActive(leadAddressRequestDto.getIsActive() != null ? leadAddressRequestDto.getIsActive() : true);
-        address.setDigipin(leadAddressRequestDto.getDigipin());
+        address.setHouseNo(dto.getHouseNo());
+        address.setStreetName(dto.getStreetName());
+        address.setPlaceName(dto.getPlaceName());
+        address.setLandmark(dto.getLandmark());
+        address.setPincode(dto.getPincode());
+        address.setCountry(dto.getCountry());
+        address.setState(dto.getState());
+        address.setDistrict(dto.getDistrict());
+        address.setCity(dto.getCity());
+        address.setLatitude(dto.getLatitude());
+        address.setLongitude(dto.getLongitude());
+        address.setDigipin(dto.getDigipin());
         address.setIdentity(UUID.randomUUID());
         address.setCreatedBy(getCreatedBy());
 
-        log.debug("Created CustomerAddress entity: {}", address);
+        log.debug("Created LeadAddress entity: {}", address);
         return address;
     }
 
-    /**
-     * Updates an existing CustomerAddress entity with DTO values.
-     * Validates that updatedBy is not null.
-     */
-    public void updateEntity(LeadAddress address, LeadAddressRequestDto leadAddressRequestDto) {
-        log.info("Updating CustomerAddress entity: {} with DTO", address.getIdentity());
+    public void updateEntityFromDto(LeadAddress address, LeadRequestDto.AddressDto dto) {
+        log.info("Updating LeadAddress entity: {} with DTO", address.getIdentity());
 
-        address.setHouseNo(leadAddressRequestDto.getDoorNumber());
-        address.setStreetName(leadAddressRequestDto.getStreetName());
-        address.setLandmark(leadAddressRequestDto.getLandmark());
-        address.setPlaceName(leadAddressRequestDto.getPlaceName());
-        address.setCity(leadAddressRequestDto.getCity());
-        address.setDistrict(leadAddressRequestDto.getDistrict());
-        address.setState(leadAddressRequestDto.getState());
-        address.setCountry(leadAddressRequestDto.getCountry());
-        address.setPincode(leadAddressRequestDto.getPincode());
-        address.setLatitude(leadAddressRequestDto.getLatitude());
-        address.setLongitude(leadAddressRequestDto.getLongitude());
-    //    address.setIsActive(leadAddressRequestDto.getIsActive() != null ? customerAddressRequestDto.getIsActive() : true);
-        address.setDigipin(leadAddressRequestDto.getDigipin());
+        address.setHouseNo(dto.getHouseNo());
+        address.setStreetName(dto.getStreetName());
+        address.setPlaceName(dto.getPlaceName());
+        address.setLandmark(dto.getLandmark());
+        address.setPincode(dto.getPincode());
+        address.setCountry(dto.getCountry());
+        address.setState(dto.getState());
+        address.setDistrict(dto.getDistrict());
+        address.setCity(dto.getCity());
+        address.setLatitude(dto.getLatitude());
+        address.setLongitude(dto.getLongitude());
+        address.setDigipin(dto.getDigipin());
         address.setUpdatedBy(getUpdatedBy());
 
-        log.debug("Updated CustomerAddress entity: {}", address);
+        log.debug("Updated LeadAddress entity: {}", address);
     }
 
     public LeadAddressResponseDto.AddressDetail toAddressDetail(LeadAddress address) {
-        log.debug("Mapping CustomerAddress entity {} to AddressDetail DTO", address.getIdentity());
+        log.debug("Mapping LeadAddress entity {} to AddressDetail DTO", address.getIdentity());
 
         return LeadAddressResponseDto.AddressDetail.builder()
                 .addressIdentity(address.getIdentity())
-                .addressProofType(address.getAddressProofType().getIdentity())
-                .postOffice(address.getPostOfficeId().getIdentity())
                 .addressType(address.getAddressType().getIdentity())
-                .doorNumber(address.getHouseNo())
+                .houseNumber(address.getHouseNo())
                 .streetName(address.getStreetName())
-                .landmark(address.getLandmark())
                 .placeName(address.getPlaceName())
-                .city(address.getCity())
-                .district(address.getDistrict())
-                .state(address.getState())
-                .country(address.getCountry())
+                .landmark(address.getLandmark())
                 .pincode(address.getPincode())
+                .country(address.getCountry())
+                .state(address.getState())
+                .district(address.getDistrict())
+                .postOffice(address.getPostOfficeId().getIdentity())
+                .city(address.getCity())
                 .latitude(address.getLatitude())
                 .longitude(address.getLongitude())
-       //         .isActive(address.getIsActive())
+                .addressProofType(address.getAddressProofType().getIdentity())
                 .digipin(address.getDigipin())
                 .build();
     }
 
-//    public LeadAddressResponseDto toResponse(Lead lead, String status, List<LeadAddressResponseDto.AddressDetail> addressDetails) {
-//    //    log.info("Mapping Customer {} and {} addresses to CustomerAddressResponseDto", customer.getCustomerCode(), addressDetails.size());
-//
-//        return CustomerAddressResponseDto.builder()
-//                .identity(customer.getIdentity())
-//                .customerCode(customer.getCustomerCode())
-//                .status(status)
-//                .addresses(addressDetails)
-//                .build();
-//    }
+    public LeadAddressResponseDto toResponse(Lead lead, String status, LeadAddressResponseDto.AddressDetail addressDetail) {
+        log.info("Mapping Lead {} and address {} to LeadAddressResponseDto", lead.getLeadCode(), addressDetail.getAddressIdentity());
+
+        return LeadAddressResponseDto.builder()
+                .identity(lead.getIdentity())
+                .leadCode(lead.getLeadCode())
+                .status(status)
+                .address(addressDetail)
+                .build();
+    }
 
     public Integer getCreatedBy() {
-        log.debug("Returning createdBy constant: {}", CommonConstants.CREATED_BY);
         return CommonConstants.CREATED_BY;
     }
 
     public Integer getUpdatedBy() {
-        log.debug("Returning updatedBy constant: {}", CommonConstants.UPDATED_BY);
         return CommonConstants.UPDATED_BY;
     }
+
 }
+
+

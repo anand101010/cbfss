@@ -27,6 +27,7 @@ public class CustomerContactMapper {
         CustomerContact contact = new CustomerContact();
         contact.setContactValue(Objects.requireNonNull(dto.getContactDetails(), "contactDetails must not be null"));
         contact.setIsPrimary(Objects.requireNonNull(dto.getIsPrimary(), "isPrimary must not be null"));
+        contact.setIsVerified(Objects.requireNonNull(dto.getIsVerified(),"isVerified must not be null "));
         contact.setIsActive(Objects.requireNonNull(dto.getIsActive(), "isActive must not be null"));
         contact.setCreatedBy(getCreatedBy());
         contact.setIsPromotionalOptOut(

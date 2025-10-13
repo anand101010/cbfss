@@ -57,7 +57,8 @@ public class OtpCrypto
 
 	public String hashOtpCode(String secretKey, String code, byte[] salt) {
 		String candidate = secretKey + ":" + code + ":" + Base64.getEncoder().encodeToString(salt);
-		return argon2.encode(candidate);
+		/// /argon is a hashing password encoding algorithm
+        return argon2.encode(candidate);
 	}
 
 	public boolean verifyOtpCode(String storedHash, String secretKey, String code, byte[] salt) {

@@ -86,6 +86,12 @@ public class Lead extends LeadBaseEntity implements Serializable {
     @Column(name = "current_follow_up_date")
     private LocalDate currentFollowUpDate;
 
+    @Column(name = "next_follow_up_date")
+    private LocalDate nextFollowUpDate;
+
+    @Column(name = "current_follow_up_notes")
+    private String currentFollowUpDateNotes;
+
     @ManyToOne
     @JoinColumn(name = "product_service_id", referencedColumnName = "product_service_id")
     private ProductService productService;

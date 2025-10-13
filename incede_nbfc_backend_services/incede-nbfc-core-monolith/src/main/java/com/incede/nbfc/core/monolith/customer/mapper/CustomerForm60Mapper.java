@@ -42,6 +42,9 @@ public class CustomerForm60Mapper {
         form60.setSubmissionDate(dto.getSubmissionDate());
         form60.setFormFileId(dto.getFormFileId());
         form60.setCreatedBy(dto.getCreatedBy());
+        form60.setNameOfPremises(dto.getNameOfPremises());
+        form60.setFloorNumber(dto.getFloorNumber());
+        form60.setTelephoneNumber(dto.getTelephoneNumber());
 
         return form60;
     }

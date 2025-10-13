@@ -53,6 +53,7 @@ public class BaseEntity {
         if (isDel == null) {
             isDel = false;
         }
+
     }
 
     @PreUpdate

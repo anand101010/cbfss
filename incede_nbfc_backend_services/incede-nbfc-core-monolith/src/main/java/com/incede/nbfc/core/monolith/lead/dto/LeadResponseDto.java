@@ -33,7 +33,7 @@ public class LeadResponseDto {
         private UUID assignTo;
         private String remarks;
         private UUID interestedProductIdentity;
-        private List<Address> addresses;
+        private List<Address> address;
         private List<DynamicReference> dynamicReferences;
 
         @Data
@@ -42,6 +42,7 @@ public class LeadResponseDto {
         @AllArgsConstructor
         public static class Address {
             private UUID addressTypeIdentity;
+
             private String houseNo;
             private String streetName;
             private String placeName;

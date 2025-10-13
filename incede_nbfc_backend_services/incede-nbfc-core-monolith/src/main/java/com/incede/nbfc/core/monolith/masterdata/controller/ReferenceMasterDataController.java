@@ -7,9 +7,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -116,4 +118,14 @@ public class ReferenceMasterDataController {
         List<PincodeDto> response = referenceMasterDataService.getPincodeDetails(String.valueOf(((pincode))));
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/pincodes/upload")
+    public ResponseEntity<String> uploadExcel(@RequestParam("file") MultipartFile file,
+                                              @RequestParam("createdBy") Integer createdBy) {
+
+            log.info("Uploading  Post Office details");
+            referenceMasterDataService.importFile(file,createdBy);
+            return ResponseEntity.ok("Data imported successfully!");
+    }
+
 }

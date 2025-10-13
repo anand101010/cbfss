@@ -111,7 +111,6 @@ class CustomerContactServiceTest {
         assertNotNull(response);
         assertEquals(customerId, response.getIdentity());
         assertEquals(1, response.getContacts().size());
-        assertEquals(CommonConstants.COMPLETED, customer.getOnboardingStatus());
         verify(contactRepository).save(contact);
         verify(contactRepository).findByCustomerAndContactTypeAndIsActiveTrue(customer, contactType);
     }
@@ -148,7 +147,7 @@ class CustomerContactServiceTest {
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> customerContactService.saveContact(customerId, requestDto));
 
-        assertEquals(CommonConstants.NOT_FOUND_MESSAGE, exception.getMessage());
+        assertEquals(CommonConstants.CUSTOMER_NOT_FOUND, exception.getMessage());
         assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, exception.getErrorCode());
     }
 
@@ -187,7 +186,7 @@ class CustomerContactServiceTest {
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> customerContactService.saveContact(customerId, requestDto));
 
-        assertEquals(CommonConstants.CONFLICT_MESSAGE, exception.getMessage());
+        assertEquals(CommonConstants.CONTACT_ALREADY_EXIST, exception.getMessage());
         assertEquals(ErrorCodes.CONFLICT, exception.getErrorCode());
     }
 

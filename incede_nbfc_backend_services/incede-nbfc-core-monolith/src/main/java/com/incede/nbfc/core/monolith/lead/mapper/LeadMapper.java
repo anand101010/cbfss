@@ -1,35 +1,40 @@
 package com.incede.nbfc.core.monolith.lead.mapper;
 
 import com.incede.nbfc.core.monolith.common.CommonConstants;
+import com.incede.nbfc.core.monolith.exception.BusinessException;
+import com.incede.nbfc.core.monolith.exception.ErrorCodes;
 import com.incede.nbfc.core.monolith.lead.domain.entity.Lead;
+import com.incede.nbfc.core.monolith.lead.domain.entity.LeadAdditionalReference;
+import com.incede.nbfc.core.monolith.lead.domain.entity.LeadAddress;
 import com.incede.nbfc.core.monolith.lead.dto.LeadRequestDto;
 import com.incede.nbfc.core.monolith.lead.dto.LeadResponseDto;
+import com.incede.nbfc.core.monolith.lead.dto.LeadAddressRequestDto;
 import com.incede.nbfc.core.monolith.lead.dto.LeadSearchResponseDto;
-import lombok.extern.slf4j.Slf4j;
+import com.incede.nbfc.core.monolith.lead.repository.LeadAdditionalReferenceRepository;
+import com.incede.nbfc.core.monolith.lead.repository.LeadAddressRepository;
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.AdditionalReferenceConfig;
+import com.incede.nbfc.core.monolith.masterdata.repository.AdditionalReferenceConfigRepository;
+import com.incede.nbfc.core.monolith.masterdata.repository.AddressProofTypeRepository;
+import com.incede.nbfc.core.monolith.masterdata.repository.AddressTypeRepository;
+import com.incede.nbfc.core.monolith.masterdata.repository.PostOfficesRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
-/**
- * Mapper for converting between Lead entity and DTOs.
- * Includes null checks and logging for traceability.
- *
- * Author: Incede NBFC Development Team
- * Version: 1.0.0
- */
-@Slf4j
 @Component
+@RequiredArgsConstructor
 public class LeadMapper {
 
-    /**
-     * Convert LeadRequestDto to Lead entity.
-     *
-     * @param dto Lead request DTO
-     * @return Lead entity
-     */
+    private final LeadAddressRepository leadAddressRepository;
+    private final LeadAddressMapper leadAddressMapper;
+    private final LeadAdditionalReferenceRepository leadAdditionalReferenceRepository;
+
     public Lead toEntity(LeadRequestDto dto) {
         Objects.requireNonNull(dto, "LeadRequestDto must not be null");
-        log.debug("Mapping LeadRequestDto to Lead entity for tenantId={}", dto.getTenantId());
 
         Lead lead = new Lead();
         lead.setTenantId(dto.getTenantId());
@@ -38,21 +43,12 @@ public class LeadMapper {
         lead.setEmail(dto.getEmail());
         lead.setRemarks(dto.getRemarks());
         lead.setCreatedBy(getCreatedBy());
-
-        log.debug("Lead entity created: {}", lead);
         return lead;
     }
 
-    /**
-     * Update an existing Lead entity from DTO.
-     *
-     * @param lead Existing Lead entity
-     * @param dto  Lead request DTO
-     */
     public void updateEntityFromDto(Lead lead, LeadRequestDto dto) {
         Objects.requireNonNull(lead, "Lead must not be null");
         Objects.requireNonNull(dto, "LeadRequestDto must not be null");
-        log.debug("Updating Lead entity id={} from LeadRequestDto", lead.getIdentity());
 
         lead.setTenantId(dto.getTenantId());
         lead.setFullName(dto.getFullName());
@@ -60,21 +56,11 @@ public class LeadMapper {
         lead.setEmail(dto.getEmail());
         lead.setRemarks(dto.getRemarks());
         lead.setUpdatedBy(getUpdatedBy());
-
-        log.debug("Lead entity updated: {}", lead);
     }
 
-    /**
-     * Convert Lead entity to LeadResponseDto.
-     * Performs null checks for referenced entities.
-     *
-     * @param lead   Lead entity
-     * @param status Response status
-     * @return LeadResponseDto
-     */
     public LeadResponseDto toResponseDto(Lead lead, String status) {
-        Objects.requireNonNull(lead, "Lead must not be null");
-        log.debug("Mapping Lead entity id={} to LeadResponseDto", lead.getIdentity());
+        List<LeadResponseDto.LeadDetails.Address> addresses = getAddressDetails(lead);
+        List<LeadResponseDto.LeadDetails.DynamicReference> dynamicReferences = getDynamicReferences(lead);
 
         LeadResponseDto.LeadDetails details = LeadResponseDto.LeadDetails.builder()
                 .fullName(lead.getFullName())
@@ -87,61 +73,145 @@ public class LeadMapper {
                 .leadStageIdentity(lead.getLeadStage() != null ? lead.getLeadStage().getIdentity() : null)
                 .leadStatusIdentity(lead.getLeadStatus() != null ? lead.getLeadStatus().getIdentity() : null)
                 .interestedProductIdentity(lead.getProductService() != null ? lead.getProductService().getIdentity() : null)
+                .address(addresses)
+                .dynamicReferences(dynamicReferences) // <-- added
                 .build();
 
-        LeadResponseDto response = LeadResponseDto.builder()
+        return LeadResponseDto.builder()
                 .leadIdentity(lead.getIdentity())
                 .leadCode(lead.getLeadCode())
                 .status(status)
                 .leadDetails(details)
                 .build();
-
-        log.debug("LeadResponseDto created: {}", response);
-        return response;
     }
 
-    /**
-     * Convert Lead entity to LeadSearchResponseDto.
-     * Performs null checks for referenced entities.
-     *
-     * @param lead Lead entity
-     * @return LeadSearchResponseDto
-     */
-    public LeadSearchResponseDto toSearchResponseDto(Lead lead) {
-        Objects.requireNonNull(lead, "Lead must not be null");
-        log.debug("Mapping Lead entity id={} to LeadSearchResponseDto", lead.getIdentity());
+    private List<LeadResponseDto.LeadDetails.Address> getAddressDetails(Lead lead) {
+        List<LeadAddress> addresses = leadAddressRepository.findByLeadAndIsDelFalse(lead);
 
-        LeadSearchResponseDto dto = LeadSearchResponseDto.builder()
+        return addresses.stream()
+                .map(this::convertToAddress)
+                .collect(Collectors.toList());
+    }
+
+    private LeadResponseDto.LeadDetails.Address convertToAddress(LeadAddress leadAddress) {
+        return LeadResponseDto.LeadDetails.Address.builder()
+                .addressTypeIdentity(leadAddress.getAddressType() != null ? leadAddress.getAddressType().getIdentity() : null)
+                .houseNo(leadAddress.getHouseNo())
+                .streetName(leadAddress.getStreetName())
+                .placeName(leadAddress.getPlaceName())
+                .landmark(leadAddress.getLandmark())
+                .pincode(leadAddress.getPincode())
+                .country(leadAddress.getCountry())
+                .state(leadAddress.getState())
+                .district(leadAddress.getDistrict())
+                .postOfficeIdentity(leadAddress.getPostOfficeId() != null ? leadAddress.getPostOfficeId().getIdentity() : null)
+                .city(leadAddress.getCity())
+                .latitude(leadAddress.getLatitude() != null ? leadAddress.getLatitude().doubleValue() : null)
+                .longitude(leadAddress.getLongitude() != null ? leadAddress.getLongitude().doubleValue() : null)
+                .build();
+    }
+
+    private List<LeadResponseDto.LeadDetails.DynamicReference> getDynamicReferences(Lead lead) {
+        List<LeadAdditionalReference> references = leadAdditionalReferenceRepository.findByLead(lead);
+
+        return references.stream()
+                .map(ref -> LeadResponseDto.LeadDetails.DynamicReference.builder()
+                        .referenceConfigIdentity(ref.getReferenceConfigId() != null
+                                ? ref.getReferenceConfigId().getIdentity()
+                                : null)
+                        .referenceFieldValue(ref.getReferenceFieldValue())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    public void saveLeadAddress(Lead lead, LeadRequestDto.AddressDto addressDto, AddressTypeRepository addressTypeRepository, PostOfficesRepository postOfficeRepository, LeadAddressMapper leadAddressMapper, LeadAddressRepository leadAddressRepository, AddressProofTypeRepository addressProofTypeRepository) {
+        LeadAddressRequestDto requestDto = new LeadAddressRequestDto();
+        requestDto.setHouseNo(addressDto.getHouseNo());
+        requestDto.setStreetName(addressDto.getStreetName());
+        requestDto.setPlaceName(addressDto.getPlaceName());
+        requestDto.setPincode(addressDto.getPincode());
+        requestDto.setDigipin(addressDto.getDigipin());
+        requestDto.setCountry(addressDto.getCountry());
+        requestDto.setState(addressDto.getState());
+        requestDto.setDistrict(addressDto.getDistrict());
+        requestDto.setCity(addressDto.getCity());
+        requestDto.setLandmark(addressDto.getLandmark());
+        requestDto.setLatitude(addressDto.getLatitude());
+        requestDto.setLongitude(addressDto.getLongitude());
+
+        LeadAddress leadAddress = leadAddressMapper.toEntity(lead, requestDto);
+
+        if (addressDto.getAddressTypeIdentity() != null) {
+            leadAddress.setAddressType(addressTypeRepository.findByIdentity(addressDto.getAddressTypeIdentity())
+                    .orElseThrow(() -> new BusinessException("Invalid address type", ErrorCodes.VALIDATION_FAILED)));
+        }
+        if (addressDto.getAddressProofTypeIdentity() != null) {
+            leadAddress.setAddressProofType(addressProofTypeRepository.findByIdentity(addressDto.getAddressProofTypeIdentity())
+                    .orElseThrow(() -> new BusinessException("Invalid address prooftype", ErrorCodes.VALIDATION_FAILED)));
+        }
+
+        if (addressDto.getPostOfficeIdentity() != null) {
+            leadAddress.setPostOfficeId(postOfficeRepository.findByIdentity(addressDto.getPostOfficeIdentity())
+                    .orElseThrow(() -> new BusinessException("Invalid post office", ErrorCodes.VALIDATION_FAILED)));
+        }
+
+        leadAddress.setCreatedAt(LocalDateTime.now());
+        leadAddress.setIsDel(false);
+
+        leadAddressRepository.save(leadAddress);
+    }
+
+    public LeadSearchResponseDto toSearchResponseDto(Lead lead) {
+        List<LeadSearchResponseDto.Address> addresses = leadAddressRepository.findByLeadAndIsDelFalse(lead)
+                .stream()
+                .map(addr -> LeadSearchResponseDto.Address.builder()
+                        .addressTypeIdentity(addr.getAddressType() != null ? addr.getAddressType().getIdentity() : null)
+                        .houseNo(addr.getHouseNo())
+                        .streetName(addr.getStreetName())
+                        .placeName(addr.getPlaceName())
+                        .pincode(addr.getPincode())
+                        .country(addr.getCountry())
+                        .state(addr.getState())
+                        .district(addr.getDistrict())
+                        .postOfficeIdentity(addr.getPostOfficeId() != null ? addr.getPostOfficeId().getIdentity() : null)
+                        .city(addr.getCity())
+                        .landmark(addr.getLandmark())
+                        .latitude(addr.getLatitude() != null ? addr.getLatitude().doubleValue() : null)
+                        .longitude(addr.getLongitude() != null ? addr.getLongitude().doubleValue() : null)
+                        .build())
+                .toList();
+
+        List<LeadSearchResponseDto.DynamicReference> dynamicRefs = leadAdditionalReferenceRepository.findByLead(lead)
+                .stream()
+                .map(ref -> LeadSearchResponseDto.DynamicReference.builder()
+                        .referenceConfigIdentity(ref.getReferenceConfigId() != null ? ref.getReferenceConfigId().getIdentity() : null)
+                        .referenceFieldValue(ref.getReferenceFieldValue())
+                        .build())
+                .toList();
+
+        return LeadSearchResponseDto.builder()
                 .leadIdentity(lead.getIdentity() != null ? lead.getIdentity().toString() : null)
                 .leadCode(lead.getLeadCode())
                 .fullName(lead.getFullName())
-                .gender(lead.getGender() != null ? lead.getGender().getIdentity() : null)
                 .contactNumber(lead.getContactNumber())
                 .email(lead.getEmail())
+                .remarks(lead.getRemarks())
+                .gender(lead.getGender() != null ? lead.getGender().getIdentity() : null)
                 .interestedProduct(lead.getProductService() != null ? lead.getProductService().getIdentity() : null)
                 .leadSource(lead.getLeadSource() != null ? lead.getLeadSource().getIdentity() : null)
                 .leadStage(lead.getLeadStage() != null ? lead.getLeadStage().getIdentity() : null)
                 .leadStatus(lead.getLeadStatus() != null ? lead.getLeadStatus().getIdentity() : null)
+                .addresses(addresses)
+                .dynamicReferences(dynamicRefs)
                 .build();
-
-        log.debug("LeadSearchResponseDto created: {}", dto);
-        return dto;
     }
 
-    /**
-     * Return constant createdBy value.
-     *
-     * @return createdBy
-     */
+
+
     public Integer getCreatedBy() {
         return CommonConstants.CREATED_BY;
     }
 
-    /**
-     * Return constant updatedBy value.
-     *
-     * @return updatedBy
-     */
     public Integer getUpdatedBy() {
         return CommonConstants.UPDATED_BY;
     }

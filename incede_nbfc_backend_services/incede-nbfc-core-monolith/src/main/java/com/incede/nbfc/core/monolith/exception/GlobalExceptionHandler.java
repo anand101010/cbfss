@@ -1,6 +1,7 @@
 package com.incede.nbfc.core.monolith.exception;
 
 import com.incede.nbfc.core.monolith.client.dto.GenericFeignErrorDto;
+import com.incede.nbfc.core.monolith.common.CommonConstants;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -371,6 +373,32 @@ public class GlobalExceptionHandler {
 
         log.error("AccessDeniedException: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }
+
+
+// File Upload Exception Handler
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceeded(
+            MaxUploadSizeExceededException ex, HttpServletRequest request) {
+
+        log.error("File upload exceeded max size: {}", ex.getMessage(), ex);
+
+        Map<String, String> details = new HashMap<>();
+        details.put("maxAllowedSize", String.valueOf(CommonConstants.MAXIMUM_FILE_SIZE)); // can be dynamic if needed
+        details.put("actualSize", ex.getCause() != null ? ex.getCause().getMessage() : "unknown");
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.PAYLOAD_TOO_LARGE.value())
+                .error("File Too Large")
+                .message("File size exceeds the maximum allowed limit")
+                .path(request.getRequestURI())
+                .details(details)  // ✅ Map<String, String>
+                .errorCode("FILE_SIZE_EXCEEDED")
+                .correlationId(generateCorrelationId())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(errorResponse);
     }
 
 

@@ -5,7 +5,6 @@ import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerAddress;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerForm60;
-import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerProfileExtra;
 import com.incede.nbfc.core.monolith.customer.dto.*;
 import com.incede.nbfc.core.monolith.customer.mapper.CustomerAddressMapper;
 import com.incede.nbfc.core.monolith.customer.mapper.CustomerForm60Mapper;
@@ -86,6 +85,20 @@ public class CustomerForm60Service {
             }
 
             CustomerForm60 entity = form60Mapper.toEntity(request, customer, branch, pidDoc, addDoc);
+
+            if (request.getMaskedAdhar() != null) {
+                FinaVaultResponseDto response = vaultService.generateVaultIdAndMaskAadhaar(request.getMaskedAdhar());
+                if (response == null) {
+                    throw new BusinessException("Adhar number cannot be masked", ErrorCodes.NOT_FOUND);
+                }
+
+                if(response.getStatus().equals("N")){
+                    throw new BusinessException("Adhar number cannot be masked :"+response.getErrorCode(), ErrorCodes.NOT_FOUND);
+                }
+                entity.setMaskedAdhar(response.getUidForDisplay());
+            }
+
+
             entity.setIdentity(UUID.randomUUID());
             entity.setCreatedBy(request.getCreatedBy());
 
@@ -130,6 +143,18 @@ public class CustomerForm60Service {
 
             form60Mapper.updateEntityFromDto(existingForm60, request, pidDoc, addDoc);
             existingForm60.setUpdatedAt(LocalDateTime.now());
+
+            if (request.getMaskedAdhar() != null) {
+                FinaVaultResponseDto response = vaultService.generateVaultIdAndMaskAadhaar(request.getMaskedAdhar());
+                if (response == null) {
+                    throw new BusinessException("Adhar number cannot be masked", ErrorCodes.NOT_FOUND);
+                }
+
+                if(response.getStatus().equals("N")){
+                    throw new BusinessException("Adhar number cannot be masked :"+response.getErrorCode(), ErrorCodes.NOT_FOUND);
+                }
+                existingForm60.setMaskedAdhar(response.getUidForDisplay());
+            }
 
             CustomerForm60 updatedForm60 = customerForm60Repository.save(existingForm60);
 
@@ -289,7 +314,7 @@ public class CustomerForm60Service {
 
 
     /*
-    *upload signed form 60
+     *upload signed form 60
      */
     @Transactional
     public Form60UploadResponseDto uploadSignedForm60(UUID customerIdentity, UUID form60Identity, MultipartFile file) {

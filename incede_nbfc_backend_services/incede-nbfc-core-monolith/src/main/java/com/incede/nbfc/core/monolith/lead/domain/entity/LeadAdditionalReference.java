@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.lead.domain.entity;
 
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.AdditionalReferenceConfig;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -27,9 +28,9 @@ public class LeadAdditionalReference extends LeadBaseEntity implements Serializa
     @NotNull(message = "Lead reference must not be null")
     private Lead lead;
 
-    @Column(name = "reference_config_id", nullable = false)
-    @NotNull(message = "Reference Config ID must not be null")
-    private Integer referenceConfigId;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "reference_config_id", referencedColumnName = "reference_config_id", nullable = false)
+    private AdditionalReferenceConfig referenceConfigId;
 
     @Column(name = "reference_field_value", columnDefinition = "TEXT")
     private String referenceFieldValue;

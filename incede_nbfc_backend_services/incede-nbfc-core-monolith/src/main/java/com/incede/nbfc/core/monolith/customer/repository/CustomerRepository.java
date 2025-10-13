@@ -4,10 +4,13 @@ import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -89,4 +92,11 @@ public interface CustomerRepository extends JpaRepository<Customer, Integer> {
             @Param("customerName") String customerName
     );
     boolean existsByTenantAndMobileNumber(Tenant tenant,String mobileNumber);
+    @Query("SELECT c FROM Customer c WHERE c.onboardingStatus = 'DRAFT' AND c.updatedAt <= :threshold AND c.isDel = false")
+    List<Customer> findDraftOlderThan(@Param("threshold") LocalDateTime threshold);
+
+    @Modifying
+    @Query("UPDATE Customer c SET c.isDel = true WHERE c.onboardingStatus = 'DRAFT' AND c.updatedAt <= :threshold AND c.isDel = false")
+    int markDraftCustomersAsDeleted(@Param("threshold") LocalDateTime threshold);
+
 }

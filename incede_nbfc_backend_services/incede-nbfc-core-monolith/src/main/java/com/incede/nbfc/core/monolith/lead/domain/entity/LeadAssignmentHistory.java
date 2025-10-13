@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.lead.domain.entity;
 
+import com.incede.nbfc.core.monolith.user.domain.entity.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -28,12 +29,14 @@ public class LeadAssignmentHistory extends LeadBaseEntity implements Serializabl
     @NotNull(message = "Lead reference must not be null")
     private Lead lead;
 
-    @Column(name = "assigned_to_user_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_to_user_id", nullable = false)
     @NotNull(message = "Assigned-to user ID must not be null")
-    private Integer assignedToUserId;
+    private User assignedToUserId;
 
-    @Column(name = "assigned_by_user_id")
-    private Integer assignedByUserId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_by_user_id")
+    private User assignedByUserId;
 
     @Column(name = "assigned_on", nullable = false)
     @NotNull(message = "Assigned date must not be null")

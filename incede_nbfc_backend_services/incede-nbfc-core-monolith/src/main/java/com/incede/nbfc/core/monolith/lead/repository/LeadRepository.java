@@ -1,6 +1,7 @@
 package com.incede.nbfc.core.monolith.lead.repository;
 
 import com.incede.nbfc.core.monolith.lead.domain.entity.Lead;
+import com.incede.nbfc.core.monolith.user.domain.entity.User;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +22,8 @@ public interface LeadRepository extends JpaRepository<Lead, Long> {
     Optional<Lead> findByIdentityAndIsDelFalse(UUID identity);
 
     boolean existsByEmail(String email);
+
+    boolean existsByContactNumber(String contactNumber);
 
     long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 
@@ -41,6 +45,27 @@ public interface LeadRepository extends JpaRepository<Lead, Long> {
             Pageable pageable
     );
 
+    @Query("SELECT l FROM Lead l " +
+            "WHERE (:productIdentity IS NULL OR l.productService.identity = :productIdentity) " +
+            "AND (:leadSourceIdentity IS NULL OR l.leadSource.identity = :leadSourceIdentity) " +
+            "AND (:leadStageIdentity IS NULL OR l.leadStage.identity = :leadStageIdentity) " +
+            "AND (:gender IS NULL OR l.gender.identity = :gender) " +
+            "AND (:assignToUser IS NULL OR l.assignToUser.identity = :assignToUser) " +
+            "AND (CAST(:leadDateFrom AS timestamp) IS NULL OR l.createdAt >= :leadDateFrom) " +
+            "AND (CAST(:leadDateTo AS timestamp) IS NULL OR l.createdAt <= :leadDateTo) " +
+            "AND l.isDel = false")
+    Page<Lead> searchLeadsForAssignment(
+            @Param("productIdentity") UUID productIdentity,
+            @Param("leadSourceIdentity") UUID leadSourceIdentity,
+            @Param("leadStageIdentity") UUID leadStageIdentity,
+            @Param("gender") UUID gender,
+            @Param("assignToUser") UUID assignToUser,
+            @Param("leadDateFrom") LocalDateTime leadDateFrom,
+            @Param("leadDateTo") LocalDateTime leadDateTo,
+            Pageable pageable
+    );
+
+    Page<Lead> findByAssignToUserAndIsDelFalse(User assignToUser, Pageable pageable);
     @Query(value = "SELECT * FROM lead.leads l WHERE " +
             "(:mobileNumber IS NULL OR l.contact_number = :mobileNumber) AND " +
             "(:email IS NULL OR l.email ILIKE CAST(:email AS text)) AND " +
@@ -51,5 +76,4 @@ public interface LeadRepository extends JpaRepository<Lead, Long> {
             @Param("email") String email,
             @Param("fullName") String fullName
     );
-
 }

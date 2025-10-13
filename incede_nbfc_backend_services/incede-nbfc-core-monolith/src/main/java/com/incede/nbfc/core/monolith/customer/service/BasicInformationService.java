@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -249,6 +250,11 @@ public class BasicInformationService {
         }
     }
 
+    /**
+     * get customer with customer code
+     * @param customerCode
+     * @return
+     */
     public CustomerDto getCustomerWithCustomerId(String customerCode) {
 
         Customer customer= customerRepository.findByCustomerCode(customerCode)
@@ -262,6 +268,11 @@ public class BasicInformationService {
         return  customerDto;
     }
 
+    /**
+     * get customer with customer identity
+     * @param customerIdentity
+     * @return
+     */
     public CustomerDto getCustomerWithCustomerIdentity(UUID customerIdentity) {
 
         Customer customer= customerRepository.findByIdentity(customerIdentity)
@@ -275,7 +286,11 @@ public class BasicInformationService {
         return  customerDto;
     }
 
-
+    /**
+     * Get  full customer details
+     * @param customerId
+     * @return
+     */
 
 
     @Transactional(readOnly = true)
@@ -291,6 +306,17 @@ public class BasicInformationService {
         CustomerAdditionalInfoResponseDto additionalInfo = customerAdditionalInfoService.getAdditionalInfo(customer.getIdentity());
 
         return customerMapper.toCustomerDetailResponse(customer, addresses, photos, nominees, bankAccounts, contacts, additionalInfo);
+    }
+
+    /**
+     * soft delete customer with onboarding status as draft
+     */
+    @Transactional
+    @Scheduled(fixedDelay = 604800000)
+    public void deleteDraftCustomersAfter7Days() {
+        LocalDateTime threshold = LocalDateTime.now().minusDays(7);
+        int deletedCount = customerRepository.markDraftCustomersAsDeleted(threshold);
+        log.info("Marked {} draft customers as deleted.", deletedCount);
     }
 
 }

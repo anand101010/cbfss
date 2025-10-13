@@ -162,7 +162,6 @@ class CustomerAdditionalInfoServiceTest {
         when(customerAdditionalReferenceNameRepository.findByIdentity(any()))
                 .thenReturn(Optional.of(new CustomerAdditionalReferenceName()));
 
-        // Mock findByCustomer methods to return empty for new entities
         when(employmentRepository.findByCustomer(any())).thenReturn(Optional.empty());
         when(customerReferralRepository.findByCustomer(any())).thenReturn(Optional.empty());
         when(profileExtraRepository.findByCustomer(any())).thenReturn(Optional.empty());
@@ -402,7 +401,7 @@ class CustomerAdditionalInfoServiceTest {
         BusinessException exception = assertThrows(BusinessException.class, () ->
                 customerAdditionalInfoService.saveAdditionalInfo(customerId, requestDto));
 
-        assertEquals(CommonConstants.NOT_FOUND_MESSAGE, exception.getMessage());
+        assertEquals(CommonConstants.CUSTOMER_NOT_FOUND, exception.getMessage());
         assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, exception.getErrorCode());
     }
 

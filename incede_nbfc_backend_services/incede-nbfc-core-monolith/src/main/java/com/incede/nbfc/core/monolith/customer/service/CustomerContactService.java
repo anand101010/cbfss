@@ -51,7 +51,7 @@ public class CustomerContactService {
 
         Customer customer = customerRepository.findByIdentity(customerId)
                 .orElseThrow(() -> new BusinessException(
-                        CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.RESOURCE_NOT_FOUND));
+                        CommonConstants.CUSTOMER_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
 
         ContactTypes contactType = contactTypesRepository.findByIdentity(dto.getContactType())
                 .orElseThrow(() -> new BusinessException(
@@ -66,7 +66,7 @@ public class CustomerContactService {
         }
 
         if (contactRepository.existsByContactValue(dto.getContactDetails())) {
-            throw new BusinessException(CommonConstants.CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
+            throw new BusinessException(CommonConstants.CONTACT_ALREADY_EXIST, ErrorCodes.CONFLICT);
         }
 
         if (isPrimary) {

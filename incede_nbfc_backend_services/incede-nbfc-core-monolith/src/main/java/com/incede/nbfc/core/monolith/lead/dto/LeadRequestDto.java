@@ -4,9 +4,11 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -14,6 +16,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class LeadRequestDto {
 
     @NotNull(message = "Tenant ID is required")
@@ -47,7 +50,7 @@ public class LeadRequestDto {
 
     @NotNull(message = "Interested product/service is required")
     private UUID interestedProductIdentity;
-    private List<AddressDto> addresses;
+    private List<AddressDto> address;
     private List<DynamicReferenceDto> dynamicReferences;
 
     @Data
@@ -60,14 +63,17 @@ public class LeadRequestDto {
         private String streetName;
         private String placeName;
         private String pincode;
+        private String digipin;
         private String country;
         private String state;
         private String district;
         private UUID postOfficeIdentity;
+        private UUID addressProofTypeIdentity;
+        private UUID documentReferenceIdentity;
         private String city;
         private String landmark;
-        private Double latitude;
-        private Double longitude;
+        private BigDecimal latitude;
+        private BigDecimal longitude;
     }
 
     @Data
@@ -75,7 +81,7 @@ public class LeadRequestDto {
     @AllArgsConstructor
     public static class DynamicReferenceDto {
         @NotBlank(message = "Reference config identity is required")
-        private String referenceConfigIdentity;
+        private UUID referenceConfigIdentity;
         @NotBlank(message = "Reference field value is required")
         private String referenceFieldValue;
     }

@@ -71,6 +71,12 @@ public class BasicInformationController {
         BasicInformationResponseDto response = customerOnboardingService.getBasicInformationByUuid(customerUUID);
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * get customer with customer code
+     * @param customerCode
+     * @return
+     */
     @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/{customerCode}/guardian")
     @Operation(summary = "Get Basic Info", description = "Fetches basic info of a customer by UUID")
@@ -79,6 +85,12 @@ public class BasicInformationController {
         return ResponseEntity.ok(response);
 
     }
+
+    /**
+     * get  basic information of customer with customer identity
+     * @param customerIdentity
+     * @return
+     */
     @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/{customerIdentity}/identity/guardian")
     @Operation(summary = "Get Basic Info", description = "Fetches basic info of a customer by UUID")
@@ -87,6 +99,12 @@ public class BasicInformationController {
         return ResponseEntity.ok(response);
 
     }
+
+    /**
+     * get whole details of a customer
+     * @param customerIdentity
+     * @return
+     */
     @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/{customerIdentity}/allDetails")
     @Operation(summary = "Get All details of customer all over the entities")

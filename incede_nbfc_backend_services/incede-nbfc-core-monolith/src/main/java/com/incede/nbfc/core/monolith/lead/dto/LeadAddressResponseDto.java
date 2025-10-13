@@ -13,9 +13,9 @@ import java.util.UUID;
 public class LeadAddressResponseDto {
 
     private UUID identity;
-    private String customerCode;
+    private String leadCode;
     private String status;
-    private List<AddressDetail> addresses;
+    private AddressDetail address;
 
     @Data
     @NoArgsConstructor
@@ -24,7 +24,7 @@ public class LeadAddressResponseDto {
     public static class AddressDetail {
         private UUID addressIdentity;
         private UUID addressType;
-        private String doorNumber ;
+        private String houseNumber ;
         private String streetName;
         private String landmark;
         private String placeName;

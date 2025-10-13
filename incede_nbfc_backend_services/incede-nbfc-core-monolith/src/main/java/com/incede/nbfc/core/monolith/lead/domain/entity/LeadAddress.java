@@ -56,23 +56,23 @@ public class LeadAddress extends LeadBaseEntity implements Serializable {
     private String pincode;
 
 
-    @Column(name = "country_id")
+    @Column(name = "country")
     private String  country;
 
-    @Column(name = "state_id")
+    @Column(name = "state")
     private String  state;
 
-    @Column(name = "district_id")
+    @Column(name = "district")
     private String  district;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_office_id", nullable = false, referencedColumnName = "post_office_id")
     private PostOffices postOfficeId;
 
-    @Column(name = "city_id")
+    @Column(name = "city")
     private String  city;
 
-    @Column(name = "digipin", length = 20, unique = true)
+    @Column(name = "digipin", length = 20)
     private String digipin;
 
     @Column(name = "latitude", precision = 9, scale = 6)
@@ -88,6 +88,6 @@ public class LeadAddress extends LeadBaseEntity implements Serializable {
     @Column(name = "document_ref_id")
     private Integer documentRefId;
 
-    @Column(name = "document_path", length = 255)
-    private String documentPath;
+
 }
+

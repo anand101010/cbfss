@@ -45,10 +45,10 @@ public class PostOffices extends BaseEntity implements Serializable {
     @Column(name = "division", length = 80)
     private String division;
 
-    @Column(name = "latitude", precision = 10, scale = 7)
+    @Column(name = "latitude",nullable = true)
     private BigDecimal latitude;
 
-    @Column(name = "longitude", precision = 10, scale = 7)
+    @Column(name = "longitude",nullable = true)
     private BigDecimal longitude;
 
     @Column(name = "identity", nullable = false, unique = true)

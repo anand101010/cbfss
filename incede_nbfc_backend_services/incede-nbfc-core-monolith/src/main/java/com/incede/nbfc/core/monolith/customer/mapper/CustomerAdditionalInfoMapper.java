@@ -42,14 +42,7 @@ public class CustomerAdditionalInfoMapper {
         return profileExtra;
     }
 
-//    public CustomerPep mapToPep(CustomerPepDto pepDto, Customer customer) {
-//        Objects.requireNonNull(pepDto, "CustomerPepDto must not be null");
-//        Objects.requireNonNull(customer, "Customer must not be null");
-//
-//        CustomerPep pep = new CustomerPep();
-//        updatePep(pep, pepDto, customer);
-//        return pep;
-//    }
+
 
     public CustomerReferral mapToReferral(CustomerReferralDto referralDto, Customer customer) {
         Objects.requireNonNull(referralDto, "CustomerReferralDto must not be null");

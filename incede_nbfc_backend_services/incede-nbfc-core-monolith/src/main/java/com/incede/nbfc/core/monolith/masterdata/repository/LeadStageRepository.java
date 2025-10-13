@@ -16,4 +16,9 @@ public interface LeadStageRepository extends JpaRepository<LeadStage, Integer> {
     List<LeadStageView> findByIsDelFalseAndIsActiveTrue();
 
     Optional<LeadStage> findByIdentity(UUID leadStageIdentity);
+
+    Optional<LeadStage>  findByIdentityAndIsDelFalseAndIsActiveTrue(UUID leadIdentity);
+
+
+
 }
