@@ -42,7 +42,6 @@ public class CustomerAddressService {
     private final CustomerRepository customerRepository;
     private final CustomerAddressRepository addressRepository;
     private final CustomerAddressMapper addressMapper;
-    private final ObjectMapper objectMapper;
 
     private final AddressTypeRepository addressTypeRepository;
     private final PostOfficesRepository postOfficesRepository;
@@ -53,20 +52,18 @@ public class CustomerAddressService {
     /**
      *
      * @param customerIdentity
-     * @param requestJson
-     * @param file
+
      * @return
      * @throws JsonProcessingException
      */
     @Transactional
-    public CustomerAddressResponseDto createAddress(UUID customerIdentity, String requestJson, MultipartFile file) throws JsonProcessingException {
+    public CustomerAddressResponseDto createAddress(UUID customerIdentity, CustomerAddressRequestDto dto){
         log.info("Creating new address for customerIdentity: {}", customerIdentity);
 
-        CustomerAddressRequestDto dto = objectMapper.readValue(requestJson, CustomerAddressRequestDto.class);
-        validateDto(dto);
+
 
         Customer customer = customerRepository.findByIdentity(customerIdentity)
-                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_CUSTOMER, customerIdentity.toString()));
+                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.CUSTOMER_NOT_FOUND));
 
         CustomerAddress address = addressMapper.toEntity(customer, dto);
 
@@ -82,15 +79,6 @@ public class CustomerAddressService {
                 .orElseThrow(() -> new BusinessException(CommonConstants.INVALID_ADDRESS_PROOF_TYPE, ErrorCodes.VALIDATION_FAILED));
         address.setAddressProofType(addressProof);
 
-        if (Boolean.FALSE.equals(dto.getIsSameAsPermanent())) {
-            if (file == null || file.isEmpty()) {
-                throw new BusinessException(CommonConstants.IS_SAME_AS_PERMANENT_CONSTRAINT);
-            }
-            Integer documentRefId = uploadDocument(file);
-            address.setDocumentRefId(documentRefId);
-        } else {
-            address.setDocumentRefId(null);
-        }
 
         CustomerAddress savedAddress = addressRepository.save(address);
         CustomerAddressResponseDto.AddressDetail detail = addressMapper.toAddressDetail(savedAddress);
@@ -101,24 +89,21 @@ public class CustomerAddressService {
      *
      * @param customerIdentity
      * @param addressIdentity
-     * @param requestJson
-     * @param file
      * @return
      * @throws JsonProcessingException
      */
     @Transactional
-    public CustomerAddressResponseDto updateAddress(UUID customerIdentity, UUID addressIdentity, String requestJson, MultipartFile file) throws JsonProcessingException {
+    public CustomerAddressResponseDto updateAddress(UUID customerIdentity, UUID addressIdentity, CustomerAddressRequestDto dto){
         log.info("Updating address {} for customer {}", addressIdentity, customerIdentity);
 
-        CustomerAddressRequestDto dto = objectMapper.readValue(requestJson, CustomerAddressRequestDto.class);
         validateDto(dto);
 
         Customer customer = customerRepository.findByIdentity(customerIdentity)
-                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_CUSTOMER, customerIdentity.toString()));
+                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.CUSTOMER_NOT_FOUND));
 
         CustomerAddress address = addressRepository.findByIdentity(addressIdentity)
                 .filter(a -> a.getCustomer().getCustomerId().equals(customer.getCustomerId()))
-                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_ADDRESS, addressIdentity.toString()));
+                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ADDRESS_NOT_FOUND));
 
         addressMapper.updateEntity(address, dto);
 
@@ -134,11 +119,6 @@ public class CustomerAddressService {
                 .orElseThrow(() -> new BusinessException(CommonConstants.INVALID_ADDRESS_PROOF_TYPE, ErrorCodes.VALIDATION_FAILED));
         address.setAddressProofType(addressProof);
 
-        if (file != null && !file.isEmpty()) {
-            Integer documentRefId = uploadDocument(file);
-            address.setDocumentRefId(documentRefId);
-        }
-
         CustomerAddress updatedAddress = addressRepository.save(address);
         CustomerAddressResponseDto.AddressDetail detail = addressMapper.toAddressDetail(updatedAddress);
         return addressMapper.toResponse(customer, CommonConstants.CUSTOMER_ADDRESS_STATUS_UPDATED, List.of(detail));
@@ -153,11 +133,11 @@ public class CustomerAddressService {
     @Transactional
     public void deleteAddress(UUID customerIdentity, UUID addressIdentity) {
         Customer customer = customerRepository.findByIdentity(customerIdentity)
-                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_CUSTOMER, customerIdentity.toString()));
+                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.CUSTOMER_NOT_FOUND));
 
         CustomerAddress address = addressRepository.findByIdentity(addressIdentity)
                 .filter(a -> a.getCustomer().getCustomerId().equals(customer.getCustomerId()))
-                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_ADDRESS, addressIdentity.toString()));
+                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ADDRESS_NOT_FOUND));
 
         address.setIsDel(true);
         address.setIsActive(false);
@@ -203,7 +183,4 @@ public class CustomerAddressService {
         }
     }
 
-    private Integer uploadDocument(MultipartFile file) {
-        return Math.abs(UUID.randomUUID().hashCode());
-    }
 }

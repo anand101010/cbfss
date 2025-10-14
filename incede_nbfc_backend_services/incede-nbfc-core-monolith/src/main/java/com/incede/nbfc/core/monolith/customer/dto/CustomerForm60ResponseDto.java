@@ -1,3 +1,4 @@
+
 package com.incede.nbfc.core.monolith.customer.dto;
 
 import lombok.AllArgsConstructor;
@@ -13,7 +14,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CustomerForm60ResponseDto {
+public class
+CustomerForm60ResponseDto {
 
     private BigDecimal transactionAmount;
     private LocalDate transactionDate;
@@ -38,6 +40,8 @@ public class CustomerForm60ResponseDto {
 
     private LocalDate submissionDate;
     private Integer formFileId;
+    private String filePath;
+    private String docRefId;
 
     private String telephoneNumber;
     private String floorNumber;
@@ -49,3 +53,5 @@ public class CustomerForm60ResponseDto {
 
 
 }
+
+

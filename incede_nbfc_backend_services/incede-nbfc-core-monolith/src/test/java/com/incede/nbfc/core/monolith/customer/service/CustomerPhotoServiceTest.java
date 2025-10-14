@@ -1,8 +1,5 @@
 package com.incede.nbfc.core.monolith.customer.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerPhoto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerPhotoRequestDto;
@@ -19,79 +16,167 @@ import jakarta.validation.Path;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+import org.springframework.dao.DataIntegrityViolationException;
+
 import java.math.BigDecimal;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class CustomerPhotoServiceTest {
 
     @Mock private CustomerRepository customerRepository;
     @Mock private CustomerPhotoRepository photoRepository;
     @Mock private CustomerPhotoMapper customerPhotoMapper;
-    @Mock private ObjectMapper objectMapper;
-    @Mock private MultipartFile file;
     @Mock private UserRepository userRepository;
+    @Mock private Validator validator;
+
     @InjectMocks private CustomerPhotoService service;
 
     private final UUID customerId = UUID.randomUUID();
+    private final UUID capturedById = UUID.randomUUID();
     private Customer customer;
+    private User capturedByUser;
 
     @BeforeEach
     void setup() {
+        MockitoAnnotations.openMocks(this);
+
         customer = new Customer();
         customer.setIdentity(customerId);
 
+        capturedByUser = new User();
+        capturedByUser.setIdentity(capturedById);
     }
-
-    private CustomerPhotoRequestDto createValidDto() {
-        CustomerPhotoRequestDto dto = new CustomerPhotoRequestDto();
-        dto.setCaptureTime("2025-09-30T18:30:00");
-        dto.setLocationDescription("Office");
-        dto.setCaptureDevice("Mobile");
-        dto.setAccuracy(BigDecimal.valueOf(99.99));
-        dto.setCapturedBy(UUID.randomUUID());
-        dto.setPhotoLivenessStatus("LIVE");
-        dto.setLongitude(BigDecimal.valueOf(77.5946));
-        dto.setLatitude(BigDecimal.valueOf(12.9716));
-        return dto;
-    }
-
 
     @Test
-    void createPhoto_success() throws Exception {
-        CustomerPhotoRequestDto dto = createValidDto();
+    void createPhoto_success() {
+        // Create complete request DTO with all mandatory fields
+        CustomerPhotoRequestDto dto = new CustomerPhotoRequestDto();
+        dto.setCapturedBy(capturedById);
+        dto.setCaptureTime("2025-09-19T10:00:00");
+        dto.setLocationDescription("Office");
+        dto.setCaptureDevice("Mobile");
+        dto.setAccuracy(BigDecimal.valueOf(1.0));
+        dto.setPhotoLivenessStatus("verified");
+        dto.setLongitude(BigDecimal.valueOf(77.5946));
+        dto.setLatitude(BigDecimal.valueOf(12.9716));
+        dto.setPhotoRefId("PHOTO12345");
+        dto.setFilePath("/photos/customer/photo.png");
+
         CustomerPhoto entity = new CustomerPhoto();
         CustomerPhoto saved = new CustomerPhoto();
+        saved.setPhotoId(1);
         CustomerPhotoResponseDto response = new CustomerPhotoResponseDto();
-        User capturedByUser = new User();
-        capturedByUser.setIdentity(dto.getCapturedBy());
 
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(userRepository.findByIdentity(dto.getCapturedBy())).thenReturn(Optional.of(capturedByUser));
-        when(objectMapper.readValue(anyString(), eq(CustomerPhotoRequestDto.class))).thenReturn(dto);
+        when(validator.validate(dto)).thenReturn(Collections.emptySet());
+        when(userRepository.findByIdentity(capturedById)).thenReturn(Optional.of(capturedByUser));
         when(customerPhotoMapper.toEntity(dto)).thenReturn(entity);
         when(photoRepository.save(entity)).thenReturn(saved);
         when(customerPhotoMapper.toResponseDto(customer, List.of(saved))).thenReturn(response);
 
-        CustomerPhotoResponseDto result = service.createPhoto(customerId, "{}", file);
+        CustomerPhotoResponseDto result = service.createPhoto(customerId, dto);
 
         assertNotNull(result);
+        verify(customerRepository).findByIdentity(customerId);
+        verify(userRepository).findByIdentity(capturedById);
         verify(photoRepository).save(entity);
+        verify(customerPhotoMapper).toResponseDto(customer, List.of(saved));
+    }
+
+    @Test
+    void createPhoto_customerNotFound() {
+        CustomerPhotoRequestDto dto = new CustomerPhotoRequestDto();
+        dto.setCapturedBy(capturedById);
+
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> service.createPhoto(customerId, dto));
+
+        verify(customerRepository).findByIdentity(customerId);
+        verify(photoRepository, never()).save(any());
+    }
+
+    @Test
+    void createPhoto_validationFails() {
+        CustomerPhotoRequestDto dto = new CustomerPhotoRequestDto();
+        dto.setCapturedBy(capturedById);
+
+        @SuppressWarnings("unchecked")
+        ConstraintViolation<CustomerPhotoRequestDto> violation = mock(ConstraintViolation.class);
+        Path path = mock(Path.class);
+        when(path.toString()).thenReturn("captureTime");
+        when(violation.getPropertyPath()).thenReturn(path);
+        when(violation.getMessage()).thenReturn("must not be null");
+
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(validator.validate(dto)).thenReturn(Set.of(violation));
+
+        assertThrows(BusinessException.class,
+                () -> service.createPhoto(customerId, dto));
+
+        verify(photoRepository, never()).save(any());
+    }
+
+    @Test
+    void createPhoto_capturedByUserNotFound() {
+        CustomerPhotoRequestDto dto = new CustomerPhotoRequestDto();
+        dto.setCapturedBy(capturedById);
+        dto.setCaptureTime("2025-09-19T10:00:00");
+        dto.setLocationDescription("Office");
+        dto.setCaptureDevice("Mobile");
+        dto.setAccuracy(BigDecimal.valueOf(1.0));
+        dto.setPhotoLivenessStatus("verified");
+        dto.setLongitude(BigDecimal.valueOf(77.5946));
+        dto.setLatitude(BigDecimal.valueOf(12.9716));
+        dto.setPhotoRefId("PHOTO12345");
+        dto.setFilePath("/photos/customer/photo.png");
+
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(validator.validate(dto)).thenReturn(Collections.emptySet());
+        when(userRepository.findByIdentity(capturedById)).thenReturn(Optional.empty());
+
+        assertThrows(BusinessException.class,
+                () -> service.createPhoto(customerId, dto));
+
+        verify(photoRepository, never()).save(any());
+    }
+
+    @Test
+    void createPhoto_constraintViolation() {
+        CustomerPhotoRequestDto dto = new CustomerPhotoRequestDto();
+        dto.setCapturedBy(capturedById);
+        dto.setCaptureTime("2025-09-19T10:00:00");
+        dto.setLocationDescription("Office");
+        dto.setCaptureDevice("Mobile");
+        dto.setAccuracy(BigDecimal.valueOf(1.0));
+        dto.setPhotoLivenessStatus("verified");
+        dto.setLongitude(BigDecimal.valueOf(77.5946));
+        dto.setLatitude(BigDecimal.valueOf(12.9716));
+        dto.setPhotoRefId("PHOTO12345");
+        dto.setFilePath("/photos/customer/photo.png");
+
+        CustomerPhoto entity = new CustomerPhoto();
+
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(validator.validate(dto)).thenReturn(Collections.emptySet());
+        when(userRepository.findByIdentity(capturedById)).thenReturn(Optional.of(capturedByUser));
+        when(customerPhotoMapper.toEntity(dto)).thenReturn(entity);
+        when(photoRepository.save(entity)).thenThrow(new DataIntegrityViolationException("constraint"));
+
+        assertThrows(BusinessException.class,
+                () -> service.createPhoto(customerId, dto));
     }
 
     @Test
     void getCustomerPhotos_success() {
         CustomerPhoto photo = new CustomerPhoto();
+        photo.setPhotoId(1);
         List<CustomerPhoto> photos = List.of(photo);
         CustomerPhotoResponseDto response = new CustomerPhotoResponseDto();
 
@@ -103,94 +188,61 @@ class CustomerPhotoServiceTest {
         CustomerPhotoResponseDto result = service.getCustomerPhotos(customerId);
 
         assertNotNull(result);
+        verify(customerRepository).findByIdentity(customerId);
+        verify(photoRepository).findByCustomerIdentityAndIsDelFalseOrderByCaptureTimeDesc(customerId);
         verify(customerPhotoMapper).toResponseDto(customer, photos);
     }
 
-
     @Test
-    void createPhoto_customerNotFound() {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class,
-                () -> service.createPhoto(customerId, "{}", file));
-    }
-
-    @Test
-    void createPhoto_invalidJson() throws Exception {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(objectMapper.readValue(anyString(), eq(CustomerPhotoRequestDto.class)))
-                .thenThrow(new JsonProcessingException("bad json") {});
-
-        BusinessException ex = assertThrows(BusinessException.class,
-                () -> service.createPhoto(customerId, "{bad}", file));
-        assertTrue(ex.getMessage().contains(CommonConstants.INVALID_JSON));
-    }
-
-    @Test
-    void createPhoto_validationFails() throws Exception {
-        CustomerPhotoRequestDto dto = new CustomerPhotoRequestDto();
-
-        ConstraintViolation<CustomerPhotoRequestDto> violation = mock(ConstraintViolation.class);
-        Path path = mock(Path.class);
-        when(path.toString()).thenReturn("capturedBy");
-        when(violation.getPropertyPath()).thenReturn(path);
-        when(violation.getMessage()).thenReturn("must not be null");
-
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(objectMapper.readValue(anyString(), eq(CustomerPhotoRequestDto.class))).thenReturn(dto);
-
-        // Inject validator dynamically
-        var validatorField = CustomerPhotoService.class.getDeclaredField("validator");
-        validatorField.setAccessible(true);
-        validatorField.set(service, mock(Validator.class));
-        when(((Validator) validatorField.get(service)).validate(dto)).thenReturn(Set.of(violation));
-
-        BusinessException ex = assertThrows(BusinessException.class,
-                () -> service.createPhoto(customerId, "{}", file));
-        assertTrue(ex.getMessage().contains("capturedBy"));
-    }
-
-    @Test
-    void createPhoto_constraintViolation() throws Exception {
-        CustomerPhotoRequestDto dto = createValidDto();
-        CustomerPhoto entity = new CustomerPhoto();
-        User capturedByUser = new User();
-        capturedByUser.setIdentity(dto.getCapturedBy());
-
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(userRepository.findByIdentity(dto.getCapturedBy())).thenReturn(Optional.of(capturedByUser));
-        when(objectMapper.readValue(anyString(), eq(CustomerPhotoRequestDto.class))).thenReturn(dto);
-        when(customerPhotoMapper.toEntity(dto)).thenReturn(entity);
-        when(photoRepository.save(entity)).thenThrow(new DataIntegrityViolationException("constraint"));
-
-        BusinessException ex = assertThrows(BusinessException.class,
-                () -> service.createPhoto(customerId, "{}", file));
-        assertTrue(ex.getMessage().contains(CommonConstants.CONSTRAIN_VIOLATION));
-    }
-
-
-    @Test
-    void getCustomerPhotos_noCustomer() {
+    void getCustomerPhotos_customerNotFound() {
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class,
                 () -> service.getCustomerPhotos(customerId));
+
+        verify(customerRepository).findByIdentity(customerId);
+        verify(photoRepository, never()).findByCustomerIdentityAndIsDelFalseOrderByCaptureTimeDesc(any());
     }
 
     @Test
-    void getCustomerPhotos_noPhotos() {
+    void getCustomerPhotos_noPhotosFound() {
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(photoRepository.findByCustomerIdentityAndIsDelFalseOrderByCaptureTimeDesc(customerId))
                 .thenReturn(Collections.emptyList());
 
         assertThrows(ResourceNotFoundException.class,
                 () -> service.getCustomerPhotos(customerId));
+
+        verify(customerRepository).findByIdentity(customerId);
+        verify(photoRepository).findByCustomerIdentityAndIsDelFalseOrderByCaptureTimeDesc(customerId);
     }
 
-
     @Test
-    void uploadPhoto_generatesUniqueId() {
-        Integer refId = service.uploadPhoto(file);
-        assertNotNull(refId);
+    void createPhoto_multipleValidationErrors() {
+        CustomerPhotoRequestDto dto = new CustomerPhotoRequestDto();
+        dto.setCapturedBy(capturedById);
+
+        @SuppressWarnings("unchecked")
+        ConstraintViolation<CustomerPhotoRequestDto> violation1 = mock(ConstraintViolation.class);
+        Path path1 = mock(Path.class);
+        when(path1.toString()).thenReturn("captureTime");
+        when(violation1.getPropertyPath()).thenReturn(path1);
+        when(violation1.getMessage()).thenReturn("must not be null");
+
+        @SuppressWarnings("unchecked")
+        ConstraintViolation<CustomerPhotoRequestDto> violation2 = mock(ConstraintViolation.class);
+        Path path2 = mock(Path.class);
+        when(path2.toString()).thenReturn("photoRefId");
+        when(violation2.getPropertyPath()).thenReturn(path2);
+        when(violation2.getMessage()).thenReturn("must not be blank");
+
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(validator.validate(dto)).thenReturn(Set.of(violation1, violation2));
+
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> service.createPhoto(customerId, dto));
+
+        assertTrue(exception.getMessage().contains("captureTime") ||
+                exception.getMessage().contains("photoRefId"));
     }
 }

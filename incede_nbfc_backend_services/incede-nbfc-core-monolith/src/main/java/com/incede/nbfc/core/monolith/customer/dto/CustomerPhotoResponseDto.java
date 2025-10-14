@@ -27,8 +27,8 @@ public class CustomerPhotoResponseDto {
     @Builder
     public static class PhotoDetail{
         private String firstname;
-        private Integer photoId;
-        private Integer photoRefId;
+        private UUID photoId;
+        private String photoRefId;
         private UUID capturedBy;
         private BigDecimal latitude;
         private BigDecimal longitude;

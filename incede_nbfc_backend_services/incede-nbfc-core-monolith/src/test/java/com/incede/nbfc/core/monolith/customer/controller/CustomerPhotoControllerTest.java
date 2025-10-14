@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.controller;
 
+import com.incede.nbfc.core.monolith.customer.dto.CustomerPhotoRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerPhotoResponseDto;
 import com.incede.nbfc.core.monolith.customer.enums.PhotoStatus;
 import com.incede.nbfc.core.monolith.customer.service.CustomerPhotoService;
@@ -10,9 +11,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -30,30 +30,34 @@ class CustomerPhotoControllerTest {
     private CustomerPhotoController customerPhotoController;
 
     private UUID customerId;
-    private String requestJson;
+    private UUID capturedById;
+    private CustomerPhotoRequestDto requestDto;
     private CustomerPhotoResponseDto responseDto;
-    private MultipartFile mockFile;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
         customerId = UUID.randomUUID();
+        capturedById = UUID.randomUUID();
 
-        // requestJson as a JSON string
-        requestJson = "{\n" +
-                "  \"latitude\": 12.34,\n" +
-                "  \"longitude\": 56.78,\n" +
-                "  \"capturedBy\": 1,\n" +
-                "  \"captureDevice\": \"mobile\",\n" +
-                "  \"captureTime\": \"2025-09-08T17:00:00\",\n" +
-                "  \"status\": \"PENDING\",\n" +
-                "  \"createdBy\": 1\n" +
-                "}";
+        // Create request DTO with all required fields
+        requestDto = new CustomerPhotoRequestDto();
+        requestDto.setCapturedBy(capturedById);
+        requestDto.setLatitude(BigDecimal.valueOf(12.9716));
+        requestDto.setLongitude(BigDecimal.valueOf(77.5946));
+        requestDto.setPhotoLivenessStatus("verified");
+        requestDto.setAccuracy(BigDecimal.valueOf(1.0));
+        requestDto.setCaptureDevice("mobile");
+        requestDto.setLocationDescription("Office location");
+        requestDto.setCaptureTime("2025-09-08T17:00:00");
+        requestDto.setPhotoRefId("PHOTO12345");
+        requestDto.setFilePath("/photos/customer/photo.png");
 
+        // Create response DTO
         CustomerPhotoResponseDto.PhotoDetail detail = CustomerPhotoResponseDto.PhotoDetail.builder()
-                .photoId(1)
-                .photoRefId(12345)
+                .photoId(UUID.randomUUID())
+                .photoRefId("PHOTO12345")
                 .status(PhotoStatus.PENDING)
                 .captureTime(LocalDateTime.now())
                 .build();
@@ -64,25 +68,20 @@ class CustomerPhotoControllerTest {
                 .status("IN_PROGRESS")
                 .photo(List.of(detail))
                 .build();
-
-        mockFile = new MockMultipartFile(
-                "file",
-                "photo.png",
-                "image/png",
-                "dummy image content".getBytes()
-        );
     }
 
     @Test
     void testCreatePhoto_Success() {
-        when(customerPhotoService.createPhoto(any(UUID.class), any(String.class), any(MultipartFile.class)))
+        when(customerPhotoService.createPhoto(any(UUID.class), any(CustomerPhotoRequestDto.class)))
                 .thenReturn(responseDto);
 
         ResponseEntity<CustomerPhotoResponseDto> response =
-                customerPhotoController.createPhoto(customerId, requestJson, mockFile);
+                customerPhotoController.createPhoto(customerId, requestDto);
 
         assertEquals(201, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
         assertEquals(responseDto, response.getBody());
+        assertEquals(customerId, response.getBody().getIdentity());
     }
 
     @Test
@@ -93,16 +92,17 @@ class CustomerPhotoControllerTest {
                 customerPhotoController.getPhoto(customerId);
 
         assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
         assertEquals(responseDto, response.getBody());
     }
 
     @Test
     void testCreatePhoto_WhenCustomerNotFound_ThrowsException() {
-        when(customerPhotoService.createPhoto(any(UUID.class), any(String.class), any(MultipartFile.class)))
-                .thenThrow(new ResourceNotFoundException("Customer", customerId.toString()));
+        when(customerPhotoService.createPhoto(any(UUID.class), any(CustomerPhotoRequestDto.class)))
+                .thenThrow(new ResourceNotFoundException("Customer not found"));
 
         Exception exception = assertThrows(ResourceNotFoundException.class, () ->
-                customerPhotoController.createPhoto(customerId, requestJson, mockFile));
+                customerPhotoController.createPhoto(customerId, requestDto));
 
         assertTrue(exception.getMessage().contains("Customer"));
     }
@@ -110,22 +110,33 @@ class CustomerPhotoControllerTest {
     @Test
     void testGetPhoto_WhenNoPhotosFound_ThrowsException() {
         when(customerPhotoService.getCustomerPhotos(customerId))
-                .thenThrow(new ResourceNotFoundException("CustomerPhoto", customerId.toString()));
+                .thenThrow(new ResourceNotFoundException("No photos found for customer"));
 
         Exception exception = assertThrows(ResourceNotFoundException.class, () ->
                 customerPhotoController.getPhoto(customerId));
 
-        assertTrue(exception.getMessage().contains("CustomerPhoto"));
+        assertTrue(exception.getMessage().contains("photos"));
     }
 
     @Test
     void testCreatePhoto_WhenUnexpectedErrorOccurs_ThrowsRuntimeException() {
-        when(customerPhotoService.createPhoto(any(UUID.class), any(String.class), any(MultipartFile.class)))
+        when(customerPhotoService.createPhoto(any(UUID.class), any(CustomerPhotoRequestDto.class)))
                 .thenThrow(new RuntimeException("Unexpected error"));
 
         Exception exception = assertThrows(RuntimeException.class, () ->
-                customerPhotoController.createPhoto(customerId, requestJson, mockFile));
+                customerPhotoController.createPhoto(customerId, requestDto));
 
         assertEquals("Unexpected error", exception.getMessage());
+    }
+
+    @Test
+    void testCreatePhoto_WhenCapturedByNotFound_ThrowsException() {
+        when(customerPhotoService.createPhoto(any(UUID.class), any(CustomerPhotoRequestDto.class)))
+                .thenThrow(new ResourceNotFoundException("Captured by user not found"));
+
+        Exception exception = assertThrows(ResourceNotFoundException.class, () ->
+                customerPhotoController.createPhoto(customerId, requestDto));
+
+        assertTrue(exception.getMessage().contains("user"));
     }
 }

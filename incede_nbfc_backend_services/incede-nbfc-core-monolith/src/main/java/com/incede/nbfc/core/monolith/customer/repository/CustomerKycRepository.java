@@ -19,7 +19,7 @@ import java.util.Optional;
 public interface CustomerKycRepository extends JpaRepository<CustomerKyc, Integer> {
     boolean existsByIdTypeAndCustomer(KycTypes idType, Customer existingCustomer);
 
-    List<CustomerKyc> findByCustomer(Customer savedCustomer);
+   Optional<List<CustomerKyc>> findByCustomer(Customer savedCustomer);
 
     Optional<CustomerKyc> findByIdTypeAndIdNumber(KycTypes documentType, @NotBlank(message = "ID number must not be blank") @Size(max = 50, message = "ID number must not exceed 50 characters") String idNumber);
 

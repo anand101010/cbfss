@@ -21,10 +21,8 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,15 +37,13 @@ public class CustomerBankAccountService {
     private final CustomerBankAccountMapper customerBankAccountMapper;
     private final AccountTypeMasterRepository accountTypeMasterRepository;
     private final AccountStatusesRepository accountStatusesRepository;
-    private final ObjectMapper objectMapper;
 
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     @Transactional
-    public CustomerBankAccountResponseDto createBankAccount(UUID identity, String requestJson, MultipartFile bankProof) {
+    public CustomerBankAccountResponseDto createBankAccount(UUID identity, CustomerBankAccountRequestDto requestDto) {
         try {
-            CustomerBankAccountRequestDto requestDto = objectMapper.readValue(requestJson, CustomerBankAccountRequestDto.class);
-            validate(requestDto);
+
 
             Customer customer = customerRepository.findByIdentity(identity)
                     .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_CUSTOMER, identity.toString()));
@@ -57,7 +53,8 @@ public class CustomerBankAccountService {
             CustomerBankAccount bankAccount = customerBankAccountMapper.toEntity(requestDto);
             bankAccount.setAccountType(fetchAccountType(requestDto.getAccountType()));
             bankAccount.setAccountStatus(fetchAccountStatus(requestDto.getAccountStatus()));
-            bankAccount.setBankProofDocumentRefId(uploadBankProof(bankProof));
+            bankAccount.setBankProofDocumentRefId(requestDto.getBankProofDocumentRefId());
+            bankAccount.setBankProofFilePath(requestDto.getBankProofFilePath());
             bankAccount.setCustomer(customer);
 
             CustomerBankAccount saved = customerBankAccountRepository.save(bankAccount);
@@ -73,7 +70,7 @@ public class CustomerBankAccountService {
             throw e;
         } catch (Exception e) {
             log.error("Unexpected error creating bank account", e);
-            throw new BusinessException("Failed to create bank account", ErrorCodes.INTERNAL_SERVER_ERROR, e);
+            throw new BusinessException(CommonConstants.FAILED_TO_CREATE_BANK_ACCOUNT, ErrorCodes.INTERNAL_SERVER_ERROR, e);
         }
     }
 
@@ -170,8 +167,4 @@ public class CustomerBankAccountService {
                 .orElseThrow(() -> new BusinessException(CommonConstants.INVALID_ACCOUNT_STATUS, ErrorCodes.VALIDATION_FAILED));
     }
 
-    public Integer uploadBankProof(MultipartFile bankProof) {
-        return Math.abs(UUID.randomUUID().hashCode());
-    }
 }
-

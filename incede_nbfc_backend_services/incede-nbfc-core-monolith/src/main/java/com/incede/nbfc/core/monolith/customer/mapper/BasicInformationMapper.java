@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -87,6 +88,11 @@ public class BasicInformationMapper {
      *
      * @param customer The customer entity
      * @return BasicInformationResponseDto
+    /**
+     * Convert a Customer entity to a response DTO.
+     *
+     * @param customer The customer entity (must not be null)
+     * @return BasicInformationResponseDto
      */
     public BasicInformationResponseDto toResponseDto(Customer customer) {
         Objects.requireNonNull(customer, "Customer must not be null");
@@ -95,14 +101,14 @@ public class BasicInformationMapper {
                 .firstName(customer.getFirstName())
                 .lastName(customer.getLastName())
                 .dob(customer.getDob())
-                .gender(customer.getGender().getIdentity())
-                .maritalStatus(customer.getMaritalStatus().getIdentity())
-                .taxCategory(customer.getTaxCategory().getIdentity())
-                .salutation(customer.getSalutation().getIdentity())
-                .branchId(customer.getBranchId().getIdentity())
+                .gender(customer.getGender() != null ? customer.getGender().getIdentity() : null)
+                .maritalStatus(customer.getMaritalStatus() != null ? customer.getMaritalStatus().getIdentity() : null)
+                .taxCategory(customer.getTaxCategory() != null ? customer.getTaxCategory().getIdentity() : null)
+                .salutation(customer.getSalutation() != null ? customer.getSalutation().getIdentity() : null)
+                .branchId(customer.getBranchId() != null ? customer.getBranchId().getIdentity() : null)
                 .middleName(customer.getMiddleName())
                 .crmReferenceId(customer.getCrmReferenceId())
-                .occupation(customer.getOccupation().getIdentity())
+                .occupation(customer.getOccupation() != null ? customer.getOccupation().getIdentity() : null)
                 .employer(customer.getEmployer())
                 .annualIncome(customer.getAnnualIncome())
                 .isBusiness(customer.getIsBusiness())
@@ -116,7 +122,7 @@ public class BasicInformationMapper {
                 .guardianCustomerId(customer.getGuardianCustomer() != null
                         ? customer.getGuardianCustomer().getIdentity()
                         : null)
-                .customerStatus(customer.getCustomerStatus().getIdentity())
+                .customerStatus(customer.getCustomerStatus() != null ? customer.getCustomerStatus().getIdentity() : null)
                 .aadharVaultId(customer.getAadharVaultId())
                 .aadharName(customer.getDisplayName())
                 .build();
@@ -128,6 +134,7 @@ public class BasicInformationMapper {
                 .basic(basic)
                 .build();
     }
+
     /**
      * Maps mobile number to CustomerContact entity
      *
@@ -172,20 +179,8 @@ public class BasicInformationMapper {
         }
     }
 
-    //CustomerDetails GET
 
-    /**
-     *
-     *
-     * @param customer
-     * @param addresses
-     * @param customerPhotos
-     * @param nominees
-     * @param bankAccounts
-     * @param contacts
-     * @param additionalInfo
-     * @return get all details of a custoemr
-     */
+
     /**
      *
      *
@@ -278,7 +273,11 @@ public class BasicInformationMapper {
         return photos.stream()
                 .map(photo -> CustomerPhotoResponseDto.PhotoDetail.builder()
                         .firstname(photo.getCustomer() != null ? photo.getCustomer().getFirstName() : null)
-                        .photoId(photo.getPhotoId())
+
+
+
+
+                        .photoId(UUID.randomUUID())
                         .photoRefId(photo.getPhotoRefId())
                         .capturedBy(photo.getCapturedBy().getIdentity())
                         .latitude(photo.getLatitude())

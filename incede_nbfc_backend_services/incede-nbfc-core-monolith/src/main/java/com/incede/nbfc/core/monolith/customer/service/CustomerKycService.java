@@ -49,20 +49,19 @@ public class CustomerKycService {
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     @Transactional
-    public CustomerKycResponseDto createInitialCustomer(String requestJson, MultipartFile file) {
+    public CustomerKycResponseDto createInitialCustomer(CustomerKycRequestDto request) {
         try {
-            if (requestJson == null || requestJson.trim().isEmpty()) {
+            if (request == null) {
                 throw new BusinessException(CommonConstants.INVALID_REQUEST, ErrorCodes.VALIDATION_FAILED);
             }
 
-            CustomerKycRequestDto request = objectMapper.readValue(requestJson, CustomerKycRequestDto.class);
             validateRequest(request);
 
             KycTypes kycType = kycTypesRepository.findByIdentity(request.getIdType())
                     .orElseThrow(() -> new BusinessException(CommonConstants.DOCUMENT_TYPE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
 
             Optional<CustomerKyc> existingKyc = customerKycRepository.findByIdTypeAndIdNumber(kycType, request.getIdNumber());
-            existingKyc.ifPresent(kyc -> throwConflict(kyc.getCustomer(), kycType, request.getIdNumber(), file));
+            existingKyc.ifPresent(kyc -> throwConflict(kyc.getCustomer(), kycType, request.getIdNumber()));
 
             String customerCode = customerKycMapper.generateCustomerCode(
                     Optional.ofNullable(request.getBranchCode()).orElse("UNKNOWN"),
@@ -84,82 +83,77 @@ public class CustomerKycService {
 
             CustomerKyc customerKyc = customerKycMapper.toKycEntity(request, savedCustomer);
             customerKyc.setIdType(kycType);
+            customerKyc.setDocumentRefId(request.getDocumentRefId());
             CustomerKyc savedKyc = customerKycRepository.save(customerKyc);
 
-            CustomerKycUpload upload = saveKycDocument(savedKyc, file);
+            CustomerKycUpload upload = saveKycDocument(savedKyc, request);
+            List<CustomerKycUpload> uploadList = customerKycUploadRepository.findByCustomer(savedCustomer)
+                    .orElseThrow(() -> new BusinessException(CommonConstants.KYC_UPLOAD_NOT_FOUND_FOR_CUSTOMER, ErrorCodes.RESOURCE_NOT_FOUND));
 
-            savedKyc.setDocumentRefId(upload.getDocumentReference());
-            customerKycRepository.save(savedKyc);
 
-            List<CustomerKyc> kycList = customerKycRepository.findByCustomer(savedCustomer);
-            return customerKycMapper.toResponseDto(savedCustomer, kycList, file);
+            List<CustomerKyc> kycList = customerKycRepository.findByCustomer(savedCustomer)
+                    .orElseThrow(() -> new BusinessException(CommonConstants.KYC_NOT_FOUND_FOR_CUSTOMER, ErrorCodes.RESOURCE_NOT_FOUND));
+            return customerKycMapper.toResponseDto(savedCustomer, kycList, uploadList);
 
-        } catch (JsonProcessingException e) {
-            log.warn("Invalid JSON for KYC request: {}", requestJson, e);
-            throw new BusinessException(CommonConstants.INVALID_JSON, ErrorCodes.VALIDATION_FAILED, e);
+
         } catch (DataIntegrityViolationException e) {
-            log.error("Constraint violation while saving KYC: {}", requestJson, e);
+            log.error("Constraint violation while saving KYC: {}", request, e);
             throw new BusinessException(CommonConstants.CONSTRAIN_VIOLATION, ErrorCodes.CONSTRAINT_VIOLATION, e);
         }
     }
 
     @Transactional
-    public CustomerKycResponseDto addKycDocument(String requestJson, MultipartFile file, UUID identity) {
-        try {
-            if (requestJson == null || requestJson.trim().isEmpty()) {
+    public CustomerKycResponseDto addKycDocument(CustomerKycRequestDto customerKycRequestDto, UUID identity) {
+
+        try{
+            if (customerKycRequestDto == null) {
                 throw new BusinessException(CommonConstants.INVALID_REQUEST, ErrorCodes.VALIDATION_FAILED);
             }
-
-            CustomerKycRequestDto request = objectMapper.readValue(requestJson, CustomerKycRequestDto.class);
-            validateRequest(request);
 
             Customer existingCustomer = customerRepository.findByIdentity(identity)
                     .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.CUSTOMER_NOT_FOUND));
 
-            KycTypes kycType = kycTypesRepository.findByIdentity(request.getIdType())
+            KycTypes kycType = kycTypesRepository.findByIdentity(customerKycRequestDto.getIdType())
                     .orElseThrow(() -> new BusinessException(CommonConstants.DOCUMENT_TYPE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
 
-            Optional<CustomerKyc> existingKyc = customerKycRepository.findByIdTypeAndIdNumber(kycType, request.getIdNumber());
-            existingKyc.ifPresent(kyc -> throwConflict(kyc.getCustomer(), kycType, request.getIdNumber(), file));
+            Optional<CustomerKyc> existingKyc = customerKycRepository.findByIdTypeAndIdNumber(kycType, customerKycRequestDto.getIdNumber());
+            existingKyc.ifPresent(kyc -> throwConflict(kyc.getCustomer(), kycType, customerKycRequestDto.getIdNumber()));
 
             if (customerKycRepository.existsByIdTypeAndCustomer(kycType, existingCustomer)) {
                 throw new BusinessException(CommonConstants.DOCUMENT_ALREADY_EXISTS, ErrorCodes.CONFLICT);
             }
 
-            CustomerKyc customerKyc = customerKycMapper.toKycEntity(request, existingCustomer);
+            CustomerKyc customerKyc = customerKycMapper.toKycEntity(customerKycRequestDto, existingCustomer);
             customerKyc.setIdType(kycType);
+            customerKyc.setDocumentRefId(customerKycRequestDto.getDocumentRefId());
 
             CustomerKyc savedKyc = customerKycRepository.save(customerKyc);
 
-            CustomerKycUpload upload = saveKycDocument(savedKyc, file);
+            CustomerKycUpload upload = saveKycDocument(savedKyc,customerKycRequestDto);
 
-            savedKyc.setDocumentRefId(upload.getDocumentReference());
-            customerKycRepository.save(savedKyc);
+            List<CustomerKycUpload> uploadList = customerKycUploadRepository.findByCustomer(existingCustomer)
+                    .orElseThrow(() -> new BusinessException(CommonConstants.KYC_UPLOAD_NOT_FOUND_FOR_CUSTOMER, ErrorCodes.RESOURCE_NOT_FOUND));
 
-            List<CustomerKyc> kycList = customerKycRepository.findByCustomer(existingCustomer);
-            return customerKycMapper.toResponseDto(existingCustomer, kycList, file);
+            List<CustomerKyc> kycList = customerKycRepository.findByCustomer(existingCustomer)
+                    .orElseThrow(() -> new BusinessException(CommonConstants.KYC_NOT_FOUND_FOR_CUSTOMER, ErrorCodes.RESOURCE_NOT_FOUND));
+            return customerKycMapper.toResponseDto(existingCustomer, kycList, uploadList);
 
-        } catch (JsonProcessingException e) {
-            log.warn("Invalid JSON for KYC request: {}", requestJson, e);
-            throw new BusinessException(CommonConstants.INVALID_JSON, ErrorCodes.VALIDATION_FAILED, e);
         } catch (DataIntegrityViolationException e) {
-            log.error("Constraint violation while saving KYC: {}", requestJson, e);
+            log.error("Constraint violation while saving KYC: {}", customerKycRequestDto, e);
             throw new BusinessException(CommonConstants.CONSTRAIN_VIOLATION, ErrorCodes.CONSTRAINT_VIOLATION, e);
         }
     }
 
-    private CustomerKycUpload saveKycDocument(CustomerKyc customerKyc, MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new BusinessException(CommonConstants.FILE_REQUIRED, ErrorCodes.VALIDATION_FAILED);
-        }
-        try {
-            int fileRefId = (int) (System.currentTimeMillis() % Integer.MAX_VALUE);
+    private CustomerKycUpload saveKycDocument(CustomerKyc customerKyc, CustomerKycRequestDto customerKycRequestDto) {
 
-            CustomerKycUpload upload = customerKycMapper.toKycUploadEntity(customerKyc, file);
-            upload.setDocumentReference(fileRefId);
+        try {
+//            int fileRefId = (int) (System.currentTimeMillis() % Integer.MAX_VALUE);
+
+            CustomerKycUpload upload = customerKycMapper.toKycUploadEntity(customerKyc, customerKycRequestDto);
+            upload.setDocumentReference(customerKycRequestDto.getDocumentRefId());
             customerKycUploadRepository.save(upload);
 
-            log.info("Saving KYC document: {} with reference ID {}", file.getOriginalFilename(), fileRefId);
+            log.info("Saving KYC document: {} with reference ID {}", customerKycRequestDto.getFileName(), customerKycRequestDto.getDocumentRefId());
             return upload;
         } catch (Exception e) {
             log.error("Error saving KYC document", e);
@@ -179,13 +173,17 @@ public class CustomerKycService {
         }
     }
 
-    private void throwConflict(Customer conflictCustomer, KycTypes kycType, String idNumber, MultipartFile file) {
+    private void throwConflict(Customer conflictCustomer, KycTypes kycType, String idNumber) {
         if (conflictCustomer == null) {
             throw new BusinessException(CommonConstants.CUSTOMER_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND);
         }
 
-        List<CustomerKyc> kycList = customerKycRepository.findByCustomer(conflictCustomer);
-        customerKycMapper.toResponseDto(conflictCustomer, kycList, file);
+        List<CustomerKyc> kycList = customerKycRepository.findByCustomer(conflictCustomer)
+                .orElseThrow(() -> new BusinessException(CommonConstants.KYC_NOT_FOUND_FOR_CUSTOMER, ErrorCodes.RESOURCE_NOT_FOUND));
+
+        List<CustomerKycUpload> customerKycUploadList = customerKycUploadRepository.findByCustomer(conflictCustomer)
+                .orElseThrow(() -> new BusinessException(CommonConstants.KYC_UPLOAD_NOT_FOUND_FOR_CUSTOMER, ErrorCodes.RESOURCE_NOT_FOUND));
+        customerKycMapper.toResponseDto(conflictCustomer, kycList, customerKycUploadList);
 
         Map<String, Object> existingDetails = new HashMap<>();
         existingDetails.put("customerCode", conflictCustomer.getCustomerCode());
@@ -213,8 +211,8 @@ public class CustomerKycService {
             Customer customer = customerRepository.findByIdentity(customerIdentity)
                     .orElseThrow(() -> new ResourceNotFoundException("Customer not found with ID: " + customerIdentity));
 
-            List<CustomerKyc> kycs = customerKycRepository.findByCustomer(customer); // Updated method name
-
+            List<CustomerKyc> kycs = customerKycRepository.findByCustomer(customer)
+                    .orElseThrow(() -> new BusinessException(CommonConstants.KYC_NOT_FOUND_FOR_CUSTOMER, ErrorCodes.RESOURCE_NOT_FOUND));
             return buildKycResponseDto(customer, kycs);
 
         } catch (ResourceNotFoundException e) {

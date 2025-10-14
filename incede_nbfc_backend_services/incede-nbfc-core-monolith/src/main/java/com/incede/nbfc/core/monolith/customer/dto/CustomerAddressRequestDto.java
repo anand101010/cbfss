@@ -22,6 +22,10 @@ public class CustomerAddressRequestDto {
     @Size(max = 100, message = "Address line 1 must not exceed 100 characters")
     private String addressLine1;
 
+
+    @NotNull(message = "Document Reference ID is required")
+    private String documentRefId;
+
     @Size(max = 100, message = "Address line 2 must not exceed 100 characters")
     private String addressLine2;
 
@@ -74,4 +78,6 @@ public class CustomerAddressRequestDto {
 
     @ToString.Exclude
     private String customerCode;
+
+    private String filePath;
 }

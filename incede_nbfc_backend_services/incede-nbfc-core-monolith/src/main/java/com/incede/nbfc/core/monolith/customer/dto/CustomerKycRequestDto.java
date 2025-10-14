@@ -46,6 +46,15 @@ public class CustomerKycRequestDto {
     @NotBlank(message = "branchCode should not be blank")
     private String branchCode;
 
+    @NotNull(message = "Document Reference ID is required")
+    private String documentRefId;
+
+    private String filePath;
+
+    private String fileName;
+
+    private String fileType;
+
 
 
 }

@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.controller;
 
+import com.incede.nbfc.core.monolith.customer.dto.CustomerKycRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerKycResponseDto;
 import com.incede.nbfc.core.monolith.customer.service.CustomerKycService;
 import lombok.RequiredArgsConstructor;
@@ -20,18 +21,15 @@ public class CustomerKycController {
     private final CustomerKycService customerKycService;
 
     /**
-     * create a initial customer with minimal information and save the document to DMS
-     * @param requestJson
-     * @param file
+     * create an initial customer with minimal information and save the document to DMS
      * @return
      */
     @PreAuthorize("hasRole('STAFF')")
-    @PostMapping(value = "/addKyc", consumes = {"multipart/form-data"})
+    @PostMapping(value = "/addKyc")
     public ResponseEntity<CustomerKycResponseDto> createInitialCustomer(
-            @RequestPart("request") String requestJson,
-            @RequestPart("file") MultipartFile file
+            @RequestBody CustomerKycRequestDto customerKycRequestDto
     ){
-        CustomerKycResponseDto customerKycResponseDto = customerKycService.createInitialCustomer(requestJson, file);
+        CustomerKycResponseDto customerKycResponseDto = customerKycService.createInitialCustomer(customerKycRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(customerKycResponseDto);
     }
 
@@ -40,11 +38,10 @@ public class CustomerKycController {
     @PreAuthorize("hasRole('STAFF')")
     @PutMapping("{customerIdentity}/addKyc")
     public ResponseEntity<CustomerKycResponseDto> addKycDocument(
-            @RequestPart("request") String requestJson,
-            @PathVariable UUID customerIdentity,
-            @RequestPart("file") MultipartFile file
+            @RequestBody CustomerKycRequestDto customerKycRequestDto,
+            @PathVariable UUID customerIdentity
     ){
-        CustomerKycResponseDto customerKycResponseDto = customerKycService.addKycDocument(requestJson, file, customerIdentity);
+        CustomerKycResponseDto customerKycResponseDto = customerKycService.addKycDocument(customerKycRequestDto, customerIdentity);
         return ResponseEntity.status(HttpStatus.OK).body(customerKycResponseDto);
     }
 

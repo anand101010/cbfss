@@ -65,7 +65,8 @@ public class CustomerKyc extends CustomerBaseEntity implements Serializable {
     private LocalDate validTo;
 
     @Column(name = "document_ref_id", nullable = false)
-    private Integer documentRefId;
+    @NotNull(message = "Document reference ID is required")
+    private String documentRefId;
 
     @Column(name = "is_verified")
     @NotNull(message = "Verification status must be specified")

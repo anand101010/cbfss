@@ -24,6 +24,9 @@ public final class CommonConstants {
     public static final String CAPTURED_BY_NOT_FOUND = "Captured user does not  exist";
     public static final String KYC_NOT_FOUND = "No KYC document found ";
     public static final String MOBILE_NOT_FOUND ="Mobile contact type not found" ;
+    public static final String KYC_NOT_FOUND_FOR_CUSTOMER = "No KYC document found for this customer";
+    public static final String KYC_UPLOAD_NOT_FOUND_FOR_CUSTOMER = "KYC uploaded document not found for this customer";
+    public static final String FAILED_TO_CREATE_BANK_ACCOUNT = "Failed to create bank account";
 
     private CommonConstants() {
         // Utility class - prevent instantiation

@@ -1,3 +1,4 @@
+
 package com.incede.nbfc.core.monolith.customer.controller;
 
 
@@ -147,18 +148,19 @@ public class CustomerForm60Controller {
 
     @PreAuthorize("hasRole('STAFF')")
     @PostMapping(
-            value = "/{customerIdentity}/form60/{form60Identity}/upload",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+            value = "/{customerIdentity}/form60/{form60Identity}/upload"
+
     )
     @Operation(summary = "Upload Signed Form 60 PDF",
             description = "Upload the signed PDF of Form 60 for a given customer and Form 60 ID")
     public ResponseEntity<Form60UploadResponseDto> uploadSignedForm60(
             @PathVariable UUID customerIdentity,
-            @PathVariable UUID form60Identity,
-            @RequestParam("signedForm60") MultipartFile signedForm60) {
+            @PathVariable UUID form60Identity) {
 
-        Form60UploadResponseDto response = form60Service.uploadSignedForm60(customerIdentity, form60Identity, signedForm60);
+        Form60UploadResponseDto response = form60Service.uploadSignedForm60(customerIdentity, form60Identity);
         return ResponseEntity.ok(response);
     }
 
 }
+
+

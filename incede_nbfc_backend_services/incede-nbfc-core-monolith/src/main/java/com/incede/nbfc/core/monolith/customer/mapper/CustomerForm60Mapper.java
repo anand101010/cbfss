@@ -1,3 +1,5 @@
+
+
 package com.incede.nbfc.core.monolith.customer.mapper;
 
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
@@ -24,6 +26,8 @@ public class CustomerForm60Mapper {
         form60.setTransactionDate(dto.getTransactionDate());
         form60.setModeOfTransaction(dto.getModeOfTransaction());
         form60.setNumberOfPersons(dto.getNumberOfPersons());
+        form60.setDocRefId(dto.getDocRefId());
+        form60.setFilePath(dto.getFilePath());
 
         form60.setAgriculturalIncome(dto.getAgriculturalIncome());
         form60.setOtherIncome(dto.getOtherIncome());
@@ -69,6 +73,8 @@ public class CustomerForm60Mapper {
                 .addIssuingAuthority(entity.getAddIssuingAuthority())
                 .submissionDate(entity.getSubmissionDate())
                 .formFileId(entity.getFormFileId())
+                .filePath(entity.getFilePath())
+                .docRefId(entity.getDocRefId())
                 .identity(entity.getIdentity())
                 .telephoneNumber(entity.getTelephoneNumber())
                 .nameOfPremises(entity.getNameOfPremises())
@@ -107,6 +113,8 @@ public class CustomerForm60Mapper {
         entity.setAddIssuingAuthority(dto.getAddIssuingAuthority());
         entity.setSubmissionDate(dto.getSubmissionDate());
         entity.setFormFileId(dto.getFormFileId());
+        entity.setFilePath(dto.getFilePath());
+        entity.setDocRefId(dto.getDocRefId());
         entity.setUpdatedBy(dto.getUpdatedBy());
         entity.setTelephoneNumber(dto.getTelephoneNumber());
         entity.setNameOfPremises(dto.getNameOfPremises());
@@ -115,4 +123,6 @@ public class CustomerForm60Mapper {
 
 
 }
+
+
 

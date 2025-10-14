@@ -1,3 +1,4 @@
+
 package com.incede.nbfc.core.monolith.customer.service;
 
 import com.incede.nbfc.core.monolith.client.dto.FinaVaultResponseDto;
@@ -317,11 +318,9 @@ public class CustomerForm60Service {
      *upload signed form 60
      */
     @Transactional
-    public Form60UploadResponseDto uploadSignedForm60(UUID customerIdentity, UUID form60Identity, MultipartFile file) {
+    public Form60UploadResponseDto uploadSignedForm60(UUID customerIdentity, UUID form60Identity) {
 
-        if (file.isEmpty()) {
-            throw new BusinessException("Uploaded file is empty", ErrorCodes.INVALID_REQUEST_FORMAT);
-        }
+
 
         Customer customer = customerRepository.findByIdentityAndIsDelFalse(customerIdentity)
                 .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_CUSTOMER, customerIdentity.toString()));
@@ -332,11 +331,14 @@ public class CustomerForm60Service {
 
         Form60UploadResponseDto response = new Form60UploadResponseDto();
         response.setForm60Identity(form60.getIdentity());
-        response.setPdfDocRefId(form60.getIdentity());
-        response.setFileName(file.getOriginalFilename());
+        response.setPdfDocRefId(form60.getDocRefId());
+        response.setFilePath(form60.getFilePath());
+
         response.setUploadedAt(OffsetDateTime.now());
 
         return response;
     }
 
 }
+
+

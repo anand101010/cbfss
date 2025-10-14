@@ -111,8 +111,12 @@ public class CustomerAddress extends CustomerBaseEntity implements Serializable 
     private Boolean isSameAsPermanent = false;
 
     @Column(name = "document_ref_id")
-    @Min(value = 1, message = "Document reference ID must be a positive integer")
-    private Integer documentRefId;
+    @NotNull(message = "Document reference ID is required")
+    private String documentRefId;
+
+    @Column(name = "file_path")
+    @NotNull(message = "File path is required")
+    private String filePath;
 
     @Column(name = "is_active")
     private Boolean isActive = true;

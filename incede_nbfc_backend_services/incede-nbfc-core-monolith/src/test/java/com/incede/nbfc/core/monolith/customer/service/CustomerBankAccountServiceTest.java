@@ -1,235 +1,251 @@
 package com.incede.nbfc.core.monolith.customer.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerBankAccount;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerBankAccountRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerBankAccountResponseDto;
+import com.incede.nbfc.core.monolith.customer.dto.CustomerBankAccountResponseDto.BankAccount;
 import com.incede.nbfc.core.monolith.customer.mapper.CustomerBankAccountMapper;
 import com.incede.nbfc.core.monolith.customer.repository.CustomerBankAccountRepository;
 import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.exception.ResourceNotFoundException;
-import com.incede.nbfc.core.monolith.masterdata.domain.entity.AccountTypeMaster;
 import com.incede.nbfc.core.monolith.masterdata.domain.entity.AccountStatuses;
+import com.incede.nbfc.core.monolith.masterdata.domain.entity.AccountTypeMaster;
 import com.incede.nbfc.core.monolith.masterdata.repository.AccountStatusesRepository;
 import com.incede.nbfc.core.monolith.masterdata.repository.AccountTypeMasterRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.springframework.mock.web.MockMultipartFile;
-
 import java.util.*;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class CustomerBankAccountServiceTest {
 
-    @InjectMocks
-    private CustomerBankAccountService service;
-
     @Mock
     private CustomerRepository customerRepository;
-
     @Mock
     private CustomerBankAccountRepository customerBankAccountRepository;
-
     @Mock
     private CustomerBankAccountMapper customerBankAccountMapper;
-
-    @Mock
-    private ObjectMapper objectMapper;
-
     @Mock
     private AccountTypeMasterRepository accountTypeMasterRepository;
-
     @Mock
     private AccountStatusesRepository accountStatusesRepository;
 
-    @BeforeEach
-    void setup() {
-        MockitoAnnotations.openMocks(this);
-    }
+    @InjectMocks
+    private CustomerBankAccountService service;
 
-    private CustomerBankAccountRequestDto buildValidRequest() {
-        return CustomerBankAccountRequestDto.builder()
+    private UUID customerId;
+    private UUID bankAccountId;
+    private Customer customer;
+    private CustomerBankAccount bankAccount;
+    private CustomerBankAccountRequestDto requestDto;
+    private CustomerBankAccountResponseDto responseDto;
+    private AccountTypeMaster accountType;
+    private AccountStatuses accountStatus;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+
+        customerId = UUID.randomUUID();
+        bankAccountId = UUID.randomUUID();
+
+        customer = new Customer();
+        customer.setIdentity(customerId);
+        customer.setCustomerCode("CUST001");
+
+        bankAccount = new CustomerBankAccount();
+        bankAccount.setIdentity(bankAccountId);
+        bankAccount.setCustomer(customer);
+        bankAccount.setAccountNumber("1234567890");
+        bankAccount.setUpiId("user@upi");
+
+        requestDto = CustomerBankAccountRequestDto.builder()
                 .bankName("HDFC Bank")
-                .accountNumber("123456789012")
+                .ifscCode("HDFC0001234")
+                .accountNumber("1234567890")
+                .upiId("user@upi")
                 .accountType(UUID.randomUUID())
                 .accountStatus(UUID.randomUUID())
                 .accountHolderName("John Doe")
-                .ifscCode("HDFC0001234")
+                .branchName("Main Branch")
+                .bankProofDocumentRefId("123")
+                .bankProofFilePath("/path/to/file.jpg")
                 .isActive(true)
-                .upiId("john@upi")
-                .upiVerified(true)
                 .isPrimary(true)
-                .pdStatus("PD_OK")
+                .upiVerified(true)
+                .pdStatus("VERIFIED")
                 .pdTxnId("TXN123")
                 .customerCode("CUST001")
                 .build();
+
+        accountType = new AccountTypeMaster();
+        accountType.setIdentity(requestDto.getAccountType());
+
+        accountStatus = new AccountStatuses();
+        accountStatus.setIdentity(requestDto.getAccountStatus());
+
+        BankAccount bankAccountDetail = BankAccount.builder()
+                .bankName("HDFC Bank")
+                .accountHolderName("John Doe")
+                .bankAccountIdentity(bankAccountId)
+                .build();
+
+        responseDto = CustomerBankAccountResponseDto.builder()
+                .identity(customerId)
+                .customerCode("CUST001")
+                .status("ACTIVE")
+                .bankAccounts(List.of(bankAccountDetail))
+                .build();
     }
 
+    // --------------------------------------------------------------------------------
+    // CREATE BANK ACCOUNT
+    // --------------------------------------------------------------------------------
+
     @Test
-    void createBankAccount_success() throws Exception {
-        UUID identity = UUID.randomUUID();
-        String requestJson = "{}";
-        MockMultipartFile file = new MockMultipartFile("file", "proof.pdf", "application/pdf", new byte[]{1, 2});
-
-        CustomerBankAccountRequestDto requestDto = buildValidRequest();
-        Customer customer = new Customer();
-        customer.setIdentity(identity);
-
-        CustomerBankAccount bankAccount = new CustomerBankAccount();
-        CustomerBankAccountResponseDto.BankAccount accountDetail = new CustomerBankAccountResponseDto.BankAccount();
-
-
-        when(objectMapper.readValue(requestJson, CustomerBankAccountRequestDto.class)).thenReturn(requestDto);
-
-
-        when(customerRepository.findByIdentity(identity)).thenReturn(Optional.of(customer));
-
-
-        when(customerBankAccountRepository.existsByAccountNumberAndCustomer(anyString(), any())).thenReturn(false);
-        when(customerBankAccountRepository.existsByUpiIdAndIsDelFalse(anyString())).thenReturn(false);
-
-        // Mapping
+    void testCreateBankAccount_Success() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(accountTypeMasterRepository.findByIdentity(requestDto.getAccountType())).thenReturn(Optional.of(accountType));
+        when(accountStatusesRepository.findByIdentity(requestDto.getAccountStatus())).thenReturn(Optional.of(accountStatus));
         when(customerBankAccountMapper.toEntity(requestDto)).thenReturn(bankAccount);
-        when(customerBankAccountMapper.toAccountDetail(bankAccount)).thenReturn(accountDetail);
+        when(customerBankAccountRepository.save(any(CustomerBankAccount.class))).thenReturn(bankAccount);
+        when(customerBankAccountMapper.toAccountDetail(bankAccount)).thenReturn(responseDto.getBankAccounts().get(0));
+        when(customerBankAccountMapper.toResponse(eq(customer), anyString(), anyList())).thenReturn(responseDto);
 
-        // Master data repositories
-        when(accountTypeMasterRepository.findByIdentity(requestDto.getAccountType()))
-                .thenReturn(Optional.of(new AccountTypeMaster()));
-        when(accountStatusesRepository.findByIdentity(requestDto.getAccountStatus()))
-                .thenReturn(Optional.of(new AccountStatuses()));
+        CustomerBankAccountResponseDto result = service.createBankAccount(customerId, requestDto);
 
-        // Save
-        when(customerBankAccountRepository.save(bankAccount)).thenReturn(bankAccount);
-
-        // Response mapping
-        when(customerBankAccountMapper.toResponse(eq(customer), anyString(), anyList()))
-                .thenReturn(CustomerBankAccountResponseDto.builder()
-                        .identity(identity)
-                        .customerCode("CUST001")
-                        .status("OK")
-                        .bankAccounts(List.of(accountDetail))
-                        .build());
-
-        CustomerBankAccountResponseDto response = service.createBankAccount(identity, requestJson, file);
-
-        assertNotNull(response);
-        assertEquals("CUST001", response.getCustomerCode());
-        assertEquals("OK", response.getStatus());
-        verify(customerBankAccountRepository).save(bankAccount);
+        assertNotNull(result);
+        assertEquals(responseDto, result);
+        verify(customerBankAccountRepository, times(1)).save(any(CustomerBankAccount.class));
     }
 
     @Test
-    void createBankAccount_validationFails() throws Exception {
-        UUID identity = UUID.randomUUID();
-        String requestJson = "{}";
-        MockMultipartFile file = new MockMultipartFile("file", "proof.pdf", "application/pdf", new byte[]{1, 2});
-
-        CustomerBankAccountRequestDto requestDto = new CustomerBankAccountRequestDto(); // empty DTO
-
-        when(objectMapper.readValue(requestJson, CustomerBankAccountRequestDto.class)).thenReturn(requestDto);
-
-        assertThrows(BusinessException.class,
-                () -> service.createBankAccount(identity, requestJson, file));
+    void testCreateBankAccount_CustomerNotFound() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class, () ->
+                service.createBankAccount(customerId, requestDto)
+        );
     }
 
     @Test
-    void createBankAccount_customerNotFound() throws Exception {
-        UUID identity = UUID.randomUUID();
-        String requestJson = "{}";
-        MockMultipartFile file = new MockMultipartFile("file", "proof.pdf", "application/pdf", new byte[]{1, 2});
+    void testCreateBankAccount_InternalError() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(customerBankAccountMapper.toEntity(requestDto)).thenThrow(new RuntimeException("Unexpected"));
 
-        CustomerBankAccountRequestDto requestDto = buildValidRequest();
-        when(objectMapper.readValue(requestJson, CustomerBankAccountRequestDto.class)).thenReturn(requestDto);
-        when(customerRepository.findByIdentity(identity)).thenReturn(Optional.empty());
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+                service.createBankAccount(customerId, requestDto)
+        );
 
-        assertThrows(ResourceNotFoundException.class,
-                () -> service.createBankAccount(identity, requestJson, file));
+        assertTrue(ex.getMessage().contains(CommonConstants.FAILED_TO_CREATE_BANK_ACCOUNT));
+    }
+
+    // --------------------------------------------------------------------------------
+    // UPDATE BANK ACCOUNT
+    // --------------------------------------------------------------------------------
+
+    @Test
+    void testUpdateBankAccount_Success() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(customerBankAccountRepository.findByIdentity(bankAccountId)).thenReturn(Optional.of(bankAccount));
+        when(accountTypeMasterRepository.findByIdentity(any())).thenReturn(Optional.of(accountType));
+        when(accountStatusesRepository.findByIdentity(any())).thenReturn(Optional.of(accountStatus));
+        when(customerBankAccountRepository.findByCustomerAndIsActiveTrue(customer))
+                .thenReturn(List.of(bankAccount));
+        when(customerBankAccountRepository.save(any(CustomerBankAccount.class))).thenReturn(bankAccount);
+        when(customerBankAccountMapper.toAccountDetail(bankAccount)).thenReturn(responseDto.getBankAccounts().get(0));
+        when(customerBankAccountMapper.toResponse(customer, CommonConstants.CUSTOMER_ADDRESS_STATUS_UPDATED, List.of(responseDto.getBankAccounts().get(0))))
+                .thenReturn(responseDto);
+
+        CustomerBankAccountResponseDto result = service.updateBankAccount(customerId, bankAccountId, requestDto);
+
+        assertNotNull(result);
+        assertEquals(responseDto, result);
     }
 
     @Test
-    void updateBankAccount_success() {
-        UUID identity = UUID.randomUUID();
-        UUID bankAccountIdentity = UUID.randomUUID();
-        CustomerBankAccountRequestDto requestDto = buildValidRequest();
-
-        Customer customer = new Customer();
-        customer.setIdentity(identity);
-
-        CustomerBankAccount bankAccount = new CustomerBankAccount();
-        bankAccount.setCustomer(customer);
-        bankAccount.setIdentity(bankAccountIdentity);
-
-        when(customerRepository.findByIdentity(identity)).thenReturn(Optional.of(customer));
-        when(customerBankAccountRepository.findByIdentity(bankAccountIdentity)).thenReturn(Optional.of(bankAccount));
-        when(customerBankAccountRepository.existsByAccountNumberAndCustomerAndIdentityNot(anyString(), any(), any())).thenReturn(false);
-        when(customerBankAccountRepository.existsByUpiIdAndIsDelFalseAndIdentityNot(anyString(), any())).thenReturn(false);
-
-        when(accountTypeMasterRepository.findByIdentity(requestDto.getAccountType()))
-                .thenReturn(Optional.of(new AccountTypeMaster()));
-        when(accountStatusesRepository.findByIdentity(requestDto.getAccountStatus()))
-                .thenReturn(Optional.of(new AccountStatuses()));
-
-        when(customerBankAccountRepository.save(bankAccount)).thenReturn(bankAccount);
-        when(customerBankAccountRepository.findByCustomerAndIsActiveTrue(customer)).thenReturn(List.of(bankAccount));
-        when(customerBankAccountMapper.toAccountDetail(bankAccount)).thenReturn(new CustomerBankAccountResponseDto.BankAccount());
-        when(customerBankAccountMapper.toResponse(eq(customer), anyString(), anyList()))
-                .thenReturn(CustomerBankAccountResponseDto.builder()
-                        .identity(identity)
-                        .customerCode("CUST001")
-                        .status("UPDATED")
-                        .bankAccounts(List.of(new CustomerBankAccountResponseDto.BankAccount()))
-                        .build());
-
-        CustomerBankAccountResponseDto response = service.updateBankAccount(identity, bankAccountIdentity, requestDto);
-
-        assertNotNull(response);
-        assertEquals("UPDATED", response.getStatus());
-        verify(customerBankAccountRepository).save(bankAccount);
+    void testUpdateBankAccount_CustomerNotFound() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class, () ->
+                service.updateBankAccount(customerId, bankAccountId, requestDto)
+        );
     }
 
     @Test
-    void updateBankAccount_bankAccountNotFound() {
-        UUID identity = UUID.randomUUID();
-        UUID bankAccountIdentity = UUID.randomUUID();
-        CustomerBankAccountRequestDto requestDto = buildValidRequest();
+    void testUpdateBankAccount_BankAccountNotFound() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(customerBankAccountRepository.findByIdentity(bankAccountId)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class, () ->
+                service.updateBankAccount(customerId, bankAccountId, requestDto)
+        );
+    }
 
-        when(customerRepository.findByIdentity(identity)).thenReturn(Optional.of(new Customer()));
-        when(customerBankAccountRepository.findByIdentity(bankAccountIdentity)).thenReturn(Optional.empty());
+    // NEW TESTS 👇 for better coverage
+    @Test
+    void testUpdateBankAccount_MismatchCustomer() {
+        Customer otherCustomer = new Customer();
+        otherCustomer.setIdentity(UUID.randomUUID());
+        bankAccount.setCustomer(otherCustomer);
 
-        assertThrows(ResourceNotFoundException.class,
-                () -> service.updateBankAccount(identity, bankAccountIdentity, requestDto));
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(customerBankAccountRepository.findByIdentity(bankAccountId)).thenReturn(Optional.of(bankAccount));
+
+        assertThrows(BusinessException.class, () ->
+                service.updateBankAccount(customerId, bankAccountId, requestDto)
+        );
     }
 
     @Test
-    void getActiveBankAccounts_success() {
-        UUID identity = UUID.randomUUID();
-        Customer customer = new Customer();
-        when(customerRepository.findByIdentity(identity)).thenReturn(Optional.of(customer));
-        CustomerBankAccount bankAccount = new CustomerBankAccount();
-        when(customerBankAccountRepository.findByCustomerAndIsActiveTrue(customer)).thenReturn(List.of(bankAccount));
-        when(customerBankAccountMapper.toAccountDetail(bankAccount)).thenReturn(new CustomerBankAccountResponseDto.BankAccount());
-        when(customerBankAccountMapper.toResponse(eq(customer), anyString(), anyList()))
-                .thenReturn(CustomerBankAccountResponseDto.builder()
-                        .identity(identity)
-                        .customerCode("CUST001")
-                        .status("OK")
-                        .bankAccounts(List.of(new CustomerBankAccountResponseDto.BankAccount()))
-                        .build());
+    void testUpdateBankAccount_InternalError() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(customerBankAccountRepository.findByIdentity(bankAccountId)).thenThrow(new RuntimeException("Unexpected DB Error"));
 
-        CustomerBankAccountResponseDto response = service.getActiveBankAccounts(identity);
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+                service.updateBankAccount(customerId, bankAccountId, requestDto)
+        );
+        assertTrue(ex.getMessage().contains(CommonConstants.FAILED_TO_UPDATE_BANK_ACCOUNT));
+    }
 
-        assertNotNull(response);
-        assertEquals("OK", response.getStatus());
+    // --------------------------------------------------------------------------------
+    // GET ACTIVE BANK ACCOUNTS
+    // --------------------------------------------------------------------------------
+
+    @Test
+    void testGetActiveBankAccounts_Success() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(customerBankAccountRepository.findByCustomerAndIsActiveTrue(customer))
+                .thenReturn(List.of(bankAccount));
+        when(customerBankAccountMapper.toAccountDetail(bankAccount)).thenReturn(responseDto.getBankAccounts().get(0));
+        when(customerBankAccountMapper.toResponse(customer, CommonConstants.CUSTOMER_STATUS_ACTIVE, List.of(responseDto.getBankAccounts().get(0))))
+                .thenReturn(responseDto);
+
+        CustomerBankAccountResponseDto result = service.getActiveBankAccounts(customerId);
+
+        assertNotNull(result);
+        assertEquals(responseDto, result);
     }
 
     @Test
-    void uploadBankProof_generatesId() {
-        Integer id = service.uploadBankProof(new MockMultipartFile("file", "a.pdf", "application/pdf", new byte[]{1}));
-        assertNotNull(id);
+    void testGetActiveBankAccounts_CustomerNotFound() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class, () ->
+                service.getActiveBankAccounts(customerId)
+        );
+    }
+
+
+
+    @Test
+    void testFetchAccountStatus_NotFound_ThrowsException() {
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(accountTypeMasterRepository.findByIdentity(any())).thenReturn(Optional.of(accountType));
+        when(accountStatusesRepository.findByIdentity(any())).thenReturn(Optional.empty());
+        assertThrows(BusinessException.class, () ->
+                service.createBankAccount(customerId, requestDto)
+        );
     }
 }

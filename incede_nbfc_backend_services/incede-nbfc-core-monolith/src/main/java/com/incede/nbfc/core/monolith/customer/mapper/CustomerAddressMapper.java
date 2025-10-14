@@ -46,6 +46,8 @@ public class CustomerAddressMapper {
         address.setDigipin(customerAddressRequestDto.getDigipin());
         address.setIdentity(UUID.randomUUID());
         address.setCreatedBy(getCreatedBy());
+        address.setDocumentRefId(customerAddressRequestDto.getDocumentRefId());
+        address.setFilePath(customerAddressRequestDto.getFilePath());
 
         log.debug("Created CustomerAddress entity: {}", address);
         return address;
@@ -74,6 +76,8 @@ public class CustomerAddressMapper {
         address.setIsActive(customerAddressRequestDto.getIsActive() != null ? customerAddressRequestDto.getIsActive() : true);
         address.setDigipin(customerAddressRequestDto.getDigipin());
         address.setUpdatedBy(getUpdatedBy());
+        address.setDocumentRefId(customerAddressRequestDto.getDocumentRefId());
+        address.setFilePath(customerAddressRequestDto.getFilePath());
 
         log.debug("Updated CustomerAddress entity: {}", address);
     }
@@ -101,6 +105,8 @@ public class CustomerAddressMapper {
                 .geoAccuracy(address.getGeoAccuracy())
                 .isActive(address.getIsActive())
                 .digipin(address.getDigipin())
+                .documentRefId(address.getDocumentRefId())
+                .filePath(address.getFilePath())
                 .build();
     }
 

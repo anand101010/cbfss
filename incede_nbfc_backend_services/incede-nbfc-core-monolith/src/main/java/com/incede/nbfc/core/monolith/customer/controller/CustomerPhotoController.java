@@ -26,17 +26,17 @@ public class CustomerPhotoController {
      * Create a new photo entry for a given customer.
      *
      * @param customerUUID   the unique identity of the customer
-     * @param requestJson DTO containing photo details
+     * @param  customerPhotoRequestDto DTO containing photo details
      * @return ResponseEntity with created photo details
      */
     @PreAuthorize("hasRole('STAFF')")
-    @PostMapping(value = "{customerUUID}/photo", consumes = {"multipart/form-data"})
+    @PostMapping(value = "{customerUUID}/photo")
     public ResponseEntity<CustomerPhotoResponseDto> createPhoto(
             @PathVariable UUID customerUUID,
-            @RequestPart("request") String requestJson,
-            @RequestPart("file") MultipartFile file
+            @RequestBody CustomerPhotoRequestDto   customerPhotoRequestDto
+
     ) {
-        CustomerPhotoResponseDto createdPhoto = customerPhotoService.createPhoto(customerUUID, requestJson, file);
+        CustomerPhotoResponseDto createdPhoto = customerPhotoService.createPhoto(customerUUID, customerPhotoRequestDto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPhoto);
     }

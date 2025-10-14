@@ -44,8 +44,7 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-//            .csrf(csrf -> csrf.disable()) // Disable CSRF for API endpoints
+           .csrf(csrf -> csrf.disable()) // Disable CSRF for API endpoints
                 .headers(headers -> headers
                         .frameOptions().sameOrigin() // Allow frames for H2 console
                         .contentSecurityPolicy("default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';")
@@ -126,48 +125,5 @@ public class SecurityConfiguration {
      *
      * @return CorsConfigurationSource
      */
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
 
-        // Configure allowed origins (customize based on your frontend domains)
-        configuration.setAllowedOriginPatterns(Arrays.asList(
-                "http://localhost:*",           // Local development
-                "https://localhost:*",          // Local HTTPS development
-                "http://127.0.0.1:*",          // Local IP development
-                "https://127.0.0.1:*",         // Local HTTPS IP development
-                "http://*.incede.com",          // Incede domains
-                "https://*.incede.com"          // Incede HTTPS domains
-        ));
-
-        // Configure allowed HTTP methods
-        configuration.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"
-        ));
-
-        // Configure allowed headers
-        configuration.setAllowedHeaders(Arrays.asList(
-                "Origin", "Content-Type", "Accept", "Authorization",
-                "X-Requested-With", "Cache-Control", "X-File-Name",
-                "Access-Control-Request-Method", "Access-Control-Request-Headers"
-        ));
-
-        // Configure exposed headers (headers that browsers can access)
-        configuration.setExposedHeaders(Arrays.asList(
-                "Access-Control-Allow-Origin", "Access-Control-Allow-Credentials",
-                "X-Total-Count", "X-Page-Count", "X-Current-Page"
-        ));
-
-        // Configure credentials (cookies, authorization headers)
-        configuration.setAllowCredentials(true);
-
-        // Configure preflight request caching (in seconds)
-        configuration.setMaxAge(3600L);
-
-        // Configure CORS for all paths
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-
-        return source;
-    }
 }

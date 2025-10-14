@@ -42,5 +42,8 @@ public class CustomerAddressResponseDto {
         private Boolean isActive;
         @ToString.Exclude
         private String digipin;
+        private String documentRefId;
+        private String filePath;
+
     }
 }

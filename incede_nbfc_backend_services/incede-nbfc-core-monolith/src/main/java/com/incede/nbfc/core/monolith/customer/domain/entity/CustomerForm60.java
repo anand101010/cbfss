@@ -1,11 +1,15 @@
+
+
 package com.incede.nbfc.core.monolith.customer.domain.entity;
 
 import com.incede.nbfc.core.monolith.masterdata.domain.entity.Branches;
 import com.incede.nbfc.core.monolith.masterdata.domain.entity.DocumentMaster;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -93,6 +97,16 @@ public class CustomerForm60 extends CustomerBaseEntity implements Serializable {
     @Column(name = "form_file_id")
     private Integer formFileId;
 
+
+    @Column(name = "doc_ref_id", nullable = false)
+    @NotBlank(message = "Document reference ID is required")
+    private String docRefId;
+
+    @ToString.Exclude
+    @Column(name = "file_path", columnDefinition = "TEXT", nullable = false)
+    @NotBlank(message = "File path must not be blank")
+    private String filePath;
+
     @Column(name = "masked_adhar", length = 50)
     private String maskedAdhar;
 
@@ -106,3 +120,5 @@ public class CustomerForm60 extends CustomerBaseEntity implements Serializable {
     private String nameOfPremises;
 
 }
+
+
