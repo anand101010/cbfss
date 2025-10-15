@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerForm60RequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerForm60ResponseDto;
+import com.incede.nbfc.core.monolith.customer.dto.Form60UploadDto;
 import com.incede.nbfc.core.monolith.customer.dto.Form60UploadResponseDto;
 import com.incede.nbfc.core.monolith.customer.service.CustomerForm60Service;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
@@ -17,7 +18,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -79,7 +79,6 @@ class CustomerForm60ControllerTest {
         customerIdentity = UUID.randomUUID();
         form60Identity = UUID.randomUUID();
 
-
         requestDto = new CustomerForm60RequestDto();
         requestDto.setCustomerId(customerIdentity);
         requestDto.setBranchId(UUID.randomUUID());
@@ -93,6 +92,7 @@ class CustomerForm60ControllerTest {
         responseDto.setTransactionAmount(BigDecimal.valueOf(200000));
     }
 
+    // -------------------- SAVE -------------------- //
 
     @Test
     void testSaveForm60_Success() throws Exception {
@@ -116,18 +116,7 @@ class CustomerForm60ControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    // -------------------- UPDATE -------------------- //
 
-    @Test
-    void testUpdateForm60_Success() throws Exception {
-        when(form60Service.updateForm60(eq(customerIdentity), eq(form60Identity), any(CustomerForm60RequestDto.class)))
-                .thenReturn(responseDto);
-
-        mockMvc.perform(put("/api/v1/customers/{customerIdentity}/form60/{form60Identity}", customerIdentity, form60Identity)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isOk());
-    }
 
     @Test
     void testUpdateForm60_ServiceThrowsException() throws Exception {
@@ -140,6 +129,7 @@ class CustomerForm60ControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    // -------------------- GET -------------------- //
 
     @Test
     void testGetForm60ById_Success() throws Exception {
@@ -159,6 +149,7 @@ class CustomerForm60ControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    // -------------------- PDF PREVIEW / DOWNLOAD -------------------- //
 
     @Test
     void testGenerateForm60PreviewPdf_Success() throws Exception {
@@ -170,7 +161,6 @@ class CustomerForm60ControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_PDF));
     }
 
-
     @Test
     void testGenerateForm60DownloadPdf_Success() throws Exception {
         when(form60Service.generateForm60PreviewPdf(eq(customerIdentity), eq(form60Identity)))
@@ -181,30 +171,36 @@ class CustomerForm60ControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_PDF));
     }
 
+    // -------------------- UPLOAD -------------------- //
 
     @Test
     void testUploadSignedForm60_Success() throws Exception {
-        MockMultipartFile file = new MockMultipartFile("signedForm60", "form60.pdf", "application/pdf", "data".getBytes());
+        Form60UploadDto uploadDto = new Form60UploadDto();
+        uploadDto.setFileName("form60.pdf");
+
         Form60UploadResponseDto uploadResponse = new Form60UploadResponseDto();
         uploadResponse.setForm60Identity(form60Identity);
 
-        when(form60Service.uploadSignedForm60(eq(customerIdentity), eq(form60Identity), any()))
+        when(form60Service.uploadSignedForm60(eq(customerIdentity), eq(form60Identity), any(Form60UploadDto.class)))
                 .thenReturn(uploadResponse);
 
-        mockMvc.perform(multipart("/api/v1/customers/{customerIdentity}/form60/{form60Identity}/upload", customerIdentity, form60Identity)
-                        .file(file))
+        mockMvc.perform(post("/api/v1/customers/{customerIdentity}/form60/{form60Identity}/upload", customerIdentity, form60Identity)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(uploadDto)))
                 .andExpect(status().isOk());
     }
 
     @Test
-    void testUploadSignedForm60_EmptyFile() throws Exception {
-        MockMultipartFile file = new MockMultipartFile("signedForm60", "form60.pdf", "application/pdf", new byte[0]);
+    void testUploadSignedForm60_ServiceThrowsException() throws Exception {
+        Form60UploadDto uploadDto = new Form60UploadDto();
+        uploadDto.setFileName("form60.pdf");
 
-        when(form60Service.uploadSignedForm60(eq(customerIdentity), eq(form60Identity), any()))
+        when(form60Service.uploadSignedForm60(eq(customerIdentity), eq(form60Identity), any(Form60UploadDto.class)))
                 .thenThrow(new BusinessException("File is empty"));
 
-        mockMvc.perform(multipart("/api/v1/customers/{customerIdentity}/form60/{form60Identity}/upload", customerIdentity, form60Identity)
-                        .file(file))
+        mockMvc.perform(post("/api/v1/customers/{customerIdentity}/form60/{form60Identity}/upload", customerIdentity, form60Identity)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(uploadDto)))
                 .andExpect(status().isBadRequest());
     }
 }

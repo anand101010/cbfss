@@ -14,7 +14,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("api/v1/customers")
 @RequiredArgsConstructor
-public class CustomerBankAccountController {
+public class CustomerBankAccountControllerTest {
 
     public final CustomerBankAccountService customerBankAccountService;
 

@@ -27,7 +27,10 @@ public final class CommonConstants {
     public static final String KYC_NOT_FOUND_FOR_CUSTOMER = "No KYC document found for this customer";
     public static final String KYC_UPLOAD_NOT_FOUND_FOR_CUSTOMER = "KYC uploaded document not found for this customer";
     public static final String FAILED_TO_CREATE_BANK_ACCOUNT = "Failed to create bank account";
-
+    public static final String AADHAR_CANNOT_BE_MASKED ="Adhar number cannot be masked" ;
+    public static final String CANNOT_GENERATE_FORM60_REPORT = "Unable to generate Form60 report";
+    public static final String FORM_60_NOT_FOUND ="Form60 Not Found" ;
+    public static final String BRANCH_NOT_FOUND_IN_FORM60 = "branch not found for the  form 60 identity";
     private CommonConstants() {
         // Utility class - prevent instantiation
     }
