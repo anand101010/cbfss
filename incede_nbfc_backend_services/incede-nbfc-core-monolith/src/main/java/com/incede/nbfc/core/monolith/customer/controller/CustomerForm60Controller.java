@@ -4,6 +4,7 @@ package com.incede.nbfc.core.monolith.customer.controller;
 
 import com.incede.nbfc.core.monolith.customer.dto.CustomerForm60RequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerForm60ResponseDto;
+import com.incede.nbfc.core.monolith.customer.dto.Form60UploadDto;
 import com.incede.nbfc.core.monolith.customer.dto.Form60UploadResponseDto;
 import com.incede.nbfc.core.monolith.customer.service.CustomerForm60Service;
 import io.swagger.v3.oas.annotations.Operation;
@@ -155,9 +156,10 @@ public class CustomerForm60Controller {
             description = "Upload the signed PDF of Form 60 for a given customer and Form 60 ID")
     public ResponseEntity<Form60UploadResponseDto> uploadSignedForm60(
             @PathVariable UUID customerIdentity,
-            @PathVariable UUID form60Identity) {
+            @PathVariable UUID form60Identity,
+            @Valid @RequestBody Form60UploadDto request) {
 
-        Form60UploadResponseDto response = form60Service.uploadSignedForm60(customerIdentity, form60Identity);
+        Form60UploadResponseDto response = form60Service.uploadSignedForm60(customerIdentity, form60Identity,request);
         return ResponseEntity.ok(response);
     }
 

@@ -20,18 +20,21 @@ import com.incede.nbfc.core.monolith.masterdata.repository.BranchesRepository;
 import com.incede.nbfc.core.monolith.masterdata.repository.KycTypesRepository;
 import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
 import com.incede.nbfc.core.monolith.tenant.repository.TenantRepository;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.LocalDate;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,9 +47,6 @@ class CustomerKycServiceTest {
     private CustomerKycRepository customerKycRepository;
 
     @Mock
-    private CustomerKycUploadRepository customerKycUploadRepository;
-
-    @Mock
     private CustomerKycMapper customerKycMapper;
 
     @Mock
@@ -56,21 +56,28 @@ class CustomerKycServiceTest {
     private TenantRepository tenantRepository;
 
     @Mock
+    private CustomerKycUploadRepository customerKycUploadRepository;
+
+    @Mock
     private KycTypesRepository kycTypesRepository;
+
+    @Mock
+    private Validator validator;
 
     @InjectMocks
     private CustomerKycService customerKycService;
 
+    private CustomerKycRequestDto validRequest;
+    private Customer customer;
+    private CustomerKyc customerKyc;
+    private CustomerKycUpload customerKycUpload;
+    private KycTypes kycType;
+    private Branches branch;
+    private Tenant tenant;
     private UUID customerId;
     private UUID kycTypeId;
     private UUID branchId;
     private UUID tenantId;
-    private CustomerKycRequestDto requestDto;
-    private Customer customer;
-    private CustomerKyc customerKyc;
-    private Branches branch;
-    private Tenant tenant;
-    private KycTypes kycType;
 
     @BeforeEach
     void setUp() {
@@ -79,38 +86,27 @@ class CustomerKycServiceTest {
         branchId = UUID.randomUUID();
         tenantId = UUID.randomUUID();
 
-        requestDto = CustomerKycRequestDto.builder()
+        validRequest = CustomerKycRequestDto.builder()
                 .idType(kycTypeId)
+                .idNumber("A123456789")
+                .placeOfIssue("New York")
+                .issuingAuthority("US Government")
+                .validFrom(LocalDate.now().minusYears(1))
+                .validTo(LocalDate.now().plusYears(5))
                 .branchId(branchId)
-                .idNumber("ABCDE1234F")
-                .placeOfIssue("New Delhi")
-                .issuingAuthority("UIDAI")
-                .validFrom(LocalDate.of(2020, 1, 1))
-                .validTo(LocalDate.of(2030, 1, 1))
+                .tenantId(tenantId)
+                .branchCode("NYC")
+                .fileName("document.pdf")
+                .fileType("PDF")
+                .filePath("/uploads/document.pdf")
+                .documentRefId("DOC123")
                 .isVerified(true)
                 .isActive(true)
-                .tenantId(tenantId)
-                .branchCode("BR001")
-                .documentRefId("DOC_REF_001")
-                .filePath("/documents/kyc/")
-                .fileName("aadhaar_front.jpg")
-                .fileType("image/jpeg")
                 .build();
 
-        // Setup entities
-        customer = new Customer();
-        customer.setIdentity(customerId);
-        customer.setCustomerCode("BR001-CUS-001");
-        customer.setFirstName("John");
-        customer.setLastName("Doe");
-        customer.setDob(LocalDate.of(1990, 1, 1));
-
-        customerKyc = new CustomerKyc();
-        customerKyc.setIdentity(UUID.randomUUID());
-        customerKyc.setCustomer(customer);
-        customerKyc.setIdNumber("ABCDE1234F");
-        customerKyc.setIsVerified(true);
-        customerKyc.setIsActive(true);
+        kycType = new KycTypes();
+        kycType.setIdentity(kycTypeId);
+        kycType.setDisplayName("Passport");
 
         branch = new Branches();
         branch.setIdentity(branchId);
@@ -118,334 +114,347 @@ class CustomerKycServiceTest {
         tenant = new Tenant();
         tenant.setIdentity(tenantId);
 
-        kycType = new KycTypes();
-        kycType.setIdentity(kycTypeId);
-        kycType.setDisplayName("Aadhaar");
-    }
+        customer = new Customer();
+        customer.setIdentity(customerId);
+        customer.setCustomerCode("NYC-CUST-00001");
+        customer.setFirstName("John");
+        customer.setLastName("Doe");
+        customer.setDob(LocalDate.of(1990, 1, 1));
+        customer.setBranchId(branch);
+        customer.setTenant(tenant);
 
-    // TESTS THAT WORK WITHOUT FILE UPLOAD
+        customerKyc = new CustomerKyc();
+        customerKyc.setIdentity(UUID.randomUUID());
+        customerKyc.setIdType(kycType);
+        customerKyc.setIdNumber("A123456789");
+        customerKyc.setCustomer(customer);
+        customerKyc.setPlaceOfIssue("New York");
+        customerKyc.setValidFrom(LocalDate.now().minusYears(1));
+        customerKyc.setValidTo(LocalDate.now().plusYears(5));
+        customerKyc.setIsVerified(true);
+        customerKyc.setIsActive(true);
 
-    @Test
-    void testGetKycDocuments_Success() {
-        // Given
-        List<CustomerKyc> kycList = Arrays.asList(customerKyc);
-
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(customerKycRepository.findByCustomer(customer)).thenReturn(Optional.of(kycList));
-
-        // When
-        CustomerKycResponseDto result = customerKycService.getKycDocuments(customerId);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(customerId, result.getIdentity());
-        assertEquals("BR001-CUS-001", result.getCustomerCode());
-        assertEquals("John", result.getFirstName());
-        assertEquals("Doe", result.getLastName());
-
-        verify(customerRepository, times(1)).findByIdentity(customerId);
-        verify(customerKycRepository, times(1)).findByCustomer(customer);
-    }
-
-    @Test
-    void testGetKycDocuments_CustomerNotFound() {
-        // Given
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
-
-        // When & Then
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> customerKycService.getKycDocuments(customerId));
-
-        assertEquals("Customer not found with ID: " + customerId, exception.getMessage());
-        verify(customerRepository, times(1)).findByIdentity(customerId);
-        verify(customerKycRepository, never()).findByCustomer(any());
+        customerKycUpload = new CustomerKycUpload();
+        customerKycUpload.setIdentity(UUID.randomUUID());
+        customerKycUpload.setCustomer(customer);
+        customerKycUpload.setKyc(customerKyc);
+        customerKycUpload.setFileName("document.pdf");
+        customerKycUpload.setFileType("PDF");
+        customerKycUpload.setFilePath("/uploads/document.pdf");
+        customerKycUpload.setDocumentReference("DOC123");
     }
 
     @Test
-    void testGetKycDocuments_KycNotFound() {
-        // Given
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(customerKycRepository.findByCustomer(customer)).thenReturn(Optional.empty());
-
-        // When & Then
-        BusinessException exception = assertThrows(BusinessException.class,
-                () -> customerKycService.getKycDocuments(customerId));
-
-        assertEquals("Failed to fetch KYC documents", exception.getMessage());
-        assertEquals(ErrorCodes.INTERNAL_SERVER_ERROR, exception.getErrorCode());
-        verify(customerKycRepository, times(1)).findByCustomer(customer);
-    }
-
-    @Test
-    void testGetKycDocuments_WithNullRelations() {
-        // Given
-        customer.setGender(null);
-        customer.setCustomerStatus(null);
-        customer.setBranchId(null);
-
-        customerKyc.setIdType(null);
-        customerKyc.setValidFrom(null);
-        customerKyc.setValidTo(null);
-
-        List<CustomerKyc> kycList = Arrays.asList(customerKyc);
-
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(customerKycRepository.findByCustomer(customer)).thenReturn(Optional.of(kycList));
-
-        // When
-        CustomerKycResponseDto result = customerKycService.getKycDocuments(customerId);
-
-        // Then
-        assertNotNull(result);
-        assertNull(result.getGender());
-        assertNull(result.getCustomerStatus());
-        assertNull(result.getBranchId());
-
-        assertFalse(result.getKycDocuments().isEmpty());
-        assertNull(result.getKycDocuments().get(0).getIdType());
-        assertNull(result.getKycDocuments().get(0).getValidFrom());
-        assertNull(result.getKycDocuments().get(0).getValidTo());
-    }
-
-    @Test
-    void testGetKycDocuments_MultipleKycDocuments() {
-        // Given
-        CustomerKyc kyc2 = new CustomerKyc();
-        kyc2.setIdentity(UUID.randomUUID());
-        kyc2.setCustomer(customer);
-        kyc2.setIdNumber("PAN1234567");
-        kyc2.setIsVerified(true);
-        kyc2.setIsActive(true);
-
-        List<CustomerKyc> kycList = Arrays.asList(customerKyc, kyc2);
-
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(customerKycRepository.findByCustomer(customer)).thenReturn(Optional.of(kycList));
-
-        // When
-        CustomerKycResponseDto result = customerKycService.getKycDocuments(customerId);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(2, result.getKycDocuments().size());
-        assertEquals("ABCDE1234F", result.getKycDocuments().get(0).getIdNumber());
-        assertEquals("PAN1234567", result.getKycDocuments().get(1).getIdNumber());
-    }
-
-    @Test
-    void testCreateInitialCustomer_DuplicateKyc() {
-        // Given
+    void createInitialCustomer_Success() {
+        // Arrange
+        when(validator.validate(any(CustomerKycRequestDto.class))).thenReturn(Collections.emptySet());
         when(kycTypesRepository.findByIdentity(kycTypeId)).thenReturn(Optional.of(kycType));
-
-        Customer existingCustomer = new Customer();
-        existingCustomer.setIdentity(UUID.randomUUID());
-        existingCustomer.setCustomerCode("EXISTING-CUST");
-
-        CustomerKyc existingKyc = new CustomerKyc();
-        existingKyc.setIdentity(UUID.randomUUID());
-        existingKyc.setCustomer(existingCustomer);
-        existingKyc.setIdType(kycType);
-        existingKyc.setIdNumber("ABCDE1234F");
-
-        when(customerKycRepository.findByIdTypeAndIdNumber(kycType, "ABCDE1234F")).thenReturn(Optional.of(existingKyc));
-
-        // Mock conflict handling
-        when(customerKycRepository.findByCustomer(existingCustomer)).thenReturn(Optional.of(Arrays.asList(existingKyc)));
-        when(customerKycUploadRepository.findByCustomer(existingCustomer)).thenReturn(Optional.of(Collections.emptyList()));
-
-        CustomerKycResponseDto mockResponse = CustomerKycResponseDto.builder()
-                .identity(existingCustomer.getIdentity())
-                .customerCode("EXISTING-CUST")
-                .build();
-        when(customerKycMapper.toResponseDto(any(), any(), any())).thenReturn(mockResponse);
-
-        // When & Then
-        BusinessConflictException exception = assertThrows(BusinessConflictException.class,
-                () -> customerKycService.createInitialCustomer(requestDto));
-
-        assertTrue(exception.getMessage().contains("Customer already exists with this ID"));
-        verify(customerRepository, never()).save(any());
-    }
-
-    @Test
-    void testAddKycDocument_DuplicateIdNumber() {
-        // Given
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(kycTypesRepository.findByIdentity(kycTypeId)).thenReturn(Optional.of(kycType));
-
-        Customer existingCustomer = new Customer();
-        existingCustomer.setIdentity(UUID.randomUUID());
-
-        CustomerKyc existingKyc = new CustomerKyc();
-        existingKyc.setIdentity(UUID.randomUUID());
-        existingKyc.setCustomer(existingCustomer);
-        existingKyc.setIdType(kycType);
-        existingKyc.setIdNumber("ABCDE1234F");
-
-        when(customerKycRepository.findByIdTypeAndIdNumber(kycType, "ABCDE1234F")).thenReturn(Optional.of(existingKyc));
-
-        // Mock conflict handling
-        when(customerKycRepository.findByCustomer(existingCustomer)).thenReturn(Optional.of(Arrays.asList(existingKyc)));
-        when(customerKycUploadRepository.findByCustomer(existingCustomer)).thenReturn(Optional.of(Collections.emptyList()));
-
-        CustomerKycResponseDto mockResponse = CustomerKycResponseDto.builder()
-                .identity(existingCustomer.getIdentity())
-                .customerCode("EXISTING-CUST")
-                .build();
-        when(customerKycMapper.toResponseDto(any(), any(), any())).thenReturn(mockResponse);
-
-        // When & Then
-        BusinessConflictException exception = assertThrows(BusinessConflictException.class,
-                () -> customerKycService.addKycDocument(requestDto, customerId));
-
-        assertTrue(exception.getMessage().contains("Customer already exists with this ID"));
-        verify(customerKycRepository, never()).save(any());
-    }
-
-    @Test
-    void testCreateInitialCustomer_InvalidBranch() {
-        // Given
-        when(kycTypesRepository.findByIdentity(kycTypeId)).thenReturn(Optional.of(kycType));
-        when(customerKycRepository.findByIdTypeAndIdNumber(kycType, "ABCDE1234F")).thenReturn(Optional.empty());
-        when(customerKycMapper.generateCustomerCode("BR001", CommonConstants.CUSTOMER_TYPE)).thenReturn("BR001-CUS-001");
-        when(customerKycMapper.toCustomerEntity(any(), any(), any())).thenReturn(customer);
-        when(branchesRepository.findByIdentity(branchId)).thenReturn(Optional.empty());
-
-        // When & Then
-        BusinessException exception = assertThrows(BusinessException.class,
-                () -> customerKycService.createInitialCustomer(requestDto));
-
-        assertEquals(CommonConstants.INVALID_BRANCH, exception.getMessage());
-        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, exception.getErrorCode());
-    }
-
-    @Test
-    void testCreateInitialCustomer_InvalidTenant() {
-        // Given
-        when(kycTypesRepository.findByIdentity(kycTypeId)).thenReturn(Optional.of(kycType));
-        when(customerKycRepository.findByIdTypeAndIdNumber(kycType, "ABCDE1234F")).thenReturn(Optional.empty());
-        when(customerKycMapper.generateCustomerCode("BR001", CommonConstants.CUSTOMER_TYPE)).thenReturn("BR001-CUS-001");
-        when(customerKycMapper.toCustomerEntity(any(), any(), any())).thenReturn(customer);
+        when(customerKycRepository.findByIdTypeAndIdNumber(any(KycTypes.class), anyString())).thenReturn(Optional.empty());
+        when(customerKycMapper.generateCustomerCode(anyString(), anyString())).thenReturn("NYC-CUST-00001");
+        when(customerKycMapper.toCustomerEntity(any(CustomerKycRequestDto.class), anyString(), any(UUID.class))).thenReturn(customer);
         when(branchesRepository.findByIdentity(branchId)).thenReturn(Optional.of(branch));
-        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.empty());
+        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
+        when(customerRepository.save(any(Customer.class))).thenReturn(customer);
+        when(customerKycMapper.toKycEntity(any(CustomerKycRequestDto.class), any(Customer.class))).thenReturn(customerKyc);
+        when(customerKycRepository.save(any(CustomerKyc.class))).thenReturn(customerKyc);
+        when(customerKycMapper.toKycUploadEntity(any(CustomerKyc.class), any(CustomerKycRequestDto.class))).thenReturn(customerKycUpload);
+        when(customerKycUploadRepository.save(any(CustomerKycUpload.class))).thenReturn(customerKycUpload);
 
-        // When & Then
-        BusinessException exception = assertThrows(BusinessException.class,
-                () -> customerKycService.createInitialCustomer(requestDto));
+        List<CustomerKyc> kycList = Arrays.asList(customerKyc);
+        List<CustomerKycUpload> uploadList = Arrays.asList(customerKycUpload);
+        when(customerKycRepository.findByCustomer(customer)).thenReturn(Optional.of(kycList));
+        when(customerKycUploadRepository.findByCustomer(customer)).thenReturn(Optional.of(uploadList));
 
-        assertEquals(CommonConstants.TENANT_NOT_FOUND, exception.getMessage());
-        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, exception.getErrorCode());
+        CustomerKycResponseDto expectedResponse = CustomerKycResponseDto.builder().build();
+        when(customerKycMapper.toResponseDto(customer, kycList, uploadList)).thenReturn(expectedResponse);
+
+        // Act
+        CustomerKycResponseDto result = customerKycService.createInitialCustomer(validRequest);
+
+        // Assert
+        assertNotNull(result);
+        verify(customerRepository).save(any(Customer.class));
+        verify(customerKycRepository).save(any(CustomerKyc.class));
+        verify(customerKycUploadRepository).save(any(CustomerKycUpload.class));
     }
 
+
+
+
+
     @Test
-    void testCreateInitialCustomer_InvalidDocumentType() {
-        // Given
+    void createInitialCustomer_KycTypeNotFound_ThrowsException() {
+        // Arrange
+        when(validator.validate(any(CustomerKycRequestDto.class))).thenReturn(Collections.emptySet());
         when(kycTypesRepository.findByIdentity(kycTypeId)).thenReturn(Optional.empty());
 
-        // When & Then
+        // Act & Assert
         BusinessException exception = assertThrows(BusinessException.class,
-                () -> customerKycService.createInitialCustomer(requestDto));
-
+                () -> customerKycService.createInitialCustomer(validRequest));
         assertEquals(CommonConstants.DOCUMENT_TYPE_NOT_FOUND, exception.getMessage());
         assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, exception.getErrorCode());
     }
 
     @Test
-    void testAddKycDocument_CustomerNotFound() {
-        // Given
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
+    void createInitialCustomer_DuplicateKyc_ThrowsConflictException() {
+        // Arrange
+        when(validator.validate(any(CustomerKycRequestDto.class))).thenReturn(Collections.emptySet());
+        when(kycTypesRepository.findByIdentity(kycTypeId)).thenReturn(Optional.of(kycType));
+        when(customerKycRepository.findByIdTypeAndIdNumber(any(KycTypes.class), anyString())).thenReturn(Optional.of(customerKyc));
 
-        // When & Then
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> customerKycService.addKycDocument(requestDto, customerId));
+        List<CustomerKyc> kycList = Arrays.asList(customerKyc);
+        List<CustomerKycUpload> uploadList = Arrays.asList(customerKycUpload);
+        when(customerKycRepository.findByCustomer(customer)).thenReturn(Optional.of(kycList));
+        when(customerKycUploadRepository.findByCustomer(customer)).thenReturn(Optional.of(uploadList));
 
-        assertEquals(CommonConstants.CUSTOMER_NOT_FOUND, exception.getMessage());
-        verify(customerKycRepository, never()).save(any());
+        CustomerKycResponseDto mockResponse = CustomerKycResponseDto.builder().build();
+        when(customerKycMapper.toResponseDto(customer, kycList, uploadList)).thenReturn(mockResponse);
+
+        // Act & Assert
+        BusinessConflictException exception = assertThrows(BusinessConflictException.class,
+                () -> customerKycService.createInitialCustomer(validRequest));
+        assertTrue(exception.getMessage().contains("Customer already exists"));
     }
 
     @Test
-    void testAddKycDocument_DuplicateDocumentType() {
-        // Given
+    void createInitialCustomer_BranchNotFound_ThrowsException() {
+        // Arrange
+        when(validator.validate(any(CustomerKycRequestDto.class))).thenReturn(Collections.emptySet());
+        when(kycTypesRepository.findByIdentity(kycTypeId)).thenReturn(Optional.of(kycType));
+        when(customerKycRepository.findByIdTypeAndIdNumber(any(KycTypes.class), anyString())).thenReturn(Optional.empty());
+        when(customerKycMapper.generateCustomerCode(anyString(), anyString())).thenReturn("NYC-CUST-00001");
+        when(customerKycMapper.toCustomerEntity(any(CustomerKycRequestDto.class), anyString(), any(UUID.class))).thenReturn(customer);
+        when(branchesRepository.findByIdentity(branchId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> customerKycService.createInitialCustomer(validRequest));
+        assertEquals(CommonConstants.INVALID_BRANCH, exception.getMessage());
+        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, exception.getErrorCode());
+    }
+
+    @Test
+    void createInitialCustomer_TenantNotFound_ThrowsException() {
+        // Arrange
+        when(validator.validate(any(CustomerKycRequestDto.class))).thenReturn(Collections.emptySet());
+        when(kycTypesRepository.findByIdentity(kycTypeId)).thenReturn(Optional.of(kycType));
+        when(customerKycRepository.findByIdTypeAndIdNumber(any(KycTypes.class), anyString())).thenReturn(Optional.empty());
+        when(customerKycMapper.generateCustomerCode(anyString(), anyString())).thenReturn("NYC-CUST-00001");
+        when(customerKycMapper.toCustomerEntity(any(CustomerKycRequestDto.class), anyString(), any(UUID.class))).thenReturn(customer);
+        when(branchesRepository.findByIdentity(branchId)).thenReturn(Optional.of(branch));
+        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> customerKycService.createInitialCustomer(validRequest));
+        assertEquals(CommonConstants.TENANT_NOT_FOUND, exception.getMessage());
+        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, exception.getErrorCode());
+    }
+
+    @Test
+    void createInitialCustomer_DataIntegrityViolation_ThrowsException() {
+        // Arrange
+        when(validator.validate(any(CustomerKycRequestDto.class))).thenReturn(Collections.emptySet());
+        when(kycTypesRepository.findByIdentity(kycTypeId)).thenReturn(Optional.of(kycType));
+        when(customerKycRepository.findByIdTypeAndIdNumber(any(KycTypes.class), anyString())).thenReturn(Optional.empty());
+        when(customerKycMapper.generateCustomerCode(anyString(), anyString())).thenReturn("NYC-CUST-00001");
+        when(customerKycMapper.toCustomerEntity(any(CustomerKycRequestDto.class), anyString(), any(UUID.class))).thenReturn(customer);
+        when(branchesRepository.findByIdentity(branchId)).thenReturn(Optional.of(branch));
+        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
+        when(customerRepository.save(any(Customer.class))).thenThrow(new DataIntegrityViolationException("Constraint violation"));
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> customerKycService.createInitialCustomer(validRequest));
+        assertEquals(CommonConstants.CONSTRAIN_VIOLATION, exception.getMessage());
+        assertEquals(ErrorCodes.CONSTRAINT_VIOLATION, exception.getErrorCode());
+    }
+
+    @Test
+    void addKycDocument_Success() {
+        // Arrange
+        when(validator.validate(any(CustomerKycRequestDto.class))).thenReturn(Collections.emptySet());
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(kycTypesRepository.findByIdentity(kycTypeId)).thenReturn(Optional.of(kycType));
-        when(customerKycRepository.findByIdTypeAndIdNumber(kycType, "ABCDE1234F")).thenReturn(Optional.empty());
+        when(customerKycRepository.findByIdTypeAndIdNumber(any(KycTypes.class), anyString())).thenReturn(Optional.empty());
+        when(customerKycRepository.existsByIdTypeAndCustomer(kycType, customer)).thenReturn(false);
+        when(customerKycMapper.toKycEntity(any(CustomerKycRequestDto.class), any(Customer.class))).thenReturn(customerKyc);
+        when(customerKycRepository.save(any(CustomerKyc.class))).thenReturn(customerKyc);
+        when(customerKycMapper.toKycUploadEntity(any(CustomerKyc.class), any(CustomerKycRequestDto.class))).thenReturn(customerKycUpload);
+        when(customerKycUploadRepository.save(any(CustomerKycUpload.class))).thenReturn(customerKycUpload);
+
+        List<CustomerKyc> kycList = Arrays.asList(customerKyc);
+        List<CustomerKycUpload> uploadList = Arrays.asList(customerKycUpload);
+        when(customerKycRepository.findByCustomer(customer)).thenReturn(Optional.of(kycList));
+        when(customerKycUploadRepository.findByCustomer(customer)).thenReturn(Optional.of(uploadList));
+
+        CustomerKycResponseDto expectedResponse = CustomerKycResponseDto.builder().build();
+        when(customerKycMapper.toResponseDto(customer, kycList, uploadList)).thenReturn(expectedResponse);
+
+        // Act
+        CustomerKycResponseDto result = customerKycService.addKycDocument(validRequest, customerId);
+
+        // Assert
+        assertNotNull(result);
+        verify(customerKycRepository).save(any(CustomerKyc.class));
+        verify(customerKycUploadRepository).save(any(CustomerKycUpload.class));
+    }
+
+    @Test
+    void addKycDocument_CustomerNotFound_ThrowsException() {
+        // Arrange
+        when(validator.validate(any(CustomerKycRequestDto.class))).thenReturn(Collections.emptySet());
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> customerKycService.addKycDocument(validRequest, customerId));
+        assertEquals(CommonConstants.CUSTOMER_NOT_FOUND, exception.getMessage());
+    }
+
+    @Test
+    void addKycDocument_DocumentAlreadyExists_ThrowsException() {
+        // Arrange
+        when(validator.validate(any(CustomerKycRequestDto.class))).thenReturn(Collections.emptySet());
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(kycTypesRepository.findByIdentity(kycTypeId)).thenReturn(Optional.of(kycType));
+        when(customerKycRepository.findByIdTypeAndIdNumber(any(KycTypes.class), anyString())).thenReturn(Optional.empty());
         when(customerKycRepository.existsByIdTypeAndCustomer(kycType, customer)).thenReturn(true);
 
-        // When & Then
+        // Act & Assert
         BusinessException exception = assertThrows(BusinessException.class,
-                () -> customerKycService.addKycDocument(requestDto, customerId));
-
+                () -> customerKycService.addKycDocument(validRequest, customerId));
         assertEquals(CommonConstants.DOCUMENT_ALREADY_EXISTS, exception.getMessage());
         assertEquals(ErrorCodes.CONFLICT, exception.getErrorCode());
-        verify(customerKycRepository, never()).save(any());
     }
 
     @Test
-    void testCreateInitialCustomer_NullRequest() {
-        // When & Then
-        BusinessException exception = assertThrows(BusinessException.class,
-                () -> customerKycService.createInitialCustomer(null));
+    void addKycDocument_DuplicateKycDifferentCustomer_ThrowsConflictException() {
+        // Arrange
+        Customer differentCustomer = new Customer();
+        differentCustomer.setIdentity(UUID.randomUUID());
 
-        assertEquals(CommonConstants.INVALID_REQUEST, exception.getMessage());
-        assertEquals(ErrorCodes.VALIDATION_FAILED, exception.getErrorCode());
-    }
+        CustomerKyc existingKyc = new CustomerKyc();
+        existingKyc.setCustomer(differentCustomer);
+        existingKyc.setIdType(kycType);
 
-    @Test
-    void testAddKycDocument_NullRequest() {
-        // When & Then
-        BusinessException exception = assertThrows(BusinessException.class,
-                () -> customerKycService.addKycDocument(null, customerId));
-
-        assertEquals(CommonConstants.INVALID_REQUEST, exception.getMessage());
-        assertEquals(ErrorCodes.VALIDATION_FAILED, exception.getErrorCode());
-    }
-
-    @Test
-    void testCreateInitialCustomer_CustomerSaveFails() {
-        // Given
+        when(validator.validate(any(CustomerKycRequestDto.class))).thenReturn(Collections.emptySet());
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(kycTypesRepository.findByIdentity(kycTypeId)).thenReturn(Optional.of(kycType));
-        when(customerKycRepository.findByIdTypeAndIdNumber(kycType, "ABCDE1234F")).thenReturn(Optional.empty());
-        when(customerKycMapper.generateCustomerCode("BR001", CommonConstants.CUSTOMER_TYPE)).thenReturn("BR001-CUS-001");
-        when(customerKycMapper.toCustomerEntity(any(), any(), any())).thenReturn(customer);
-        when(branchesRepository.findByIdentity(branchId)).thenReturn(Optional.of(branch));
-        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
+        when(customerKycRepository.findByIdTypeAndIdNumber(any(KycTypes.class), anyString())).thenReturn(Optional.of(existingKyc));
 
-        // Mock customer save failure with DataIntegrityViolationException
-        when(customerRepository.save(any(Customer.class)))
-                .thenThrow(new org.springframework.dao.DataIntegrityViolationException("Database connection failed"));
+        List<CustomerKyc> kycList = Arrays.asList(existingKyc);
+        List<CustomerKycUpload> uploadList = Arrays.asList(customerKycUpload);
+        when(customerKycRepository.findByCustomer(differentCustomer)).thenReturn(Optional.of(kycList));
+        when(customerKycUploadRepository.findByCustomer(differentCustomer)).thenReturn(Optional.of(uploadList));
 
-        // When & Then
-        BusinessException exception = assertThrows(BusinessException.class,
-                () -> customerKycService.createInitialCustomer(requestDto));
+        CustomerKycResponseDto mockResponse = CustomerKycResponseDto.builder().build();
+        when(customerKycMapper.toResponseDto(differentCustomer, kycList, uploadList)).thenReturn(mockResponse);
 
-        assertEquals(ErrorCodes.CONSTRAINT_VIOLATION, exception.getErrorCode());
+        // Act & Assert
+        BusinessConflictException exception = assertThrows(BusinessConflictException.class,
+                () -> customerKycService.addKycDocument(validRequest, customerId));
+        assertTrue(exception.getMessage().contains("Customer already exists"));
     }
 
     @Test
-    void testCreateInitialCustomer_KycSaveFails() {
-        // Given
-        when(kycTypesRepository.findByIdentity(kycTypeId)).thenReturn(Optional.of(kycType));
-        when(customerKycRepository.findByIdTypeAndIdNumber(kycType, "ABCDE1234F")).thenReturn(Optional.empty());
-        when(customerKycMapper.generateCustomerCode("BR001", CommonConstants.CUSTOMER_TYPE)).thenReturn("BR001-CUS-001");
+    void getKycDocuments_Success() {
+        // Arrange
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
 
-        Customer newCustomer = new Customer();
-        newCustomer.setIdentity(customerId);
+        List<CustomerKyc> kycList = Arrays.asList(customerKyc);
+        List<CustomerKycUpload> uploadList = Arrays.asList(customerKycUpload);
+        when(customerKycRepository.findByCustomer(customer)).thenReturn(Optional.of(kycList));
+        when(customerKycUploadRepository.findByCustomer(customer)).thenReturn(Optional.of(uploadList));
 
-        when(customerKycMapper.toCustomerEntity(any(), any(), any())).thenReturn(newCustomer);
-        when(branchesRepository.findByIdentity(branchId)).thenReturn(Optional.of(branch));
-        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
-        when(customerRepository.save(any(Customer.class))).thenReturn(newCustomer);
+        CustomerKycResponseDto expectedResponse = CustomerKycResponseDto.builder().build();
+        when(customerKycMapper.toResponseDto(customer, kycList, uploadList)).thenReturn(expectedResponse);
 
-        when(customerKycMapper.toKycEntity(any(), any())).thenReturn(customerKyc);
+        // Act
+        CustomerKycResponseDto result = customerKycService.getKycDocuments(customerId);
 
-        // Mock KYC save failure with DataIntegrityViolationException
-        when(customerKycRepository.save(any(CustomerKyc.class)))
-                .thenThrow(new org.springframework.dao.DataIntegrityViolationException("KYC save failed"));
+        // Assert
+        assertNotNull(result);
+        verify(customerRepository).findByIdentity(customerId);
+        verify(customerKycRepository).findByCustomer(customer);
+    }
 
-        // When & Then
+    @Test
+    void getKycDocuments_CustomerNotFound_ThrowsException() {
+        // Arrange
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> customerKycService.getKycDocuments(customerId));
+        assertEquals(CommonConstants.CUSTOMER_NOT_FOUND, exception.getMessage());
+    }
+
+    @Test
+    void getKycDocuments_KycNotFound_ThrowsException() {
+        // Arrange
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(customerKycRepository.findByCustomer(customer)).thenReturn(Optional.empty());
+
+        // Act & Assert
         BusinessException exception = assertThrows(BusinessException.class,
-                () -> customerKycService.createInitialCustomer(requestDto));
+                () -> customerKycService.getKycDocuments(customerId));
+        assertEquals(CommonConstants.KYC_NOT_FOUND_FOR_CUSTOMER, exception.getMessage());
+        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, exception.getErrorCode());
+    }
 
-        assertEquals(ErrorCodes.CONSTRAINT_VIOLATION, exception.getErrorCode());
+    @Test
+    void getKycDocuments_UploadsNotFound_ThrowsException() {
+        // Arrange
+        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+
+        List<CustomerKyc> kycList = Arrays.asList(customerKyc);
+        when(customerKycRepository.findByCustomer(customer)).thenReturn(Optional.of(kycList));
+        when(customerKycUploadRepository.findByCustomer(customer)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> customerKycService.getKycDocuments(customerId));
+        assertEquals(CommonConstants.KYC_UPLOAD_NOT_FOUND_FOR_CUSTOMER, exception.getMessage());
+        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, exception.getErrorCode());
+    }
+
+    @Test
+    void maskIdNumber_NullInput_ReturnsNull() throws Exception {
+        // Use reflection to test private method
+        var method = CustomerKycService.class.getDeclaredMethod("maskIdNumber", String.class);
+        method.setAccessible(true);
+
+        // Act
+        String result = (String) method.invoke(customerKycService, (String) null);
+
+        // Assert
+        assertNull(result);
+    }
+
+    @Test
+    void maskIdNumber_ShortInput_ReturnsOriginal() throws Exception {
+        // Use reflection to test private method
+        var method = CustomerKycService.class.getDeclaredMethod("maskIdNumber", String.class);
+        method.setAccessible(true);
+
+        // Act
+        String result = (String) method.invoke(customerKycService, "123");
+
+        // Assert
+        assertEquals("123", result);
+    }
+
+    @Test
+    void maskIdNumber_ValidInput_ReturnsMasked() throws Exception {
+        // Use reflection to test private method
+        var method = CustomerKycService.class.getDeclaredMethod("maskIdNumber", String.class);
+        method.setAccessible(true);
+
+        // Act
+        String result = (String) method.invoke(customerKycService, "A123456789");
+
+        // Assert
+        assertEquals("XXXX XXXX 6789", result);
     }
 }

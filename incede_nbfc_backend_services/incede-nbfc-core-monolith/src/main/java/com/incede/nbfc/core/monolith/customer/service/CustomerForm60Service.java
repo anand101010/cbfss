@@ -318,22 +318,22 @@ public class CustomerForm60Service {
      *upload signed form 60
      */
     @Transactional
-    public Form60UploadResponseDto uploadSignedForm60(UUID customerIdentity, UUID form60Identity) {
-
-
-
+    public Form60UploadResponseDto uploadSignedForm60(UUID customerIdentity, UUID form60Identity, Form60UploadDto dto) {
         Customer customer = customerRepository.findByIdentityAndIsDelFalse(customerIdentity)
                 .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_CUSTOMER, customerIdentity.toString()));
 
         CustomerForm60 form60 = customerForm60Repository.findByIdentity(form60Identity)
                 .orElseThrow(() -> new ResourceNotFoundException("Form60 is not uploaded for the id:", form60Identity.toString()));
 
+        form60.setDocRefId(dto.getPdfDocRefId());
+        form60.setFilePath(dto.getFilePath());
+
+        customerForm60Repository.save(form60);
 
         Form60UploadResponseDto response = new Form60UploadResponseDto();
         response.setForm60Identity(form60.getIdentity());
         response.setPdfDocRefId(form60.getDocRefId());
         response.setFilePath(form60.getFilePath());
-
         response.setUploadedAt(OffsetDateTime.now());
 
         return response;
