@@ -23,7 +23,6 @@ public class LeadController {
 
     private final LeadService leadService;
     private final ObjectMapper objectMapper;
-
     /**
      *
      * create new lead

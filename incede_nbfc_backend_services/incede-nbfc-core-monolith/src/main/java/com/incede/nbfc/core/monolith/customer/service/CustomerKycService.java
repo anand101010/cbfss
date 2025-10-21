@@ -40,6 +40,12 @@ public class CustomerKycService {
     private final KycTypesRepository kycTypesRepository;
     private final Validator validator;
 
+    /**
+     * Save an initial customer with minimal information
+     * @param request CustomerKycRequestDto containing customer KYC details
+     * @return CustomerKycResponseDto with saved customer and KYC details
+     */
+
     @Transactional
     public CustomerKycResponseDto createInitialCustomer(CustomerKycRequestDto request) {
         validateRequest(request);
@@ -68,6 +74,12 @@ public class CustomerKycService {
         }
     }
 
+    /**
+     * Save KYC document for an existing customer
+     * @param request CustomerKycRequestDto containing customer KYC details
+     * @param customerIdentity UUID of the customer to add KYC document
+     * @return CustomerKycResponseDto with saved customer and KYC details
+     */
     @Transactional
     public CustomerKycResponseDto addKycDocument(CustomerKycRequestDto request, UUID customerIdentity) {
         validateRequest(request);
@@ -92,13 +104,21 @@ public class CustomerKycService {
         }
     }
 
+    /**
+     * Retrieve KYC details for a customer by UUID
+     * @param customerIdentity UUID of the customer
+     * @return CustomerKycResponseDto with customer KYC details
+     */
     @Transactional(readOnly = true)
     public CustomerKycResponseDto getKycDocuments(UUID customerIdentity) {
         Customer customer = getCustomer(customerIdentity);
         return buildCustomerKycResponse(customer);
     }
 
-    // Private helper methods
+    /**
+     * Helper method to validate CustomerKycRequestDto
+     * @param request CustomerKycRequestDto containing customer KYC details
+     */
     private void validateRequest(CustomerKycRequestDto request) {
         Objects.requireNonNull(request, CommonConstants.INVALID_REQUEST);
 
@@ -112,16 +132,32 @@ public class CustomerKycService {
         }
     }
 
+    /**
+     * Helper method to fetch KycType by UUID of kycTypeId
+     * @param kycTypeId UUId of KycTypeId
+     * @return KycTypes object
+     */
     private KycTypes getKycType(UUID kycTypeId) {
         return kycTypesRepository.findByIdentity(kycTypeId)
                 .orElseThrow(() -> new BusinessException(CommonConstants.DOCUMENT_TYPE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
     }
 
+    /**
+     * Helper method to fetch Customer by UUID
+     * @param customerIdentity UUID of customer
+     * @return Customer object
+     */
     private Customer getCustomer(UUID customerIdentity) {
         return customerRepository.findByIdentity(customerIdentity)
                 .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.CUSTOMER_NOT_FOUND));
     }
 
+    /**
+     * Helper method to check whether kycType already exists for the currentCustomer with the help of idNumber
+     * @param kycType
+     * @param idNumber
+     * @param currentCustomer
+     */
     private void validateNoExistingKyc(KycTypes kycType, String idNumber, Customer currentCustomer) {
         Optional<CustomerKyc> existingKyc = customerKycRepository.findByIdTypeAndIdNumber(kycType, idNumber);
 
@@ -134,12 +170,22 @@ public class CustomerKycService {
         });
     }
 
+    /**
+     * Helper method to check whether kycType already exists for a customer
+     * @param kycType
+     * @param customer
+     */
     private void validateKycNotExistsForCustomer(KycTypes kycType, Customer customer) {
         if (customerKycRepository.existsByIdTypeAndCustomer(kycType, customer)) {
             throw new BusinessException(CommonConstants.DOCUMENT_ALREADY_EXISTS, ErrorCodes.CONFLICT);
         }
     }
 
+    /**
+     * Helper method to create customer
+     * @param request CustomerKycRequestDto
+     * @return Customer object
+     */
     private Customer createCustomerEntity(CustomerKycRequestDto request) {
         String customerCode = customerKycMapper.generateCustomerCode(
                 Optional.ofNullable(request.getBranchCode()).orElse("UNKNOWN"),
@@ -160,6 +206,13 @@ public class CustomerKycService {
         return customer;
     }
 
+    /**
+     * Helper method to create Kyc for a customer
+     * @param request CustomerKycRequestDto
+     * @param customer
+     * @param kycType
+     * @return CustomerKyc object
+     */
     private CustomerKyc createKycEntity(CustomerKycRequestDto request, Customer customer, KycTypes kycType) {
         CustomerKyc customerKyc = customerKycMapper.toKycEntity(request, customer);
         customerKyc.setIdType(kycType);
@@ -167,6 +220,12 @@ public class CustomerKycService {
         return customerKyc;
     }
 
+    /**
+     * Save Kyc Document
+     * @param customerKyc CustomerKyc
+     * @param request CustomerKycRequestDto
+     * @return CustomerKycUpload object
+     */
     private CustomerKycUpload saveKycDocument(CustomerKyc customerKyc, CustomerKycRequestDto request) {
         try {
             CustomerKycUpload upload = customerKycMapper.toKycUploadEntity(customerKyc, request);
@@ -182,6 +241,11 @@ public class CustomerKycService {
         }
     }
 
+    /**
+     * Method to build CustomerKycResponseDto
+     * @param customer
+     * @return CustomerKycResponseDto
+     */
     private CustomerKycResponseDto buildCustomerKycResponse(Customer customer) {
         List<CustomerKyc> kycList = customerKycRepository.findByCustomer(customer)
                 .orElseThrow(() -> new BusinessException(CommonConstants.KYC_NOT_FOUND_FOR_CUSTOMER, ErrorCodes.RESOURCE_NOT_FOUND));
@@ -192,6 +256,12 @@ public class CustomerKycService {
         return customerKycMapper.toResponseDto(customer, kycList, uploadList);
     }
 
+    /**
+     * Helper method to throw conflict when a customer already has a Kyc document of the same kycType
+     * @param conflictCustomer
+     * @param kycType
+     * @param idNumber
+     */
     private void throwConflict(Customer conflictCustomer, KycTypes kycType, String idNumber) {
         if (conflictCustomer == null) {
             throw new BusinessException(CommonConstants.CUSTOMER_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND);
@@ -220,6 +290,11 @@ public class CustomerKycService {
         );
     }
 
+    /**
+     * Helper method to mask the ID number
+     * @param idNumber
+     * @return
+     */
     private String maskIdNumber(String idNumber) {
         if (idNumber == null || idNumber.length() < 4) return idNumber;
         return "XXXX XXXX " + idNumber.substring(idNumber.length() - 4);

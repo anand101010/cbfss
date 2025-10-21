@@ -92,6 +92,12 @@ public class CustomerBankAccountMapper {
                 .bankAccountIdentity(account.getIdentity())
                 .build();
     }
+
+    /**
+     * helper method to mask the account number in Response
+     * @param accountNumber
+     * @return
+     */
     private String maskAccountNumber(String accountNumber) {
         if (accountNumber == null || accountNumber.length() <= 4) {
             return "**";
@@ -99,6 +105,18 @@ public class CustomerBankAccountMapper {
         return "**" + accountNumber.substring(accountNumber.length() - 4);
     }
 
+    /**
+     *Builds and returns a CustomerBankAccountResponseDto containing
+     * customer identity,
+     * code,
+     * status,
+     * and
+     * associated bank account details
+     * @param customer
+     * @param status
+     * @param bankAccount
+     * @return
+     */
     public CustomerBankAccountResponseDto toResponse(Customer customer, String status, List<CustomerBankAccountResponseDto.BankAccount > bankAccount ) {
         return CustomerBankAccountResponseDto.builder()
                 .identity(customer.getIdentity())

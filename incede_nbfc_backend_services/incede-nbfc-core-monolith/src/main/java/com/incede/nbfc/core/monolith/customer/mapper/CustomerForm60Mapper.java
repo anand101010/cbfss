@@ -15,6 +15,17 @@ import java.util.UUID;
 
 @Component
 public class CustomerForm60Mapper {
+    /**
+     Converts a CustomerForm60RequestDto into a CustomerForm60 entity
+     by mapping
+     all relevant customer, branch, and document details
+     * @param dto
+     * @param customer
+     * @param branch
+     * @param pidDoc
+     * @param addDoc
+     * @return
+     */
     public CustomerForm60 toEntity(CustomerForm60RequestDto dto, Customer customer, Branches branch, DocumentMaster pidDoc, DocumentMaster addDoc) {
         CustomerForm60 form60 = new CustomerForm60();
         form60.setCustomerId(customer);
@@ -26,8 +37,6 @@ public class CustomerForm60Mapper {
         form60.setTransactionDate(dto.getTransactionDate());
         form60.setModeOfTransaction(dto.getModeOfTransaction());
         form60.setNumberOfPersons(dto.getNumberOfPersons());
-        form60.setDocRefId(dto.getDocRefId());
-        form60.setFilePath(dto.getFilePath());
 
         form60.setAgriculturalIncome(dto.getAgriculturalIncome());
         form60.setOtherIncome(dto.getOtherIncome());
@@ -53,6 +62,11 @@ public class CustomerForm60Mapper {
         return form60;
     }
 
+    /**
+     * Converts form60 entity to CustomerForm60ResponseDto
+     * @param entity
+     * @return
+     */
     public CustomerForm60ResponseDto toResponseDto(CustomerForm60 entity) {
         return CustomerForm60ResponseDto.builder()
                 .transactionAmount(entity.getTransactionAmount())
@@ -113,8 +127,6 @@ public class CustomerForm60Mapper {
         entity.setAddIssuingAuthority(dto.getAddIssuingAuthority());
         entity.setSubmissionDate(dto.getSubmissionDate());
         entity.setFormFileId(dto.getFormFileId());
-        entity.setFilePath(dto.getFilePath());
-        entity.setDocRefId(dto.getDocRefId());
         entity.setUpdatedBy(dto.getUpdatedBy());
         entity.setTelephoneNumber(dto.getTelephoneNumber());
         entity.setNameOfPremises(dto.getNameOfPremises());

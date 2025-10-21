@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public interface TemplateCatalogRepository  extends JpaRepository<TemplateCatalog, Integer>
 {
@@ -18,4 +19,9 @@ public interface TemplateCatalogRepository  extends JpaRepository<TemplateCatalo
         WHERE tc.templateCatalogId = :templateCatalogId
     """)
     Optional<String> findChannelNameByTemplateCatalogId(@Param("templateCatalogId") Integer templateCatalogId);
+
+    Optional<TemplateCatalog> findByIdentityAndTenantIdAndIsActiveTrueAndIsDeleteFalse(
+            UUID identity,
+            Integer tenantId
+    );
 }

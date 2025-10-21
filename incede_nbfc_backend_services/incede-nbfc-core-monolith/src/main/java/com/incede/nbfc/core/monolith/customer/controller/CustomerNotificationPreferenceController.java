@@ -75,6 +75,11 @@ public class CustomerNotificationPreferenceController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Soft deleting Notification Preference Settings for a customer
+     * @param customerId
+     * @return
+     */
     @DeleteMapping("/{customerId}/notification-preferences")
     public ResponseEntity<CustomerNotificationPreferenceResponseDto> deleteNotification(
             @PathVariable UUID customerId) {

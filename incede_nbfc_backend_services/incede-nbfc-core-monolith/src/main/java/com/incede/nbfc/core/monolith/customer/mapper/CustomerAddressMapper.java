@@ -21,8 +21,11 @@ public class CustomerAddressMapper {
     /**
      * Maps DTO to entity for creating a new CustomerAddress.
      * Validates that createdBy is not null.
+     * @param customer
+     * @param customerAddressRequestDto
+     * @return
      */
-    public CustomerAddress toEntity(Customer customer, CustomerAddressRequestDto customerAddressRequestDto) {
+     public CustomerAddress toEntity(Customer customer, CustomerAddressRequestDto customerAddressRequestDto) {
         log.info("Mapping CustomerAddressRequestDto to CustomerAddress entity for customer: {}", customer.getCustomerCode());
         java.util.Objects.requireNonNull(customerAddressRequestDto, "CustomerAddressRequestDto must not be null");
 
@@ -56,6 +59,8 @@ public class CustomerAddressMapper {
     /**
      * Updates an existing CustomerAddress entity with DTO values.
      * Validates that updatedBy is not null.
+     * @param address
+     * @param customerAddressRequestDto
      */
     public void updateEntity(CustomerAddress address, CustomerAddressRequestDto customerAddressRequestDto) {
         log.info("Updating CustomerAddress entity: {} with DTO", address.getIdentity());
@@ -82,6 +87,11 @@ public class CustomerAddressMapper {
         log.debug("Updated CustomerAddress entity: {}", address);
     }
 
+    /**
+     * Maps Customer Address entity to a customerResponseDto.AddressDetail
+     * @param address
+     * @return
+     */
     public CustomerAddressResponseDto.AddressDetail toAddressDetail(CustomerAddress address) {
         log.debug("Mapping CustomerAddress entity {} to AddressDetail DTO", address.getIdentity());
 
@@ -110,6 +120,13 @@ public class CustomerAddressMapper {
                 .build();
     }
 
+    /**
+     * maps TO CustomerAddressResponseDto
+     * @param customer
+     * @param status
+     * @param addressDetails
+     * @return
+     */
     public CustomerAddressResponseDto toResponse(Customer customer, String status, List<CustomerAddressResponseDto.AddressDetail> addressDetails) {
         log.info("Mapping Customer {} and {} addresses to CustomerAddressResponseDto", customer.getCustomerCode(), addressDetails.size());
 
@@ -131,6 +148,12 @@ public class CustomerAddressMapper {
         return CommonConstants.UPDATED_BY;
     }
 
+    /**
+     * Maps to CustomerAddressDetailDto
+     * @param customer
+     * @param address
+     * @return
+     */
     public CustomerAddressDetailDto mapToCustomerAddressDetailDto(Customer customer, CustomerAddress address) {
         return new CustomerAddressDetailDto(
                 customer.getIdentity(),

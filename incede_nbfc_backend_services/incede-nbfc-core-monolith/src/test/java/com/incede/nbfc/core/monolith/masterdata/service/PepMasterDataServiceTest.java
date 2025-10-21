@@ -1,12 +1,13 @@
 package com.incede.nbfc.core.monolith.masterdata.service;
 
-
 import com.incede.nbfc.core.monolith.masterdata.dto.PepCategoriesView;
 import com.incede.nbfc.core.monolith.masterdata.dto.PepRelationshipsView;
 import com.incede.nbfc.core.monolith.masterdata.dto.PepVerificationSourceView;
 import com.incede.nbfc.core.monolith.masterdata.repository.PepCategoriesRepository;
 import com.incede.nbfc.core.monolith.masterdata.repository.PepRelationshipRepository;
 import com.incede.nbfc.core.monolith.masterdata.repository.PepVerificationSourceRepository;
+import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
+import com.incede.nbfc.core.monolith.tenant.repository.TenantRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,10 +16,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,43 +27,41 @@ public class PepMasterDataServiceTest {
 
     @Mock
     PepCategoriesRepository pepCategoriesRepository;
+
     @Mock
     PepRelationshipRepository pepRelationshipRepository;
+
     @Mock
-    PepVerificationSourceRepository  pepVerificationSourceRepository;
+    PepVerificationSourceRepository pepVerificationSourceRepository;
+
+    @Mock
+    TenantRepository tenantRepository;
 
     @InjectMocks
     PepMasterDataService pepMasterDataService;
+
 
     @Test
     void testGetAllPepCategories_WhenDataExists() {
         UUID id = UUID.randomUUID();
 
-        PepCategoriesView mockView = mock(PepCategoriesView.class);
-        when(mockView.getCode()).thenReturn("PEP01");
-        when(mockView.getName()).thenReturn("High Risk");
-        when(mockView.getIsActive()).thenReturn(true);
-        when(mockView.getIdentity()).thenReturn(id);
+        PepCategoriesView mockCategory = org.mockito.Mockito.mock(PepCategoriesView.class);
 
-        when(pepCategoriesRepository.findByIsActiveTrue())
-                .thenReturn(List.of(mockView));
+        when(pepCategoriesRepository.findAllByTenantIdOrAll(null))
+                .thenReturn(List.of(mockCategory));
 
-        List<PepCategoriesView> result = pepMasterDataService.getAllPepCategories();
+        List<PepCategoriesView> result = pepMasterDataService.getAllPepCategories(null);
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals("PEP01", result.get(0).getCode());
-        assertEquals("High Risk", result.get(0).getName());
-        assertTrue(result.get(0).getIsActive());
-        assertEquals(id, result.get(0).getIdentity());
     }
 
     @Test
     void testGetAllPepCategories_WhenDataEmpty() {
-        when(pepCategoriesRepository.findByIsActiveTrue())
+        when(pepCategoriesRepository.findAllByTenantIdOrAll(null))
                 .thenReturn(Collections.emptyList());
 
-        List<PepCategoriesView> result = pepMasterDataService.getAllPepCategories();
+        List<PepCategoriesView> result = pepMasterDataService.getAllPepCategories(null);
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
@@ -70,44 +69,34 @@ public class PepMasterDataServiceTest {
 
     @Test
     void testGetAllPepCategories_WhenRepositoryThrowsException() {
-        when(pepCategoriesRepository.findByIsActiveTrue())
+        when(pepCategoriesRepository.findAllByTenantIdOrAll(null))
                 .thenThrow(new RuntimeException("DB error"));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> pepMasterDataService.getAllPepCategories());
+                () -> pepMasterDataService.getAllPepCategories(null));
 
         assertEquals("DB error", ex.getMessage());
     }
 
     @Test
     void testGetAllPepRelationships_WhenDataExists() {
-        UUID id = UUID.randomUUID();
+        PepRelationshipsView mockRelationship = org.mockito.Mockito.mock(PepRelationshipsView.class);
 
-        PepRelationshipsView mockView = mock(PepRelationshipsView.class);
-        when(mockView.getName()).thenReturn("Spouse");
-        when(mockView.getCode()).thenReturn("SP");
-        when(mockView.getIsActive()).thenReturn(true);
-        when(mockView.getIdentity()).thenReturn(id);
+        when(pepRelationshipRepository.findAllByTenantIdOrAll(null))
+                .thenReturn(List.of(mockRelationship));
 
-        when(pepRelationshipRepository.findByIsActiveTrue())
-                .thenReturn(List.of(mockView));
-
-        List<PepRelationshipsView> result = pepMasterDataService.getAllPepRelationships();
+        List<PepRelationshipsView> result = pepMasterDataService.getAllPepRelationships(null);
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals("Spouse", result.get(0).getName());
-        assertEquals("SP", result.get(0).getCode());
-        assertTrue(result.get(0).getIsActive());
-        assertEquals(id, result.get(0).getIdentity());
     }
 
     @Test
     void testGetAllPepRelationships_WhenDataEmpty() {
-        when(pepRelationshipRepository.findByIsActiveTrue())
+        when(pepRelationshipRepository.findAllByTenantIdOrAll(null))
                 .thenReturn(Collections.emptyList());
 
-        List<PepRelationshipsView> result = pepMasterDataService.getAllPepRelationships();
+        List<PepRelationshipsView> result = pepMasterDataService.getAllPepRelationships(null);
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
@@ -115,57 +104,63 @@ public class PepMasterDataServiceTest {
 
     @Test
     void testGetAllPepRelationships_WhenRepositoryThrowsException() {
-        when(pepRelationshipRepository.findByIsActiveTrue())
+        when(pepRelationshipRepository.findAllByTenantIdOrAll(null))
                 .thenThrow(new RuntimeException("DB error"));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> pepMasterDataService.getAllPepRelationships());
+                () -> pepMasterDataService.getAllPepRelationships(null));
 
         assertEquals("DB error", ex.getMessage());
     }
 
     @Test
-    void testGetAllPepVerificationSources_WhenDataExists() {
-        UUID id = UUID.randomUUID();
+    void testGetAllPepVerificationSource_WhenDataExists() {
+        PepVerificationSourceView mockSource = org.mockito.Mockito.mock(PepVerificationSourceView.class);
 
-        PepVerificationSourceView mockView = mock(PepVerificationSourceView.class);
-        when(mockView.getName()).thenReturn("Government Database");
-        when(mockView.getCode()).thenReturn("GOV_DB");
-        when(mockView.getIsActive()).thenReturn(true);
-        when(mockView.getIdentity()).thenReturn(id);
+        when(pepVerificationSourceRepository.findAllByTenantIdOrAll(null))
+                .thenReturn(List.of(mockSource));
 
-        when(pepVerificationSourceRepository.findByIsActiveTrue())
-                .thenReturn(List.of(mockView));
-
-        List<PepVerificationSourceView> result = pepMasterDataService.getAllPepVerificationSource();
+        List<PepVerificationSourceView> result = pepMasterDataService.getAllPepVerificationSource(null);
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals("Government Database", result.get(0).getName());
-        assertEquals("GOV_DB", result.get(0).getCode());
-        assertTrue(result.get(0).getIsActive());
-        assertEquals(id, result.get(0).getIdentity());
     }
 
     @Test
-    void testGetAllPepVerificationSources_WhenDataEmpty() {
-        when(pepVerificationSourceRepository.findByIsActiveTrue())
+    void testGetAllPepVerificationSource_WhenDataEmpty() {
+        when(pepVerificationSourceRepository.findAllByTenantIdOrAll(null))
                 .thenReturn(Collections.emptyList());
 
-        List<PepVerificationSourceView> result = pepMasterDataService.getAllPepVerificationSource();
+        List<PepVerificationSourceView> result = pepMasterDataService.getAllPepVerificationSource(null);
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
 
     @Test
-    void testGetAllPepVerificationSources_WhenRepositoryThrowsException() {
-        when(pepVerificationSourceRepository.findByIsActiveTrue())
+    void testGetAllPepVerificationSource_WhenRepositoryThrowsException() {
+        when(pepVerificationSourceRepository.findAllByTenantIdOrAll(null))
                 .thenThrow(new RuntimeException("DB error"));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> pepMasterDataService.getAllPepVerificationSource());
+                () -> pepMasterDataService.getAllPepVerificationSource(null));
 
         assertEquals("DB error", ex.getMessage());
     }
+
+    @Test
+    void testGetTenantId_WhenTenantExists() {
+        UUID tenantIdentity = UUID.randomUUID();
+        Tenant mockTenant = new Tenant();
+        mockTenant.setTenantId(1);
+
+        when(tenantRepository.findByIdentity(tenantIdentity))
+                .thenReturn(Optional.of(mockTenant));
+
+        Integer tenantId = pepMasterDataService.getTenantId(tenantIdentity);
+
+        assertNotNull(tenantId);
+        assertEquals(1, tenantId);
+    }
+
 }

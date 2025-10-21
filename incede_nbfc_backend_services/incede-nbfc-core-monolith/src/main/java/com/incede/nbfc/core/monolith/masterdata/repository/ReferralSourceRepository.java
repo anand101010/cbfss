@@ -1,11 +1,10 @@
 package com.incede.nbfc.core.monolith.masterdata.repository;
 
-import com.incede.nbfc.core.monolith.masterdata.domain.entity.Purpose;
 import com.incede.nbfc.core.monolith.masterdata.domain.entity.ReferralSources;
-import com.incede.nbfc.core.monolith.masterdata.dto.PurposeView;
 import com.incede.nbfc.core.monolith.masterdata.dto.ReferralSourcesView;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,5 +17,9 @@ public interface ReferralSourceRepository extends JpaRepository<ReferralSources,
     List<ReferralSourcesView> findByIsDelFalseAndIsActiveTrue();
 
     Optional<ReferralSources> findByIdentity( UUID referralSourceId);
+
+    @Query(value="SELECT a FROM ReferralSources a WHERE a.isDel = false AND " +
+            "(:tenantId IS NULL OR a.tenant.tenantId = :tenantId)")
+    List<ReferralSourcesView> findAllByTenantIdOrAll(@Param("tenantId") Integer tenantId);
 
 }

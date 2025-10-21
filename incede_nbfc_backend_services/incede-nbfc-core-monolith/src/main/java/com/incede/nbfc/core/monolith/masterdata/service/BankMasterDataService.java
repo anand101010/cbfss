@@ -1,9 +1,14 @@
 package com.incede.nbfc.core.monolith.masterdata.service;
 
+import com.incede.nbfc.core.monolith.common.CommonConstants;
+import com.incede.nbfc.core.monolith.exception.BusinessException;
+import com.incede.nbfc.core.monolith.exception.ErrorCodes;
 import com.incede.nbfc.core.monolith.masterdata.domain.entity.*;
 import com.incede.nbfc.core.monolith.masterdata.dto.*;
 import com.incede.nbfc.core.monolith.masterdata.mapper.*;
 import com.incede.nbfc.core.monolith.masterdata.repository.*;
+import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
+import com.incede.nbfc.core.monolith.tenant.repository.TenantRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
@@ -47,14 +52,34 @@ public class BankMasterDataService {
     private final RiskCategoryRepository riskCategoryRepository;
     private final CountryRepository countryRepository;
     private final PincodesRepository pincodesRepository;
+    private final TenantRepository tenantRepository;
+
+
+    /**
+     * find tenant from Tenant Identity
+     *
+     */
+    public Integer getTenantId(UUID tenantIdentity){
+        Tenant tenant = tenantRepository.findByIdentity(tenantIdentity).orElseThrow(
+                ()-> new BusinessException(CommonConstants.TENANT_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
+        return tenant.getTenantId();
+
+    }
+
 
     /**
      * Retrieves all active branch contact
      *
      */
     @Transactional(readOnly = true)
-    public List<BranchContactView> getAllBranchContact() {
-        List<BranchContactView> branchContact = branchContactsRepository.findByIsDelFalse();
+    public List<BranchContactView> getAllBranchContact(UUID tenantIdentity) {
+        Integer tenantId = null;
+        if(tenantIdentity!=null){
+            tenantId = getTenantId(tenantIdentity);
+        }
+        log.info("Fetching all active branch contact by tenant Id={}",tenantId);
+
+        List<BranchContactView> branchContact = branchContactsRepository.findByIsDelFalseByTenataId(tenantId);
         if (branchContact.isEmpty()) {
             log.warn("No branch contacts found");
             return branchContact;
@@ -68,8 +93,14 @@ public class BankMasterDataService {
      *
      */
     @Transactional(readOnly = true)
-    public List<BranchWeekScheduleView> getAllBranchWeekSchedule() {
-        List<BranchWeekScheduleView> branchWeekSchedule = branchWeekScheduleRepository.findByIsDelFalse();
+    public List<BranchWeekScheduleView> getAllBranchWeekSchedule(UUID tenantIdentity) {
+        Integer tenantId = null;
+        if(tenantIdentity!=null){
+            tenantId = getTenantId(tenantIdentity);
+        }
+        log.info("Fetching all active branch week schedule by tenant Id={}",tenantId);
+
+        List<BranchWeekScheduleView> branchWeekSchedule = branchWeekScheduleRepository.findByIsDelFalseByTenantId(tenantId);
         if (branchWeekSchedule.isEmpty()) {
             log.warn("No branch week schedules found");
             return branchWeekSchedule;
@@ -83,9 +114,15 @@ public class BankMasterDataService {
      *
      */
     @Transactional(readOnly = true)
-    public List<BanksView> getAllBanks() {
+    public List<BanksView> getAllBanks(UUID tenantIdentity) {
 
-        List<BanksView> banks = banksRepository.findByIsDelFalseAndIsActiveTrue();
+        Integer tenantId = null;
+        if(tenantIdentity!=null){
+            tenantId = getTenantId(tenantIdentity);
+        }
+        log.info("Fetching all active banks by tenant Id={}",tenantId);
+
+        List<BanksView> banks = banksRepository.findByIsDelFalseAndIsActiveTrueByTenantId(tenantId);
         if (banks.isEmpty()) {
             log.warn("No banks found");
             return banks;
@@ -101,8 +138,15 @@ public class BankMasterDataService {
      *
      */
     @Transactional(readOnly = true)
-    public List<BranchesDto> getAllBranches() {
-        List<Branches> branches = branchesRepository.findAllBranchesByIsDelFalse();
+    public List<BranchesDto> getAllBranches(UUID tenantIdentity) {
+
+        Integer tenantId = null;
+        if(tenantIdentity!=null){
+            tenantId = getTenantId(tenantIdentity);
+        }
+        log.info("Fetching all active branches by tenant Id={}",tenantId);
+
+        List<Branches> branches = branchesRepository.findAllBranchesByIsDelFalseByTenantId(tenantId);
 
         if (branches.isEmpty()) {
             log.warn("No branches found ");
@@ -156,7 +200,7 @@ public class BankMasterDataService {
         Map<Integer, PostOffices> postOfficesMap = postOfficesRepository.findByPostOfficeIdIn(postOfficesIds).stream()
                 .collect(Collectors.toMap(PostOffices::getPostOfficeId, Function.identity()));
 
-        Map<Integer, Cities> citiesMap = citiesRepository.findByCityIdIn(postOfficesIds).stream()
+        Map<Integer, Cities> citiesMap = citiesRepository.findByCityIdIn(cityIds).stream()
                 .collect(Collectors.toMap(Cities::getCityId, Function.identity()));
 
         Map<Integer, Districts> districtMap = districtRepository.findBydistrictIdIn(districtIds).stream()
@@ -229,6 +273,9 @@ public class BankMasterDataService {
      */
     @Transactional(readOnly = true)
     public Page<IfscCodesDto> getAllIfscCodes(Pageable pageable) {
+
+        log.info("Fetching all bank name and branch name from the ifsc code search");
+
         Page<IfscCodes> ifscCodesPage = ifscCodesRepository.findByIsDelFalse(pageable);
 
         if (ifscCodesPage.isEmpty()) {
@@ -269,6 +316,7 @@ public class BankMasterDataService {
 
     @Transactional(readOnly = true)
     public IfscCodesDto getIfscCodeDetails(String ifscCode) {
+        log.info("Fetching Ifc code details  by ifscCode ={}",ifscCode);
         Optional<IfscCodes> optionalIfsc = ifscCodesRepository.findByIfscCodeAndIsDelFalse(ifscCode);
 
         if (optionalIfsc.isEmpty()) {
@@ -302,10 +350,13 @@ public class BankMasterDataService {
      *
      */
     @Transactional(readOnly = true)
-    public List<AccountTypeMasterView> getAllAccountTypes() {
-
-        log.info("Fetching account types from repository");
-        List<AccountTypeMasterView> accountTypeMaster = accountTypeMasterRepository.findByIsDelFalse();
+    public List<AccountTypeMasterView> getAllAccountTypes(UUID tenantIdentity) {
+        Integer tenantId = null;
+        if(tenantIdentity!=null){
+        tenantId = getTenantId(tenantIdentity);
+        }
+        log.info("Fetching all account types by tenant Id={}",tenantId);
+        List<AccountTypeMasterView> accountTypeMaster = accountTypeMasterRepository.findAllByTenantIdOrAll(tenantId);
         if (accountTypeMaster.isEmpty()) {
             log.warn("No account types found");
             return accountTypeMaster;
@@ -320,9 +371,14 @@ public class BankMasterDataService {
      * @return List of Account statuses
      */
     @Transactional(readOnly = true)
-    public List<AccountStatusesView> getAllAccountStatuses() {
+    public List<AccountStatusesView> getAllAccountStatuses(UUID tenantIdentity) {
 
-        List<AccountStatusesView> accountStatuses = accountStatusesRepository.findByIsDelFalseAndIsActiveTrue();
+        Integer tenantId = null;
+        if(tenantIdentity!=null){
+            tenantId = getTenantId(tenantIdentity);
+        }
+        log.info("Fetching all account statuses by tenant Id={}",tenantId);
+        List<AccountStatusesView> accountStatuses = accountStatusesRepository.findByIsDelFalseAndIsActiveTrueByTenantId(tenantId);
 
         if (accountStatuses.isEmpty()) {
             log.warn("No Account statuses found");
@@ -338,9 +394,14 @@ public class BankMasterDataService {
      *
      */
     @Transactional(readOnly = true)
-    public List<CustomerStatusView> getAllCustomerStatuses() {
+    public List<CustomerStatusView> getAllCustomerStatuses(UUID tenantIdentity) {
 
-        List<CustomerStatusView> customerStatuses = customerStatusRepository.findByIsDelFalseAndIsActiveTrue();
+        Integer tenantId = null;
+        if(tenantIdentity!=null){
+            tenantId = getTenantId(tenantIdentity);
+        }
+        log.info("Fetching all customer status by tenant Id={}",tenantId);
+        List<CustomerStatusView> customerStatuses = customerStatusRepository.findByIsDelFalseAndIsActiveTrueByTenantId(tenantId);
 
         if (customerStatuses.isEmpty()) {
             log.warn("No customer statuses found");
@@ -352,8 +413,14 @@ public class BankMasterDataService {
     }
 
     @Transactional(readOnly = true)
-    public List<CustomerCategoryView> getCustomerCategoryView() {
-        List<CustomerCategoryView> customerCategory = customerCategoryRepository.findByIsDelFalseAndIsActiveTrue();
+    public List<CustomerCategoryView> getCustomerCategoryView(UUID tenantIdentity) {
+
+        Integer tenantId = null;
+        if(tenantIdentity!=null){
+            tenantId = getTenantId(tenantIdentity);
+        }
+        log.info("Fetching all customer category by tenant Id={}",tenantId);
+        List<CustomerCategoryView> customerCategory = customerCategoryRepository.findByIsDelFalseAndIsActiveTrueByTenantId(tenantId);
 
         if (customerCategory.isEmpty()) {
             log.warn("No customer category found");
@@ -365,8 +432,13 @@ public class BankMasterDataService {
     }
 
     @Transactional(readOnly = true)
-    public List<CustomerGroupMasterView> getAllCustomerGroups() {
-        List<CustomerGroupMasterView> customerGroups = customerGroupMasterRepository.findByIsDelFalseAndIsActiveTrue();
+    public List<CustomerGroupMasterView> getAllCustomerGroups(UUID tenantIdentity) {
+        Integer tenantId = null;
+        if(tenantIdentity!=null){
+            tenantId = getTenantId(tenantIdentity);
+        }
+        log.info("Fetching all customer groups by tenant Id={}",tenantId);
+        List<CustomerGroupMasterView> customerGroups = customerGroupMasterRepository.findByIsDelFalseAndIsActiveTrueByTenantId(tenantId);
 
         if (customerGroups.isEmpty()) {
             log.warn("No customer groups found");
@@ -378,8 +450,14 @@ public class BankMasterDataService {
     }
 
     @Transactional(readOnly = true)
-    public List<RiskCategoryView> getAllRiskCategories() {
-        List<RiskCategoryView> categories = riskCategoryRepository.findByIsDelFalseAndIsActiveTrue();
+    public List<RiskCategoryView> getAllRiskCategories(UUID tenantIdentity) {
+
+        Integer tenantId = null;
+        if(tenantIdentity!=null){
+            tenantId = getTenantId(tenantIdentity);
+        }
+        log.info("Fetching all risk categories by tenant Id={}",tenantId);
+        List<RiskCategoryView> categories = riskCategoryRepository.findByIsDelFalseAndIsActiveTrueByTenantId(tenantId);
 
         if (categories.isEmpty()) {
             log.warn("No risk categories found");

@@ -106,10 +106,11 @@ public class CustomerAdditionalInfoService {
                     .orElseThrow(() -> new BusinessException(CommonConstants.PURPOSE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
             profileExtraRepository.save(profileExtra);
 
+            CustomerAsset asset = new CustomerAsset();
             if (Boolean.TRUE.equals(dto.getAdditional().getCustomerAsset().getOwnsAsset())) {
                 log.info("Customer owns assets — saving asset info");
 
-                CustomerAsset asset = assetRepository.findByCustomer(customer)
+                asset = assetRepository.findByCustomer(customer)
                         .orElseGet(CustomerAsset::new);
                 customerAdditionalInfoMapper.createAsset(asset, dto.getAdditional().getCustomerAsset(), customer);
 
@@ -161,7 +162,7 @@ public class CustomerAdditionalInfoService {
             }
 
             log.info("Successfully saved additional info for customer: {}", identity);
-            return customerAdditionalInfoMapper.buildResponseDto(customer, employment, referral, profileExtra, null, customerAdditionalReferenceValues);
+            return customerAdditionalInfoMapper.buildResponseDto(customer, employment, referral, profileExtra,asset, customerAdditionalReferenceValues);
 
         } catch (DataIntegrityViolationException e) {
             log.error("Constraint violation while saving additional info for customer: {} DTO: {}", identity, dto, e);

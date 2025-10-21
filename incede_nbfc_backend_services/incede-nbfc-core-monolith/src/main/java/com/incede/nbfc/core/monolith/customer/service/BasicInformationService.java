@@ -71,7 +71,7 @@ public class BasicInformationService {
         if(customerRepository.existsByTenantAndAadharVaultId(tenant,dto.getAadharVault())){
             throw new BusinessException(CommonConstants.CUSTOMER_CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
         }
-        if (customerRepository.existsByTenantAndMobileNumber(tenant, dto.getMobileNumber())) {
+        if (customerRepository.existsByTenantAndMobileNumberAndIsDelFalse(tenant, dto.getMobileNumber())) {
             throw new BusinessException(CommonConstants.MOBILE_NUMBER_CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
         }
 
@@ -97,7 +97,6 @@ public class BasicInformationService {
 
     /**
      * Update basic information of an existing customer.
-     *
      * @param identity UUID of the customer to update.
      * @param dto      BasicInformationRequestDto containing updated details.
      * @return BasicInformationResponseDto with updated customer details.
@@ -118,7 +117,7 @@ public class BasicInformationService {
             customerMapper.updateEntityFromDto(existingCustomer, dto);
             existingCustomer.setUpdatedAt(LocalDateTime.now());
 
-            Optional<Customer> duplicate = customerRepository.findByTenantAndAadharVaultId(tenant, dto.getAadharVault());
+            Optional<Customer> duplicate = customerRepository.findByTenantAndAadharVaultIdAndIsDelFalse(tenant, dto.getAadharVault());
             if (duplicate.isPresent() && !duplicate.get().getIdentity().equals(identity)) {
                 throw new BusinessException(CommonConstants.CUSTOMER_CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
             }
@@ -291,9 +290,7 @@ public class BasicInformationService {
      * @param customerId
      * @return
      */
-
-
-    @Transactional(readOnly = true)
+ @Transactional(readOnly = true)
     public CustomerDetailResponseDto getCustomerWithDetails(UUID customerId) {
         Customer customer = customerRepository.findByIdentityAndIsDelFalse(customerId)
                 .orElseThrow(() -> new RuntimeException(CommonConstants.CUSTOMER_NOT_FOUND));

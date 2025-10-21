@@ -40,6 +40,15 @@ public class CustomerBankAccountService {
 
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
+    /**
+     * Create and map a new Bank Account to the specified Customer.
+    * - Checks for conflicts (duplicate account number or UPI ID).
+     *
+     * @param identity    UUID of the customer to whom the account will be linked
+     * @param requestDto  DTO containing bank account details
+     * @return            Response DTO containing the saved bank account details
+   */
+
     @Transactional
     public CustomerBankAccountResponseDto createBankAccount(UUID identity, CustomerBankAccountRequestDto requestDto) {
         try {
@@ -73,7 +82,16 @@ public class CustomerBankAccountService {
             throw new BusinessException(CommonConstants.FAILED_TO_CREATE_BANK_ACCOUNT, ErrorCodes.INTERNAL_SERVER_ERROR, e);
         }
     }
+    /**
+     * Update an existing Bank Account for the specified Customer.
+     Ensures the Customer and Bank Account exist and belong to each other.
+     * - Checks for conflicts (duplicate account number or UPI ID).
 
+     * @param identity       UUID of the customer
+     * @param bankAccountId  UUID of the bank account to update
+     * @param requestDto     DTO containing updated bank account details
+     * @return               Response DTO containing the updated bank account details
+    */
     @Transactional
     public CustomerBankAccountResponseDto updateBankAccount(UUID identity, UUID bankAccountId, CustomerBankAccountRequestDto requestDto) {
         try {
@@ -114,6 +132,13 @@ public class CustomerBankAccountService {
         }
     }
 
+    /**
+     * Retrieve all active Bank Accounts associated with a specific Customer.
+     * This method fetches the customer entity and all related bank accounts
+     * @param identity   UUID of the customer
+     * @return           Response DTO containing active bank account details
+     * @throws ResourceNotFoundException if the customer is not found
+     */
     @Transactional(readOnly = true)
     public CustomerBankAccountResponseDto getActiveBankAccounts(UUID identity) {
         Customer customer = customerRepository.findByIdentity(identity)
@@ -139,6 +164,14 @@ public class CustomerBankAccountService {
         }
     }
 
+    /**
+     * Validate the CustomerBankAccountRequestDto fields using Jakarta Bean Validation.
+
+     * Builds and throws a detailed BusinessException if any constraint violations are found.
+     *
+     * @param requestDto  DTO containing bank account data
+     * @throws BusinessException if validation fails
+     */
     private void checkAccountConflicts(CustomerBankAccountRequestDto requestDto, Customer customer) {
         if (customerBankAccountRepository.existsByAccountNumberAndCustomer(requestDto.getAccountNumber(), customer)) {
             throw new BusinessException(CommonConstants.CUSTOMER_BANK_ACCOUNT_CONFLICT);
@@ -148,6 +181,12 @@ public class CustomerBankAccountService {
         }
     }
 
+    /**
+     * Validation for Updating Bank Details
+     * @param requestDto
+     * @param customer
+     * @param bankAccountId
+     */
     private void checkAccountConflictsOnUpdate(CustomerBankAccountRequestDto requestDto, Customer customer, UUID bankAccountId) {
         if (customerBankAccountRepository.existsByAccountNumberAndCustomerAndIdentityNot(requestDto.getAccountNumber(), customer, bankAccountId)) {
             throw new BusinessException(CommonConstants.CUSTOMER_BANK_ACCOUNT_CONFLICT);
@@ -157,11 +196,21 @@ public class CustomerBankAccountService {
         }
     }
 
+    /**
+     * Fetch Account Type From Master
+     * @param identity
+     * @return
+     */
     private AccountTypeMaster fetchAccountType(UUID identity) {
         return accountTypeMasterRepository.findByIdentity(identity)
                 .orElseThrow(() -> new BusinessException(CommonConstants.INVALID_ACCOUNT_TYPE, ErrorCodes.VALIDATION_FAILED));
     }
 
+    /**
+     * Fetch Account Status from Master
+     * @param identity
+     * @return
+     */
     private AccountStatuses fetchAccountStatus(UUID identity) {
         return accountStatusesRepository.findByIdentity(identity)
                 .orElseThrow(() -> new BusinessException(CommonConstants.INVALID_ACCOUNT_STATUS, ErrorCodes.VALIDATION_FAILED));

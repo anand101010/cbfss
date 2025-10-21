@@ -1,3 +1,4 @@
+
 package com.incede.nbfc.core.monolith.customer.service;
 
 import com.incede.nbfc.core.monolith.client.dto.FinaVaultResponseDto;
@@ -10,7 +11,6 @@ import com.incede.nbfc.core.monolith.customer.mapper.CustomerAddressMapper;
 import com.incede.nbfc.core.monolith.customer.mapper.CustomerForm60Mapper;
 import com.incede.nbfc.core.monolith.customer.mapper.JasperForm60Mapper;
 import com.incede.nbfc.core.monolith.customer.repository.*;
-import com.incede.nbfc.core.monolith.customer.service.CustomerAddressService;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.exception.ErrorCodes;
 import com.incede.nbfc.core.monolith.exception.ResourceNotFoundException;
@@ -29,11 +29,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.incede.nbfc.core.monolith.masterdata.enums.AddressTypes;
 import org.springframework.util.Assert;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -57,6 +59,25 @@ public class CustomerForm60Service {
 
     private static final BigDecimal MAX_TRANSACTION_AMOUNT = new BigDecimal("500000");
 
+    /**
+     * Save a new Form 60 for a specific customer.
+     * This method performs the following steps:
+     * - Validates the incoming Form 60 request DTO.
+     * - Checks that the customer exists using the provided customer identity.
+     * - Checks that the branch exists using the branch ID from the request.
+     * - Fetches associated PID and Address documents from the repository.
+     * - Ensures the 'createdBy' field is provided in the request.
+     * - Converts the request DTO to a Form 60 entity.
+     * - Handles Aadhaar masking via the Vault service if a masked Aadhaar is provided.
+     * - Sets a new UUID for the Form 60 entity and the createdBy value.
+     * - Saves the Form 60 entity to the database and returns a response DTO.
+     *
+     * @param request            Request DTO containing Form 60 details
+     * @param customerIdentity   UUID of the customer for whom the Form 60 is being created
+     * @return                   Response DTO representing the saved Form 60
+
+     */
+
     @Transactional
     public CustomerForm60ResponseDto saveForm60(CustomerForm60RequestDto request, UUID customerIdentity) {
 
@@ -64,20 +85,27 @@ public class CustomerForm60Service {
 
         try {
             Customer customer = customerRepository.findByIdentity(customerIdentity)
-                    .orElseThrow(() -> new BusinessException(CommonConstants.CUSTOMER_NOT_FOUND, ErrorCodes.NOT_FOUND));
+                    .orElseThrow(() -> new BusinessException("Customer not found", ErrorCodes.NOT_FOUND));
 
             Branches branch = branchesRepository.findByIdentity(request.getBranchId())
-                    .orElseThrow(() -> new BusinessException(CommonConstants.CUSTOMER_NOT_FOUND, ErrorCodes.NOT_FOUND));
+                    .orElseThrow(() -> new BusinessException("Branch not found", ErrorCodes.NOT_FOUND));
 
-            DocumentMaster pidDoc = Optional.ofNullable(request.getPidDocumentId())
-                    .map(documentRepository::findByIdentity)
-                    .orElse(Optional.empty())
-                    .orElse(null);
+//            DocumentMaster pidDoc = Optional.ofNullable(request.getPidDocumentId())
+//                    .map(documentRepository::findByIdentity)
+//                    .orElse(Optional.empty())
+//                    .orElse(null);
+//
+//            DocumentMaster addDoc = Optional.ofNullable(request.getAddDocumentId())
+//                    .map(documentRepository::findByIdentity)
+//                    .orElse(Optional.empty())
+//                    .orElseThrow();
 
-            DocumentMaster addDoc = Optional.ofNullable(request.getAddDocumentId())
-                    .map(documentRepository::findByIdentity)
-                    .orElse(Optional.empty())
-                    .orElse(null);
+            DocumentMaster pidDoc = documentRepository.findByIdentity(request.getPidDocumentId())
+                    .orElseThrow(() -> new BusinessException("PID Document not found", ErrorCodes.NOT_FOUND));
+
+            DocumentMaster addDoc = documentRepository.findByIdentity(request.getAddDocumentId())
+                    .orElseThrow(() -> new BusinessException("Add Document not found", ErrorCodes.NOT_FOUND));
+
 
             if (request.getCreatedBy() == null) {
                 throw new BusinessException(CommonConstants.CREATED_BY_REQUIRED, ErrorCodes.VALIDATION_FAILED);
@@ -88,11 +116,11 @@ public class CustomerForm60Service {
             if (request.getMaskedAdhar() != null) {
                 FinaVaultResponseDto response = vaultService.generateVaultIdAndMaskAadhaar(request.getMaskedAdhar());
                 if (response == null) {
-                    throw new BusinessException(CommonConstants.AADHAR_CANNOT_BE_MASKED, ErrorCodes.NOT_FOUND);
+                    throw new BusinessException("Adhar number cannot be masked", ErrorCodes.NOT_FOUND);
                 }
 
                 if(response.getStatus().equals("N")){
-                    throw new BusinessException(CommonConstants.AADHAR_CANNOT_BE_MASKED+response.getErrorCode(), ErrorCodes.NOT_FOUND);
+                    throw new BusinessException("Adhar number cannot be masked :"+response.getErrorCode(), ErrorCodes.NOT_FOUND);
                 }
                 entity.setMaskedAdhar(response.getUidForDisplay());
             }
@@ -113,6 +141,26 @@ public class CustomerForm60Service {
         }
     }
 
+    /**
+     * Update an existing Form 60 for a specific customer.
+     * <p>
+     * This method performs the following steps:
+     * - Validates that the Customer exists.
+     * - Retrieves the existing Form 60 by its ID and ensures it belongs to the customer.
+     * - Optionally fetches associated PID and Address documents if provided.
+     * - Validates the Form 60 request DTO.
+     * - Updates the Form 60 entity with new data from the request.
+     * - Handles Aadhaar masking using Vault service if a masked Aadhaar is provided.
+     * - Saves the updated Form 60 entity and returns a response DTO.
+     *
+     * @param customerIdentity  UUID of the customer
+     * @param form60Id          UUID of the Form 60 to update
+     * @param request           Request DTO containing updated Form 60 details
+     * @return                  Response DTO representing the updated Form 60
+     * @throws BusinessException if the customer or Form 60 is not found,
+     *                           if Aadhaar masking fails,
+     *                           or if validation/data integrity errors occur
+     */
     @Transactional
     public CustomerForm60ResponseDto updateForm60(UUID customerIdentity, UUID form60Id, CustomerForm60RequestDto request) {
         try {
@@ -125,7 +173,7 @@ public class CustomerForm60Service {
             CustomerForm60 existingForm60 = customerForm60Repository
                     .findByIdentity(form60Id)
                     .orElseThrow(() -> new BusinessException(
-                            CommonConstants.FORM_60_NOT_FOUND_FOR_THE_CUSTOMER,
+                            "Form 60 not found with ID: " + form60Id + " for customer: " + customerIdentity,
                             ErrorCodes.NOT_FOUND));
 
             DocumentMaster pidDoc = Optional.ofNullable(request.getPidDocumentId())
@@ -146,11 +194,11 @@ public class CustomerForm60Service {
             if (request.getMaskedAdhar() != null) {
                 FinaVaultResponseDto response = vaultService.generateVaultIdAndMaskAadhaar(request.getMaskedAdhar());
                 if (response == null) {
-                    throw new BusinessException(CommonConstants.AADHAR_CANNOT_BE_MASKED, ErrorCodes.NOT_FOUND);
+                    throw new BusinessException("Adhar number cannot be masked", ErrorCodes.NOT_FOUND);
                 }
 
                 if(response.getStatus().equals("N")){
-                    throw new BusinessException(CommonConstants.AADHAR_CANNOT_BE_MASKED+response.getErrorCode(), ErrorCodes.NOT_FOUND);
+                    throw new BusinessException("Adhar number cannot be masked :"+response.getErrorCode(), ErrorCodes.NOT_FOUND);
                 }
                 existingForm60.setMaskedAdhar(response.getUidForDisplay());
             }
@@ -169,24 +217,34 @@ public class CustomerForm60Service {
         }
     }
 
+    /**
+     * Validate Dto
+     * @param request
+     */
     private void validateForm60Request(CustomerForm60RequestDto request) {
         if (request.getTransactionAmount() == null) {
-            throw new BusinessException(CommonConstants.TRANSACTION_AMOUNT_NOT_NULL, ErrorCodes.VALIDATION_FAILED);
+            throw new BusinessException("Transaction amount is mandatory", ErrorCodes.VALIDATION_FAILED);
         }
         if (request.getTransactionDate() == null) {
-            throw new BusinessException(CommonConstants.TRANSACTION_AMOUNT_NOT_NULL, ErrorCodes.VALIDATION_FAILED);
+            throw new BusinessException("Transaction date is mandatory", ErrorCodes.VALIDATION_FAILED);
         }
 
         if (request.getTransactionAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException(CommonConstants.TRANSACTION_AMOUNT_MUST_BE_NONZERO, ErrorCodes.VALIDATION_FAILED);
+            throw new BusinessException("Transaction amount must be greater than zero", ErrorCodes.VALIDATION_FAILED);
         }
 
         if (request.getTransactionAmount().compareTo(MAX_TRANSACTION_AMOUNT) > 0) {
-            throw new BusinessException(CommonConstants.MAXIMUM_TRANSACTION_AMOUNT_CONSTRAINT,
+            throw new BusinessException("Form 60 cannot be used for transactions above ₹5,00,000. Please provide PAN.",
                     ErrorCodes.VALIDATION_FAILED);
         }
     }
 
+    /**
+     * get Form 60 by customer and Form 60
+     * @param customerIdentity
+     * @param form60Identity
+     * @return
+     */
     @Transactional(readOnly = true)
     public CustomerForm60ResponseDto getForm60ByIdentity(UUID customerIdentity, UUID form60Identity) {
         Customer customer = customerRepository.findByIdentity(customerIdentity)
@@ -197,15 +255,17 @@ public class CustomerForm60Service {
         CustomerForm60 form60 = customerForm60Repository
                 .findByIdentity(form60Identity)
                 .orElseThrow(() -> new BusinessException(
-                        CommonConstants.FORM_60_NOT_FOUND_FOR_THE_CUSTOMER,
+                        "Form 60 not found with ID: " + form60Identity + " for customer: " + customerIdentity,
                         ErrorCodes.NOT_FOUND));
 
         return form60Mapper.toResponseDto(form60);
     }
 
-    /*
-     *
-     * preview/download form 60
+    /**
+     * Preview / download Form60
+     * @param customerIdentity
+     * @param form60Identity
+     * @return
      */
     @Transactional(readOnly = true)
     public byte[] generateForm60PreviewPdf(UUID customerIdentity, UUID form60Identity) {
@@ -231,13 +291,14 @@ public class CustomerForm60Service {
             return reportGenerator.generate(ReportName.FORM60, jasperDto, null, OutputFormat.PDF);
         } catch (Exception e) {
             log.error("Failed to generate Form60 PDF for customerIdentity={}, form60Id={}", customerIdentity, form60Identity, e);
-            throw new BusinessException(CommonConstants.CANNOT_GENERATE_FORM60_REPORT, e);
+            throw new BusinessException("Unable to generate Form60 report", e);
         }
     }
 
-    /*
-     *
-     * get designation
+    /**
+     * Get Customer Designation
+     * @param customer
+     * @return
      */
     @Transactional(readOnly = true)
     public CustomerDesignationResponseDto getCustomerDesignation(Customer customer) {
@@ -250,19 +311,22 @@ public class CustomerForm60Service {
                             designation.getName()
                     );
                 })
-                .orElseThrow(() -> new RuntimeException(CommonConstants.DESIGNATION_NOT_FOUND + customer.getIdentity()));
+                .orElseThrow(() -> new RuntimeException("Designation not found for customerId: " + customer.getIdentity()));
     }
 
 
-    /*
+    /**
+     * get permenent Address
      *
-     * get permanent address
+     * @param customer
+     * @return
      */
     public CustomerAddressDetailDto getPermanentAddress(Customer customer) {
 
         AddressType permanentType = addressTypeRepository.findByAddressTypeNameAndIsDelFalse(AddressTypes.PERMANENT.name())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        CommonConstants.PERMANENT_ADDRESS_NOT_FOUND + customer.getIdentity()
+                        "AddressType",
+                        "Permanent address type not found" + customer.getIdentity()
                 ));
 
         CustomerAddress permanentAddress = customerAddressRepository
@@ -271,16 +335,17 @@ public class CustomerForm60Service {
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException(
                         CommonConstants.ENTITY_ADDRESS,
-                        CommonConstants.PERMANENT_ADDRESS_NOT_FOUND + customer.getIdentity()
+                        "Permanent address not found for customer: " + customer.getIdentity()
                 ));
 
         return customerAddressMapper.mapToCustomerAddressDetailDto(customer, permanentAddress);
     }
 
-    /*
-     * get customer purpose
+    /**
+     * get Customer Purpose
+     * @param customer
+     * @return
      */
-
     public CustomerPurposeResponseDto getCustomerPurpose(Customer customer) {
 
         return customerProfileExtraRepository.findByCustomer(customer)
@@ -292,13 +357,14 @@ public class CustomerForm60Service {
                             purpose.getName()
                     );
                 })
-                .orElseThrow(() -> new RuntimeException(CommonConstants.PURPOSE_NOT_FOUND + customer.getIdentity()));
+                .orElseThrow(() -> new RuntimeException("Purpose not found for customerId: " + customer.getIdentity()));
     }
 
 
-    /*
-     *
-     * get branch details
+    /**
+     * Get Branch Details
+     * @param form60Identity
+     * @return
      */
     String getBranchPlaceByForm60Identity(UUID form60Identity) {
         return customerForm60Repository.findByIdentity(form60Identity)
@@ -307,12 +373,16 @@ public class CustomerForm60Service {
                 .filter(Objects::nonNull)
                 .map(Branches ::getPlaceName) // format string
                 .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.BRANCH_NOT_FOUND_IN_FORM60, form60Identity.toString()));
+                .orElseThrow(() -> new ResourceNotFoundException("branch not found for the  form 60 identity:", form60Identity.toString()));
     }
 
 
-    /*
-     *upload signed form 60
+    /**
+     * Upload Signed form60
+     * @param customerIdentity
+     * @param form60Identity
+     * @param dto
+     * @return
      */
     @Transactional
     public Form60UploadResponseDto uploadSignedForm60(UUID customerIdentity, UUID form60Identity, Form60UploadDto dto) {
@@ -320,9 +390,9 @@ public class CustomerForm60Service {
                 .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_CUSTOMER, customerIdentity.toString()));
 
         CustomerForm60 form60 = customerForm60Repository.findByIdentity(form60Identity)
-                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.FORM_60_NOT_FOUND, form60Identity.toString()));
+                .orElseThrow(() -> new ResourceNotFoundException("Form60 is not uploaded for the id:", form60Identity.toString()));
 
-        form60.setDocRefId(dto.getPdfDocRefId());
+        form60.setDocRefId(dto.getDocRefId());
         form60.setFilePath(dto.getFilePath());
 
         customerForm60Repository.save(form60);
@@ -331,9 +401,10 @@ public class CustomerForm60Service {
         response.setForm60Identity(form60.getIdentity());
         response.setPdfDocRefId(form60.getDocRefId());
         response.setFilePath(form60.getFilePath());
-        response.setUploadedAt(OffsetDateTime.now());
 
         return response;
     }
 
 }
+
+

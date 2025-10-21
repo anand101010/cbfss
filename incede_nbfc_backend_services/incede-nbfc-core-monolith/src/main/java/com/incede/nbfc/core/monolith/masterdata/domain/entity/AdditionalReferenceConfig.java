@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.masterdata.domain.entity;
 
+import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -23,8 +24,10 @@ public class AdditionalReferenceConfig extends BaseEntity implements Serializabl
     @Column(name = "reference_config_id")
     private Integer referenceConfigId;
 
-    @Column(name = "tenant_id", nullable = false, length = 50)
-    private String tenantId;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "tenant_id", referencedColumnName = "tenant_id", nullable = false)
+    @NotNull(message = "Tenant is mandatory")
+    private Tenant tenant;
 
     @Column(name = "product_service_id", nullable = false)
     @NotNull(message = "Product/Service must not be null")

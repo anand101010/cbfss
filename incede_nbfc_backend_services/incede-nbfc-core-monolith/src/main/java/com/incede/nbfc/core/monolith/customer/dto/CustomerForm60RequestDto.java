@@ -76,13 +76,6 @@ public class CustomerForm60RequestDto {
     private Integer formFileId;
 
 
-
-    @NotBlank(message = "Document Reference Id must not be blank")
-    private String docRefId;
-
-    @NotBlank(message = "File path must not be blank")
-    private String filePath;
-
     private String telephoneNumber;
 
     private String floorNumber;

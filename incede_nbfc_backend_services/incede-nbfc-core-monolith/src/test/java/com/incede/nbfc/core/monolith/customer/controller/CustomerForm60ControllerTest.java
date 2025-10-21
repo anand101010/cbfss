@@ -88,7 +88,6 @@ class CustomerForm60ControllerTest {
         requestDto.setCreatedBy(1);
 
         responseDto = new CustomerForm60ResponseDto();
-        responseDto.setBranchId(10);
         responseDto.setTransactionAmount(BigDecimal.valueOf(200000));
     }
 
@@ -171,15 +170,21 @@ class CustomerForm60ControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_PDF));
     }
 
-    // -------------------- UPLOAD -------------------- //
 
     @Test
     void testUploadSignedForm60_Success() throws Exception {
         Form60UploadDto uploadDto = new Form60UploadDto();
         uploadDto.setFileName("form60.pdf");
+        uploadDto.setDocRefId("Doc-ref");
+        uploadDto.setFilePath("path");
+        uploadDto.setFileName("form60Pfd");
+
 
         Form60UploadResponseDto uploadResponse = new Form60UploadResponseDto();
         uploadResponse.setForm60Identity(form60Identity);
+        uploadResponse.setPdfDocRefId("Doc-ref");
+        uploadResponse.setFilePath("path");
+        uploadResponse.setFileName("form60Pfd");
 
         when(form60Service.uploadSignedForm60(eq(customerIdentity), eq(form60Identity), any(Form60UploadDto.class)))
                 .thenReturn(uploadResponse);

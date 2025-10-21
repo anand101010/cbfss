@@ -97,7 +97,7 @@ class CustomerAdditionalInfoControllerTest {
         CustomerReferralDto referrals = CustomerReferralDto.builder()
                 .referralSourceId(UUID.randomUUID())
                 .canvassedTypeId(UUID.randomUUID())
-                .canvasserStaffId(123)
+                .canvasserStaffId(UUID.randomUUID())
                 .build();
 
         CustomerProfileExtraDto profileExtra = CustomerProfileExtraDto.builder()

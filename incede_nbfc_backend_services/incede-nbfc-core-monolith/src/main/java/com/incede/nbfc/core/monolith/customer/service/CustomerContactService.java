@@ -55,7 +55,7 @@ public class CustomerContactService {
 
         ContactTypes contactType = contactTypesRepository.findByIdentity(dto.getContactType())
                 .orElseThrow(() -> new BusinessException(
-                        "Contact type not found", ErrorCodes.RESOURCE_NOT_FOUND));
+                        CommonConstants.CONTACT_TYPE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
 
         boolean isPrimary = Boolean.TRUE.equals(dto.getIsPrimary());
 
@@ -159,6 +159,7 @@ public class CustomerContactService {
 
     /**
      * Get all active contacts for a given customer.
+     * @param customerId
      */
     @Transactional(readOnly = true)
     public CustomerContactResponseDto getContacts(UUID customerId) {
@@ -177,8 +178,11 @@ public class CustomerContactService {
                 .build();
     }
 
+
     /**
      * Soft delete a contact by marking it inactive.
+     * @param customerId
+     * @param contactId
      */
     @Transactional
     public void softDeleteContact(UUID customerId, UUID contactId) {

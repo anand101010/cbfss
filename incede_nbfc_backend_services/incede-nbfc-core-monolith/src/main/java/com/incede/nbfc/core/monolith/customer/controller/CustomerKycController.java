@@ -34,7 +34,12 @@ public class CustomerKycController {
     }
 
 
-
+    /**
+     * Adding Kyc document for the Existing  Customer
+     * @param customerKycRequestDto
+     * @param customerIdentity
+     * @return
+     */
     @PreAuthorize("hasRole('STAFF')")
     @PutMapping("{customerIdentity}/addKyc")
     public ResponseEntity<CustomerKycResponseDto> addKycDocument(
@@ -45,6 +50,11 @@ public class CustomerKycController {
         return ResponseEntity.status(HttpStatus.OK).body(customerKycResponseDto);
     }
 
+    /**
+     * Fetch Kyc Documents,kyc details of the customer
+     * @param customerIdentity
+     * @return
+     */
     @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/{customerIdentity}/getKyc")
     public ResponseEntity<CustomerKycResponseDto> getKycDocuments(

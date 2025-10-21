@@ -1,6 +1,8 @@
 package com.incede.nbfc.core.monolith.masterdata.domain.entity;
 
+import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,20 +21,25 @@ public class ResidentialStatuses extends BaseEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
 
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        @Column(name = "residential_status_id")
-        private Integer ResidentialStatusId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "residential_status_id")
+    private Integer ResidentialStatusId;
 
-        @Column(name = "code", nullable = false, unique = true, length = 35)
-        private String code;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "tenant_id", referencedColumnName = "tenant_id", nullable = false)
+    @NotNull(message = "Tenant is mandatory")
+    private Tenant tenant;
 
-        @Column(name = "name", nullable = false, length = 120)
-        private String name;
+    @Column(name = "code", nullable = false, unique = true, length = 35)
+    private String code;
 
-        @Column(name = "is_active", nullable = false)
-        private Boolean isActive = true;
+    @Column(name = "name", nullable = false, length = 120)
+    private String name;
 
-        @Column(name = "identity", nullable = false, unique = true)
-        private UUID identity;
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;
+
+    @Column(name = "identity", nullable = false, unique = true)
+    private UUID identity;
 }

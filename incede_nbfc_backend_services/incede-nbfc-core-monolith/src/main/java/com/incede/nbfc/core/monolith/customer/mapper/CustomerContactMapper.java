@@ -20,6 +20,7 @@ public class CustomerContactMapper {
     /**
      * Convert a request DTO to a CustomerContact entity.
      * Sets createdBy and updatedBy automatically.
+     * @param dto
      */
     public CustomerContact toEntity(CustomerContactRequestDto dto) {
         Objects.requireNonNull(dto, "CustomerContactRequestDto must not be null");
@@ -40,7 +41,10 @@ public class CustomerContactMapper {
 
     /**
      * Update an existing CustomerContact entity from DTO.
-     * Sets updatedBy automatically.
+      Sets updatedBy automatically.
+
+     * @param contact
+     * @param dto
      */
     public void updateEntityFromDto(CustomerContact contact, CustomerContactRequestDto dto) {
         Objects.requireNonNull(contact, "CustomerContact must not be null");
@@ -57,7 +61,8 @@ public class CustomerContactMapper {
     }
 
     /**
-     * Convert a CustomerContact entity to a response DTO.
+     * Convert a CustomerContact entity to a response DTO.\
+     * @param entity
      */
     public CustomerContactResponseDto.Contact toResponseDto(CustomerContact entity) {
         Objects.requireNonNull(entity, "CustomerContact entity must not be null");

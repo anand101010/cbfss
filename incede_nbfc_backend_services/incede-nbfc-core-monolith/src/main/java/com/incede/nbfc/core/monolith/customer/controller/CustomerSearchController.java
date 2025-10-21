@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.controller;
 
+import com.incede.nbfc.core.monolith.customer.dto.CanvasserResponseDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerSearchRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerSearchResponseDto;
 import com.incede.nbfc.core.monolith.customer.service.CustomerSearchService;
@@ -13,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/customers")
@@ -66,6 +68,28 @@ public class CustomerSearchController {
 
         log.info("Returning {} customers", results.size());
         return ResponseEntity.ok(results);
+    }
+
+    @Operation(summary = "Get Canvasser", description = "Get Canvasser by Canvassed Type ID")
+    @PreAuthorize("hasRole('STAFF')")
+    @GetMapping("/{canvassedTypeId}/{canvasserName}")
+    public ResponseEntity<List<CanvasserResponseDto>> fetchCanvasserId(
+            @PathVariable UUID canvassedTypeId,
+            @PathVariable String canvasserName
+    ){
+        List<CanvasserResponseDto> result = customerSearchService.fetchCanvasserId(canvassedTypeId,canvasserName);
+        return ResponseEntity.ok(result);
+    }
+
+    @Operation(summary = "Get Canvasser name", description = "Get Canvasser by  Identity ")
+    @PreAuthorize("hasRole('STAFF')")
+    @GetMapping("/{canvassedTypeId}/{canvasserIdentity}")
+    public ResponseEntity<List<CanvasserResponseDto>> fetchCanvasserName(
+            @PathVariable UUID canvassedTypeId,
+            @PathVariable UUID canvasserIdentity
+    ){
+        List<CanvasserResponseDto> result = customerSearchService.fetchCanvasserName(canvassedTypeId,canvasserIdentity);
+        return ResponseEntity.ok(result);
     }
 
 

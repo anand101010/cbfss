@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Table(name = "customer_referrals", schema = "customers")
@@ -38,8 +39,7 @@ public class CustomerReferral extends CustomerBaseEntity implements Serializable
     private CanvassedTypes canvassedTypeId;
 
     @Column(name = "canvasser_staff_id")
-    @Min(value = 1, message = "Canvasser staff id must be a positive integer")
-    private Integer canvasserStaffId;
+    private UUID canvasserStaffId;
 
     @Column(name = "captured_on")
     @PastOrPresent(message = "Captured on timestamp must be in the past or present")

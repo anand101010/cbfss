@@ -1,6 +1,8 @@
 package com.incede.nbfc.core.monolith.masterdata.domain.entity;
 
+import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,6 +24,11 @@ public class PostOffices extends BaseEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "post_office_id")
     private Integer postOfficeId;
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "tenant_id", referencedColumnName = "tenant_id", nullable = false)
+    @NotNull(message = "Tenant is mandatory")
+    private Tenant tenant;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pincode_id", nullable = false)

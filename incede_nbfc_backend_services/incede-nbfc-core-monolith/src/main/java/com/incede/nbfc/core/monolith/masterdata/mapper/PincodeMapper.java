@@ -13,9 +13,6 @@ public class PincodeMapper {
         dto.setPincode(pincodes.getPincode());
         dto.setIdentity(pincodes.getIdentity());
 
-        if (pincodes.getCities() != null) {
-            dto.setCityName(pincodes.getCities().toString());
-        }
 
         if (pincodes.getDistricts() != null) {
             dto.setDistrictName(pincodes.getDistricts().getDistrict());

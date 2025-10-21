@@ -3,7 +3,9 @@ package com.incede.nbfc.core.monolith.lead.controller;
 import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.exception.ResourceNotFoundException;
 import com.incede.nbfc.core.monolith.lead.dto.LeadAssignmentHistoryRequestDto;
+import com.incede.nbfc.core.monolith.lead.dto.LeadAssignmentResponseDto;
 import com.incede.nbfc.core.monolith.lead.dto.LeadAssignmentSearchResponseDto;
+import com.incede.nbfc.core.monolith.lead.dto.LeadResponseDto;
 import com.incede.nbfc.core.monolith.lead.service.LeadAssignmentHistoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -106,6 +108,60 @@ class LeadAssignmentHistoryControllerTest {
         assertEquals("Lead with id 'No leads found' not found", exception.getMessage());
         verify(leadAssignmentHistoryService, times(1))
                 .searchLeadsForAssignment(any(), any(), any(), any(), any(), any(), anyInt(), anyInt());
+    }
+
+    @Test
+    void testFetchLeadAssignmentHistory_Success() {
+        LeadAssignmentResponseDto dto = new LeadAssignmentResponseDto();
+        when(leadAssignmentHistoryService.fetchLeadAssignmentHistory(any(UUID.class)))
+                .thenReturn(List.of(dto));
+
+        ResponseEntity<List<LeadAssignmentResponseDto>> response =
+                controller.fetchLeadAssignmentHistory(UUID.randomUUID());
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(1, response.getBody().size());
+        verify(leadAssignmentHistoryService, times(1)).fetchLeadAssignmentHistory(any(UUID.class));
+    }
+
+    @Test
+    void testFetchLeadAssignmentHistory_ThrowsException() {
+        when(leadAssignmentHistoryService.fetchLeadAssignmentHistory(any(UUID.class)))
+                .thenThrow(new ResourceNotFoundException("Lead", "Assignment not found"));
+
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () ->
+                controller.fetchLeadAssignmentHistory(UUID.randomUUID())
+        );
+
+        assertEquals("Lead with id 'Assignment not found' not found", ex.getMessage());
+    }
+    @Test
+    void testUpdateLeadAssignment_Success() {
+        LeadResponseDto responseDto = new LeadResponseDto();
+        responseDto.setStatus("Assignment updated");
+
+        when(leadAssignmentHistoryService.updateLeadAssignment(any(), any(), any(), any()))
+                .thenReturn(responseDto);
+
+        ResponseEntity<LeadResponseDto> response = controller.updateLeadAssignment(
+                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), LocalDate.now());
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals("Assignment updated", response.getBody().getStatus());
+        verify(leadAssignmentHistoryService, times(1))
+                .updateLeadAssignment(any(), any(), any(), any());
+    }
+
+    @Test
+    void testUpdateLeadAssignment_BusinessException() {
+        when(leadAssignmentHistoryService.updateLeadAssignment(any(), any(), any(), any()))
+                .thenThrow(new BusinessException("Invalid assignment"));
+
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+                controller.updateLeadAssignment(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), LocalDate.now())
+        );
+
+        assertEquals("Invalid assignment", ex.getMessage());
     }
 
 

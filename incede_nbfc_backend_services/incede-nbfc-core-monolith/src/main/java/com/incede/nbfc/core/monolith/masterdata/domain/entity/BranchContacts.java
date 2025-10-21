@@ -1,7 +1,9 @@
 package com.incede.nbfc.core.monolith.masterdata.domain.entity;
 
 import com.incede.nbfc.core.monolith.masterdata.enums.ContactChannel;
+import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,6 +24,11 @@ public class BranchContacts extends BaseEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "branch_contact_id")
     private Integer branchContactId;
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "tenant_id", referencedColumnName = "tenant_id", nullable = false)
+    @NotNull(message = "Tenant is mandatory")
+    private Tenant tenant;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false,

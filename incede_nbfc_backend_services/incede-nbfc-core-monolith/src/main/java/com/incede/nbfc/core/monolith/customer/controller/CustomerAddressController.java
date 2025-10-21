@@ -18,6 +18,12 @@ public class CustomerAddressController {
 
     private final CustomerAddressService customerAddressService;
 
+    /**
+     * Saving Customer Address
+     * @param customerIdentity
+     * @param customerAddressRequestDto
+     * @return
+     */
     @PreAuthorize("hasRole('STAFF')")
     @PostMapping(value = "/{customerIdentity}/addresses")
     public ResponseEntity<CustomerAddressResponseDto> createAddress(
@@ -28,6 +34,13 @@ public class CustomerAddressController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdAddress);
     }
 
+    /**
+     * Updating Existing Customer Address Service
+     * @param customerIdentity
+     * @param addressIdentity
+     * @param customerAddressRequestDto
+     * @return
+     */
     @PreAuthorize("hasRole('STAFF')")
     @PutMapping(value = "/{customerIdentity}/addresses/{addressIdentity}")
     public ResponseEntity<CustomerAddressResponseDto> updateAddress(
@@ -39,13 +52,24 @@ public class CustomerAddressController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Get Customer Addresses for the customer
+     * @param customerIdentity
+     * @return
+     */
     @PreAuthorize("hasRole('STAFF')")
-    @GetMapping("/{customerIdentity}/addresses/active")
+    @GetMapping("/{customerIdentity}/addresses")
     public ResponseEntity<CustomerAddressResponseDto> getActiveAddresses(@PathVariable UUID customerIdentity) {
         CustomerAddressResponseDto response = customerAddressService.getActiveAddressesByCustomerIdentity(customerIdentity);
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Soft deleting Customer Address By Identity
+     * @param customerIdentity
+     * @param addressIdentity
+     * @return
+     */
     @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/{customerIdentity}/addresses/{addressIdentity}")
     public ResponseEntity<Void> deleteAddress(@PathVariable UUID customerIdentity,

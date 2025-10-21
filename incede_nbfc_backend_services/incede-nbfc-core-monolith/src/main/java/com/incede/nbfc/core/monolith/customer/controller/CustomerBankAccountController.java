@@ -19,7 +19,7 @@ public class CustomerBankAccountController {
     public final CustomerBankAccountService customerBankAccountService;
 
     /**
-     *
+     *Mapping Customer Bank Account Details
      * @param customerIdentity
      * @param customerBankAccountRequestDto
      * @return
@@ -36,6 +36,10 @@ public class CustomerBankAccountController {
 
     /**
      * Update an existing bank account for the given customer.
+     * @param customerIdentity
+     * @param bankAccountId
+     * @param requestDto
+     * @return
      */
     @PutMapping("/{customerIdentity}/bank-accounts/{bankAccountId}")
     public ResponseEntity<CustomerBankAccountResponseDto> updateBankAccount(

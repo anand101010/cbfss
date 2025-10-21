@@ -15,7 +15,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
-public class DocumentMasterDataControllerTest {
+
+class DocumentMasterDataControllerTest {
 
     @Mock
     private DocumentMasterDataService documentMasterDataService;
@@ -23,9 +24,12 @@ public class DocumentMasterDataControllerTest {
     @InjectMocks
     private DocumentMasterDataController documentMasterDataController;
 
+    private UUID tenantIdentity;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        tenantIdentity = UUID.randomUUID();
     }
 
     @Test
@@ -35,9 +39,11 @@ public class DocumentMasterDataControllerTest {
         given(mockKyc.getDisplayName()).willReturn("PAN Card");
         given(mockKyc.getDescription()).willReturn("Permanent Account Number");
 
-        given(documentMasterDataService.getAllKycTypes()).willReturn(List.of(mockKyc));
+        given(documentMasterDataService.getAllKycTypes(tenantIdentity))
+                .willReturn(List.of(mockKyc));
 
-        ResponseEntity<List<KycTypesView>> response = documentMasterDataController.getAllKycTypes();
+        ResponseEntity<List<KycTypesView>> response =
+                documentMasterDataController.getAllKycTypes(tenantIdentity);
 
         assertThat(response).isNotNull();
         assertThat(response.getBody()).hasSize(1);
@@ -60,9 +66,11 @@ public class DocumentMasterDataControllerTest {
         given(mockDoc.getIsActive()).willReturn(true);
         given(mockDoc.getIdentity()).willReturn(id);
 
-        given(documentMasterDataService.getAllDocumentMasters()).willReturn(List.of(mockDoc));
+        given(documentMasterDataService.getAllDocumentMasters(tenantIdentity))
+                .willReturn(List.of(mockDoc));
 
-        ResponseEntity<List<DocumentMasterView>> response = documentMasterDataController.getAllDocumentMasters();
+        ResponseEntity<List<DocumentMasterView>> response =
+                documentMasterDataController.getAllDocumentMasters(tenantIdentity);
 
         assertThat(response).isNotNull();
         assertThat(response.getBody()).hasSize(1);
@@ -79,7 +87,6 @@ public class DocumentMasterDataControllerTest {
 
     @Test
     void testGetAllDocumentTypes() {
-
         DocumentTypeView mockDocType = mock(DocumentTypeView.class);
         UUID id = UUID.randomUUID();
 
@@ -88,9 +95,11 @@ public class DocumentMasterDataControllerTest {
         given(mockDocType.getDescription()).willReturn("Passport Document");
         given(mockDocType.getIdentity()).willReturn(id);
 
-        given(documentMasterDataService.getAllDocumentType()).willReturn(List.of(mockDocType));
+        given(documentMasterDataService.getAllDocumentType(tenantIdentity))
+                .willReturn(List.of(mockDocType));
 
-        ResponseEntity<List<DocumentTypeView>> response = documentMasterDataController.getAllDocumentType();
+        ResponseEntity<List<DocumentTypeView>> response =
+                documentMasterDataController.getAllDocumentType(tenantIdentity);
 
         assertThat(response).isNotNull();
         assertThat(response.getBody()).hasSize(1);
@@ -110,9 +119,11 @@ public class DocumentMasterDataControllerTest {
         given(mockCanvassed.getCode()).willReturn("TA");
         given(mockCanvassed.getIdentity()).willReturn(id);
 
-        given(documentMasterDataService.getAllCanvassedTypes()).willReturn(List.of(mockCanvassed));
+        given(documentMasterDataService.getAllCanvassedTypes(tenantIdentity))
+                .willReturn(List.of(mockCanvassed));
 
-        ResponseEntity<List<CanvassedTypesView>> response = documentMasterDataController.getAllCanvassedTypes();
+        ResponseEntity<List<CanvassedTypesView>> response =
+                documentMasterDataController.getAllCanvassedTypes(tenantIdentity);
 
         assertThat(response).isNotNull();
         assertThat(response.getBody()).hasSize(1);
@@ -132,9 +143,11 @@ public class DocumentMasterDataControllerTest {
         given(mockAsset.getIsActive()).willReturn(true);
         given(mockAsset.getIdentity()).willReturn(id);
 
-        given(documentMasterDataService.getAllAssetTypes()).willReturn(List.of(mockAsset));
+        given(documentMasterDataService.getAllAssetTypes(tenantIdentity))
+                .willReturn(List.of(mockAsset));
 
-        ResponseEntity<List<AssetTypesView>> response = documentMasterDataController.getAllAssetTypes();
+        ResponseEntity<List<AssetTypesView>> response =
+                documentMasterDataController.getAllAssetTypes(tenantIdentity);
 
         assertThat(response).isNotNull();
         assertThat(response.getBody()).hasSize(1);
@@ -145,5 +158,4 @@ public class DocumentMasterDataControllerTest {
         assertThat(result.getIsActive()).isTrue();
         assertThat(result.getIdentity()).isEqualTo(id);
     }
-
 }

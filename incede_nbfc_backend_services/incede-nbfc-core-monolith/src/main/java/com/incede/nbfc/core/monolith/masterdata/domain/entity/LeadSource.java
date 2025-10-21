@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.masterdata.domain.entity;
 
+import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -22,6 +23,11 @@ public class LeadSource extends BaseEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "lead_source_id")
     private Integer leadSourceId;
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "tenant_id", referencedColumnName = "tenant_id", nullable = false)
+    @NotNull(message = "Tenant is mandatory")
+    private Tenant tenant;
 
     @Column(name = "name", nullable = false, unique = true, length = 50)
     @NotNull(message = "Source name must not be null")

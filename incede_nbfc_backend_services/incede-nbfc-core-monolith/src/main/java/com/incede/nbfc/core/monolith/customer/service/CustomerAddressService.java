@@ -50,11 +50,11 @@ public class CustomerAddressService {
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     /**
+     * Creates and saves a new customer address after validating all related entities.
      *
-     * @param customerIdentity
-
-     * @return
-     * @throws JsonProcessingException
+     * @param customerIdentity UUID of the customer for whom the address is being created
+     * @param dto              Request body containing address details
+     * @return CustomerAddressResponseDto containing created address information
      */
     @Transactional
     public CustomerAddressResponseDto createAddress(UUID customerIdentity, CustomerAddressRequestDto dto){
@@ -86,11 +86,12 @@ public class CustomerAddressService {
     }
 
     /**
+     * Updates an existing customer address by validating the provided data and linked entities.
      *
-     * @param customerIdentity
-     * @param addressIdentity
-     * @return
-     * @throws JsonProcessingException
+     * @param customerIdentity UUID of the customer
+     * @param addressIdentity  UUID of the address to be updated
+     * @param dto              Request body containing updated address details
+     * @return CustomerAddressResponseDto with updated address information
      */
     @Transactional
     public CustomerAddressResponseDto updateAddress(UUID customerIdentity, UUID addressIdentity, CustomerAddressRequestDto dto){
@@ -125,9 +126,10 @@ public class CustomerAddressService {
     }
 
     /**
+     * Soft deletes a customer address by marking it inactive and deleted.
      *
-     * @param customerIdentity
-     * @param addressIdentity
+     * @param customerIdentity UUID of the customer
+     * @param addressIdentity  UUID of the address to be deleted
      */
 
     @Transactional
@@ -144,10 +146,12 @@ public class CustomerAddressService {
         addressRepository.save(address);
     }
 
+
     /**
+     * Retrieves all active addresses associated with a given customer.
      *
-     * @param customerIdentity
-     * @return
+     * @param customerIdentity UUID of the customer
+     * @return CustomerAddressResponseDto containing a list of active addresses
      */
     @Transactional(readOnly = true)
     public CustomerAddressResponseDto getActiveAddressesByCustomerIdentity(UUID customerIdentity) {
@@ -156,10 +160,6 @@ public class CustomerAddressService {
 
         List<CustomerAddress> addresses = addressRepository.findByCustomerAndIsDelFalse(customer);
 
-        if (addresses.isEmpty()) {
-            throw new ResourceNotFoundException(CommonConstants.ENTITY_ADDRESS,
-                    CommonConstants.NO_ACTIVE_ADDRESSES_FOUND_FOR_CUSTOMER_IDENTITY + customerIdentity);
-        }
 
         List<CustomerAddressResponseDto.AddressDetail> addressDetails = addresses.stream()
                 .map(addressMapper::toAddressDetail)
@@ -169,8 +169,10 @@ public class CustomerAddressService {
     }
 
     /**
+     * Validates the CustomerAddressRequestDto using Bean Validation.
      *
-     * @param dto
+     * @param dto DTO containing address details to validate
+     * @throws BusinessException if validation fails with constraint violations
      */
     private void validateDto(CustomerAddressRequestDto dto) {
         Set<ConstraintViolation<CustomerAddressRequestDto>> violations = validator.validate(dto);

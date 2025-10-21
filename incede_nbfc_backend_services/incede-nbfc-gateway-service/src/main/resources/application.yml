@@ -1,3 +1,5 @@
+
+
 server:
   port: 8090  # Gateway will run on port 8090
 

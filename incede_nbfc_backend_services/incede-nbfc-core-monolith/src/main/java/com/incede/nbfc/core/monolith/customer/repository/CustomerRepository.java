@@ -3,6 +3,7 @@ package com.incede.nbfc.core.monolith.customer.repository;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -99,4 +100,9 @@ public interface CustomerRepository extends JpaRepository<Customer, Integer> {
     @Query("UPDATE Customer c SET c.isDel = true WHERE c.onboardingStatus = 'DRAFT' AND c.updatedAt <= :threshold AND c.isDel = false")
     int markDraftCustomersAsDeleted(@Param("threshold") LocalDateTime threshold);
 
+    Optional<Customer> findByTenantAndAadharVaultIdAndIsDelFalse(Tenant tenant, @NotNull(message = " aadharVaultId is required") String aadharVault);
+
+    boolean existsByTenantAndMobileNumberAndIsDelFalse(Tenant tenant, @NotBlank(message = "Mobile number is required") String mobileNumber);
+
+    List<Customer> findAllByFirstNameStartingWithIgnoreCase(String canvasserName);
 }

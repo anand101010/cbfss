@@ -42,6 +42,7 @@ public class LeadSearchResponseDto {
         private String state;
         private String district;
         private UUID postOfficeIdentity;
+        private UUID addressProofType;
         private String city;
         private String landmark;
         private Double latitude;

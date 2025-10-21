@@ -55,7 +55,6 @@ public class CustomerPhotoService {
             Customer customer = customerRepository.findByIdentity(identity)
                     .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.CUSTOMER_NOT_FOUND));
 
-            // Validate the request DTO
             var violations = validator.validate(customerPhotoRequestDto);
             if (!violations.isEmpty()) {
                 String errorMsg = violations.stream()
@@ -95,12 +94,6 @@ public class CustomerPhotoService {
 
         List<CustomerPhoto> photos = photoRepository
                 .findByCustomerIdentityAndIsDelFalseOrderByCaptureTimeDesc(identity);
-
-        if (photos.isEmpty()) {
-            log.warn("No photos found for customer {}", identity);
-            throw new ResourceNotFoundException(CommonConstants.PHOTOS_NOT_FOUND);
-        }
-
         return customerPhotoMapper.toResponseDto(customer, photos);
     }
 }

@@ -92,6 +92,11 @@ public class CustomerNotificationPreferenceService {
         return mapper.toResponseDto(entity);
     }
 
+    /**
+     * Soft delete Customers Notification Preference
+     * @param customerId
+     * @return
+     */
     @Transactional
     public CustomerNotificationPreferenceResponseDto deleteNotificationPreference(UUID customerId) {
         Customer customer = customerRepository.findByIdentity(customerId)

@@ -186,7 +186,7 @@ public class LeadAssignmentHistoryService {
                 } catch (Exception e) {
                     log.error("Error mapping LeadAssignmentHistory to DTO for historyId={}", history.getAssignmentHistoryId(), e);
                     throw new BusinessException(
-                            "Failed to map lead assignment history to DTO",
+                            "Failed to fetch lead assignment history",
                             ErrorCodes.BUSINESS_RULE_VIOLATION,
                             e
                     );
@@ -199,7 +199,7 @@ public class LeadAssignmentHistoryService {
             log.error("Unexpected error while fetching assignment history for leadIdentity={}", leadIdentity, e);
             throw new BusinessException(
                     "An unexpected error occurred while fetching assignment history",
-                    ErrorCodes.INTERNAL_SERVER_ERROR,
+                    ErrorCodes.RESOURCE_NOT_FOUND,
                     e
             );
         }

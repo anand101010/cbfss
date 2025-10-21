@@ -13,8 +13,12 @@ import java.util.UUID;
 @Component
 public class CustomerNotificationPreferenceMapper {
 
+
     /**
-     * Convert request DTO to entity.
+      * Convert request DTO to entity.
+     * @param dto
+     * @param customer
+     * @return
      */
     public CustomerNotificationPreference toEntity(CustomerNotificationPreferenceRequestDto dto, Customer customer) {
         Objects.requireNonNull(dto, "CustomerNotificationPreferenceRequestDto must not be null");
@@ -31,7 +35,9 @@ public class CustomerNotificationPreferenceMapper {
     }
 
     /**
-     * Update existing entity from DTO.
+     * Update existing entity from DTO
+     * @param entity
+     * @param dto
      */
     public void updateEntityFromDto(CustomerNotificationPreference entity, CustomerNotificationPreferenceRequestDto dto) {
         Objects.requireNonNull(entity, "CustomerNotificationPreference entity must not be null");
@@ -44,8 +50,11 @@ public class CustomerNotificationPreferenceMapper {
     }
 
     /**
-     * Convert entity to response DTO.
+     *  Convert entity to response DTO.
+     * @param entity
+     * @return
      */
+
     public CustomerNotificationPreferenceResponseDto toResponseDto(CustomerNotificationPreference entity) {
         Objects.requireNonNull(entity, "CustomerNotificationPreference entity must not be null");
 

@@ -299,17 +299,7 @@ class CustomerAddressServiceTest {
         verify(addressRepository, times(1)).findByCustomerAndIsDelFalse(customer);
     }
 
-    @Test
-    void testGetActiveAddressesByCustomerIdentity_NoAddresses() {
-        when(customerRepository.findByIdentityAndIsDelFalse(customerId)).thenReturn(Optional.of(customer));
-        when(addressRepository.findByCustomerAndIsDelFalse(customer)).thenReturn(List.of());
 
-        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
-                () -> customerAddressService.getActiveAddressesByCustomerIdentity(customerId));
-
-        assertTrue(ex.getMessage().contains(CommonConstants.NO_ACTIVE_ADDRESSES_FOUND_FOR_CUSTOMER_IDENTITY));
-        assertTrue(ex.getMessage().contains(customerId.toString()));
-    }
 
     @Test
     void testGetActiveAddressesByCustomerIdentity_CustomerNotFound() {

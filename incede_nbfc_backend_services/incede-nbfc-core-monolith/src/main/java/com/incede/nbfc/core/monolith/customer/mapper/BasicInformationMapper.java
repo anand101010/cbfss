@@ -1,3 +1,4 @@
+
 package com.incede.nbfc.core.monolith.customer.mapper;
 
 import com.incede.nbfc.core.monolith.common.CommonConstants;
@@ -22,10 +23,10 @@ import java.util.stream.Collectors;
 public class BasicInformationMapper {
 
     /**
-     * Convert a request DTO to a Customer entity.
+     * Converts a request DTO to a Customer entity.
      *
-     * @param basicInformationRequestDto The request DTO
-     * @return Customer entity
+     * @param basicInformationRequestDto Request DTO containing customer details
+     * @return Mapped Customer entity
      */
     public Customer toEntity(BasicInformationRequestDto basicInformationRequestDto) {
         Objects.requireNonNull(basicInformationRequestDto, "BasicInformationRequestDto must not be null");
@@ -54,10 +55,10 @@ public class BasicInformationMapper {
     }
 
     /**
-     * Update an existing Customer entity with values from the DTO.
+     * Updates an existing Customer entity with values from a request DTO.
      *
-     * @param customer Existing Customer entity
-     * @param basicInformation DTO with updated values
+     * @param customer Existing Customer entity to update
+     * @param basicInformation Request DTO with updated customer details
      */
     public void updateEntityFromDto(Customer customer, BasicInformationRequestDto basicInformation) {
         Objects.requireNonNull(customer, "Customer must not be null");
@@ -84,15 +85,10 @@ public class BasicInformationMapper {
     }
 
     /**
-     * Convert a Customer entity to a response DTO.
+     * Converts a Customer entity to a response DTO.
      *
-     * @param customer The customer entity
-     * @return BasicInformationResponseDto
-    /**
-     * Convert a Customer entity to a response DTO.
-     *
-     * @param customer The customer entity (must not be null)
-     * @return BasicInformationResponseDto
+     * @param customer Customer entity to map
+     * @return BasicInformationResponseDto with customer details
      */
     public BasicInformationResponseDto toResponseDto(Customer customer) {
         Objects.requireNonNull(customer, "Customer must not be null");
@@ -136,15 +132,16 @@ public class BasicInformationMapper {
     }
 
     /**
-     * Maps mobile number to CustomerContact entity
+     * Maps a mobile number to a CustomerContact entity.
      *
      * @param customer Customer entity
-     * @param mobileNumber Mobile number
-     * @param contactType ContactTypes entity for MOBILE
-     * @return CustomerContact entity
+     * @param mobileNumber Mobile number to map
+     * @param contactType ContactTypes entity for the contact
+     * @param isVerified Verification status of the contact
+     * @return Mapped CustomerContact entity
      */
-    public CustomerContact toCustomerContact(Customer customer, String mobileNumber, ContactTypes contactType,Boolean isVerified) {
-        if (customer == null || mobileNumber == null || contactType == null||isVerified==null) {
+    public CustomerContact toCustomerContact(Customer customer, String mobileNumber, ContactTypes contactType, Boolean isVerified) {
+        if (customer == null || mobileNumber == null || contactType == null || isVerified == null) {
             return null;
         }
 
@@ -163,12 +160,13 @@ public class BasicInformationMapper {
     }
 
     /**
-     * Updates existing CustomerContact entity with new mobile number
+     * Updates an existing CustomerContact entity with a new mobile number and verification status.
      *
      * @param contact Existing CustomerContact entity
      * @param mobileNumber New mobile number
+     * @param isVerified Verification status of the contact
      */
-    public void updateCustomerContact(CustomerContact contact, String mobileNumber,Boolean isVerified) {
+    public void updateCustomerContact(CustomerContact contact, String mobileNumber, Boolean isVerified) {
         if (contact != null && mobileNumber != null) {
             contact.setContactValue(mobileNumber);
             contact.setUpdatedAt(LocalDateTime.now());
@@ -179,19 +177,17 @@ public class BasicInformationMapper {
         }
     }
 
-
-
     /**
+     * Converts a Customer entity and related entities to a detailed response DTO.
      *
-     *
-     * @param customer
-     * @param addresses
-     * @param customerPhotos
-     * @param nominees
-     * @param bankAccounts
-     * @param contacts
-     * @param additionalInfo
-     * @return get all details of a custoemr
+     * @param customer Customer entity
+     * @param addresses List of customer addresses
+     * @param customerPhotos List of customer photos
+     * @param nominees List of customer nominees
+     * @param bankAccounts List of customer bank accounts
+     * @param contacts List of customer contacts
+     * @param additionalInfo Additional customer information
+     * @return CustomerDetailResponseDto with all customer details
      */
     public CustomerDetailResponseDto toCustomerDetailResponse(
             Customer customer,
@@ -240,7 +236,12 @@ public class BasicInformationMapper {
                 .build();
     }
 
-
+    /**
+     * Maps a list of CustomerAddress entities to AddressDetail DTOs.
+     *
+     * @param addresses List of customer address entities
+     * @return List of AddressDetail DTOs
+     */
     private List<CustomerAddressResponseDto.AddressDetail> mapAddressDetails(List<CustomerAddress> addresses) {
         if (addresses == null || addresses.isEmpty()) return List.of();
         return addresses.stream()
@@ -268,15 +269,17 @@ public class BasicInformationMapper {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Maps a list of CustomerPhoto entities to PhotoDetail DTOs.
+     *
+     * @param photos List of customer photo entities
+     * @return List of PhotoDetail DTOs
+     */
     private List<CustomerPhotoResponseDto.PhotoDetail> mapPhotoDetails(List<CustomerPhoto> photos) {
         if (photos == null || photos.isEmpty()) return List.of();
         return photos.stream()
                 .map(photo -> CustomerPhotoResponseDto.PhotoDetail.builder()
                         .firstname(photo.getCustomer() != null ? photo.getCustomer().getFirstName() : null)
-
-
-
-
                         .photoId(UUID.randomUUID())
                         .photoRefId(photo.getPhotoRefId())
                         .capturedBy(photo.getCapturedBy().getIdentity())
@@ -292,6 +295,12 @@ public class BasicInformationMapper {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Maps a list of Nominee entities to NomineeResponseDto DTOs.
+     *
+     * @param nominees List of nominee entities
+     * @return List of NomineeResponseDto DTOs
+     */
     private List<NomineeDetailsResponseDto.NomineeResponseDto> mapNomineeDetails(List<Nominee> nominees) {
         if (nominees == null || nominees.isEmpty()) return List.of();
         return nominees.stream()
@@ -310,7 +319,6 @@ public class BasicInformationMapper {
                         .guardianContactNumber(nominee.getGuardianContactNumber())
                         .addressTypeId(nominee.getAddressTypeId() != null ? nominee.getAddressTypeId().getIdentity() : null)
                         .doorNumber(nominee.getHouseNumber())
-
                         .landmark(nominee.getLandmark())
                         .placeName(nominee.getPlaceName())
                         .city(nominee.getCity())
@@ -326,6 +334,12 @@ public class BasicInformationMapper {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Maps a list of CustomerBankAccount entities to BankAccount DTOs.
+     *
+     * @param bankAccounts List of bank account entities
+     * @return List of BankAccount DTOs
+     */
     private List<CustomerBankAccountResponseDto.BankAccount> mapBankAccounts(List<CustomerBankAccount> bankAccounts) {
         if (bankAccounts == null || bankAccounts.isEmpty()) return List.of();
         return bankAccounts.stream()
@@ -348,11 +362,23 @@ public class BasicInformationMapper {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Masks an account number, showing only the last four digits.
+     *
+     * @param accountNumber Account number to mask
+     * @return Masked account number
+     */
     private String maskAccountNumber(String accountNumber) {
         if (accountNumber == null || accountNumber.length() < 4) return "****";
         return "****" + accountNumber.substring(accountNumber.length() - 4);
     }
 
+    /**
+     * Maps a list of CustomerContact entities to Contact DTOs.
+     *
+     * @param contacts List of contact entities
+     * @return List of Contact DTOs
+     */
     private List<CustomerContactResponseDto.Contact> mapContacts(List<CustomerContact> contacts) {
         if (contacts == null || contacts.isEmpty()) return List.of();
         return contacts.stream()
@@ -366,6 +392,12 @@ public class BasicInformationMapper {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Maps additional customer information to an AdditionalInfo DTO.
+     *
+     * @param dto Additional customer information DTO
+     * @return Mapped AdditionalInfo DTO
+     */
     private CustomerDetailResponseDto.AdditionalInfo mapAdditionalInfo(CustomerAdditionalInfoResponseDto dto) {
         if (dto == null) return null;
         return CustomerDetailResponseDto.AdditionalInfo.builder()

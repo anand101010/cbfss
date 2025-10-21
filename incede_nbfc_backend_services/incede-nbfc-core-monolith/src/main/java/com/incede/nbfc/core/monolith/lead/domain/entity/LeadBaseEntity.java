@@ -16,6 +16,7 @@ import java.util.UUID;
 public abstract class LeadBaseEntity {
 
     @Column(name = "created_by", nullable = false)
+    @NotNull(message = "Created by is required")
     private Integer createdBy;
 
     @Column(name = "created_at")
@@ -40,6 +41,7 @@ public abstract class LeadBaseEntity {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
         if (this.identity == null) {
             this.identity = UUID.randomUUID();
         }

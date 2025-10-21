@@ -204,18 +204,7 @@ class CustomerPhotoServiceTest {
         verify(photoRepository, never()).findByCustomerIdentityAndIsDelFalseOrderByCaptureTimeDesc(any());
     }
 
-    @Test
-    void getCustomerPhotos_noPhotosFound() {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(photoRepository.findByCustomerIdentityAndIsDelFalseOrderByCaptureTimeDesc(customerId))
-                .thenReturn(Collections.emptyList());
 
-        assertThrows(ResourceNotFoundException.class,
-                () -> service.getCustomerPhotos(customerId));
-
-        verify(customerRepository).findByIdentity(customerId);
-        verify(photoRepository).findByCustomerIdentityAndIsDelFalseOrderByCaptureTimeDesc(customerId);
-    }
 
     @Test
     void createPhoto_multipleValidationErrors() {

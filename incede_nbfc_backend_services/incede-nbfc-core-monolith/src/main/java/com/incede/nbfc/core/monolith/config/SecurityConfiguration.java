@@ -44,7 +44,7 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-           .csrf(csrf -> csrf.disable()) // Disable CSRF for API endpoints
+                .csrf(csrf -> csrf.disable()) // Disable CSRF for API endpoints
                 .headers(headers -> headers
                         .frameOptions().sameOrigin() // Allow frames for H2 console
                         .contentSecurityPolicy("default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';")

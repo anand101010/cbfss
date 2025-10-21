@@ -49,10 +49,16 @@ public class CustomerKycRequestDto {
     @NotNull(message = "Document Reference ID is required")
     private String documentRefId;
 
+    @ToString.Exclude
+    @NotBlank(message = "File path is required")
     private String filePath;
 
+    @ToString.Exclude
+    @NotBlank(message = "File name is required")
     private String fileName;
 
+    @ToString.Exclude
+    @NotBlank(message = "File type is required")
     private String fileType;
 
 

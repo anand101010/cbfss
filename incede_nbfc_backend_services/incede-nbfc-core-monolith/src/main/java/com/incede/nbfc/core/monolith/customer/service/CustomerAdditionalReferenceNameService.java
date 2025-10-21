@@ -30,7 +30,8 @@ public class CustomerAdditionalReferenceNameService {
      * @return
      */
     @Transactional(readOnly = true)
-    public List<CustomerAdditionalReferenceNameResponseDto> getReferenceName(UUID tenantIdentity) {
+    public List<CustomerAdditionalReferenceNameResponseDto> getReferenceName(UUID tenantIdentity)
+    {
 
         Tenant tenant = tenantRepository.findByIdentity(tenantIdentity)
                 .orElseThrow(() -> new BusinessException(CommonConstants.TENANT_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
@@ -38,7 +39,8 @@ public class CustomerAdditionalReferenceNameService {
         List<CustomerAdditionalReferenceName> refNames =
                 customerAdditionalReferenceNameRepository.findByTenant(tenant);
 
-        if (refNames.isEmpty()) {
+        if (refNames.isEmpty())
+        {
             throw new BusinessException(CommonConstants.CUSTOMER_ADDITIONAL_REF_VALUE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND);
         }
 

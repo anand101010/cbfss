@@ -101,7 +101,7 @@ public class BasicInformationController {
     }
 
     /**
-     * get whole details of a customer
+     * Fetch  whole details of a customer
      * @param customerIdentity
      * @return
      */

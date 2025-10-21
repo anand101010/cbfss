@@ -22,8 +22,7 @@ import java.util.stream.Collectors;
 @Component
 public class CustomerPhotoMapper {
 
-//    @Value("${photo.filepath}")
-//    private String photoFilePath;
+
 
 
     /**
@@ -39,7 +38,7 @@ public class CustomerPhotoMapper {
         photo.setLatitude(dto.getLatitude());
         photo.setAccuracy(dto.getAccuracy());
         photo.setCaptureDevice(dto.getCaptureDevice());
-        photo.setCaptureTime(LocalDateTime.parse(dto.getCaptureTime()));
+        photo.setCaptureTime(LocalDateTime.now());
         photo.setPhotoRefId(dto.getPhotoRefId());
 
         photo.setFilePath(dto.getFilePath());

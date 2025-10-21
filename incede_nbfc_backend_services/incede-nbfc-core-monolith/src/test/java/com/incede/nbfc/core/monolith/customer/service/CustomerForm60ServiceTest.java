@@ -24,7 +24,6 @@ import org.mockito.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -54,6 +53,7 @@ class CustomerForm60ServiceTest {
     private Customer customer;
     private CustomerForm60 form60;
     private CustomerForm60RequestDto requestDto;
+    private DocumentMaster documentMaster; // ADDED: DocumentMaster field
 
     @BeforeEach
     void setUp() {
@@ -73,16 +73,18 @@ class CustomerForm60ServiceTest {
         form60.setIdentity(form60Id);
         form60.setFilePath("test.pdf");
 
+        documentMaster = new DocumentMaster();
+        documentMaster.setIdentity(UUID.randomUUID());
+        documentMaster.setDocname("PID ");
+
         requestDto = new CustomerForm60RequestDto();
         requestDto.setTransactionAmount(BigDecimal.valueOf(10000));
         requestDto.setTransactionDate(LocalDate.now());
         requestDto.setCreatedBy(1);
-        requestDto.setDocRefId("DOC123");
-        requestDto.setFilePath("/tmp/test.pdf");
+
         requestDto.setFormFileId(1);
         requestDto.setBranchId(UUID.randomUUID());
     }
-
 
     @Test
     void saveForm60_happyPath() {
@@ -91,7 +93,8 @@ class CustomerForm60ServiceTest {
 
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(branchesRepository.findByIdentity(requestDto.getBranchId())).thenReturn(Optional.of(branch));
-        when(documentRepository.findByIdentity(any())).thenReturn(Optional.empty());
+        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
+        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
         when(form60Mapper.toEntity(any(), any(), any(), any(), any())).thenReturn(form60);
         when(customerForm60Repository.save(any())).thenReturn(form60);
         when(form60Mapper.toResponseDto(form60)).thenReturn(new CustomerForm60ResponseDto());
@@ -127,6 +130,8 @@ class CustomerForm60ServiceTest {
         requestDto.setMaskedAdhar("123456789012");
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(branchesRepository.findByIdentity(any())).thenReturn(Optional.of(new Branches()));
+        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
+        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
         when(vaultService.generateVaultIdAndMaskAadhaar(any())).thenReturn(null);
         when(form60Mapper.toEntity(any(), any(), any(), any(), any())).thenReturn(form60);
 
@@ -138,6 +143,8 @@ class CustomerForm60ServiceTest {
         requestDto.setMaskedAdhar("111122223333");
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(branchesRepository.findByIdentity(any())).thenReturn(Optional.of(new Branches()));
+        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
+        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
 
         FinaVaultResponseDto r = new FinaVaultResponseDto();
         r.setStatus("N");
@@ -155,6 +162,8 @@ class CustomerForm60ServiceTest {
         requestDto.setMaskedAdhar("111122223333");
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(branchesRepository.findByIdentity(any())).thenReturn(Optional.of(new Branches()));
+        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
+        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
 
         FinaVaultResponseDto r = new FinaVaultResponseDto();
         r.setStatus("Y");
@@ -173,6 +182,8 @@ class CustomerForm60ServiceTest {
     void saveForm60_dataIntegrityViolation_convertedToBusinessException() {
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(branchesRepository.findByIdentity(any())).thenReturn(Optional.of(new Branches()));
+        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
+        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
         when(form60Mapper.toEntity(any(), any(), any(), any(), any())).thenReturn(form60);
         when(customerForm60Repository.save(any())).thenThrow(new org.springframework.dao.DataIntegrityViolationException("dup"));
 
@@ -185,7 +196,8 @@ class CustomerForm60ServiceTest {
     void updateForm60_happyPath() {
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.of(form60));
-        when(documentRepository.findByIdentity(any())).thenReturn(Optional.empty());
+        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
+        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
         // updateEntityFromDto will be called on mapper; we don't need to do anything
         when(customerForm60Repository.save(any())).thenReturn(form60);
         when(form60Mapper.toResponseDto(any())).thenReturn(new CustomerForm60ResponseDto());
@@ -213,6 +225,8 @@ class CustomerForm60ServiceTest {
         requestDto.setMaskedAdhar("222233334444");
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.of(form60));
+        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
+        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
         when(vaultService.generateVaultIdAndMaskAadhaar(any())).thenReturn(null);
 
         assertThrows(BusinessException.class, () -> service.updateForm60(customerId, form60Id, requestDto));
@@ -223,6 +237,8 @@ class CustomerForm60ServiceTest {
         requestDto.setMaskedAdhar("222233334444");
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.of(form60));
+        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
+        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
 
         FinaVaultResponseDto r = new FinaVaultResponseDto();
         r.setStatus("N");
@@ -237,6 +253,8 @@ class CustomerForm60ServiceTest {
         requestDto.setMaskedAdhar("222233334444");
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.of(form60));
+        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
+        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
 
         FinaVaultResponseDto r = new FinaVaultResponseDto();
         r.setStatus("Y");
@@ -254,6 +272,8 @@ class CustomerForm60ServiceTest {
     void updateForm60_dataIntegrityViolation_converted() {
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.of(form60));
+        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
+        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
         when(customerForm60Repository.save(any())).thenThrow(new org.springframework.dao.DataIntegrityViolationException("err"));
 
         assertThrows(BusinessException.class, () -> service.updateForm60(customerId, form60Id, requestDto));
@@ -263,12 +283,13 @@ class CustomerForm60ServiceTest {
     void updateForm60_illegalArgumentConvertedToBusinessException() {
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.of(form60));
+        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
+        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
         doThrow(new IllegalArgumentException("bad dto")).when(form60Mapper).updateEntityFromDto(eq(form60), any(), any(), any());
 
         BusinessException be = assertThrows(BusinessException.class, () -> service.updateForm60(customerId, form60Id, requestDto));
         assertNotNull(be);
     }
-
 
     @Test
     void getForm60ByIdentity_success() {
@@ -292,7 +313,6 @@ class CustomerForm60ServiceTest {
         when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.empty());
         assertThrows(BusinessException.class, () -> service.getForm60ByIdentity(customerId, form60Id));
     }
-
 
     @Test
     void generateForm60PreviewPdf_success() throws Exception {
@@ -339,7 +359,6 @@ class CustomerForm60ServiceTest {
         when(reportGenerator.generate(eq(ReportName.FORM60), any(), isNull(), eq(OutputFormat.PDF)))
                 .thenReturn(new byte[]{1, 2, 3});
 
-
         when(jasperForm60Mapper.form60ToJasperDto(any(), any(), any(), any(), any(), any()))
                 .thenReturn(jasperParams);
 
@@ -354,12 +373,9 @@ class CustomerForm60ServiceTest {
         assertThrows(ResourceNotFoundException.class, () -> service.generateForm60PreviewPdf(customerId, form60Id));
     }
 
-
     private Optional<CustomerEmployment> customerEmployment_repository_stub(CustomerEmploymentRepository repo, Customer c) {
-
         return Optional.ofNullable(null);
     }
-
 
     @Test
     void getCustomerDesignation_success() {
@@ -382,7 +398,6 @@ class CustomerForm60ServiceTest {
         when(customerEmploymentRepository.findByCustomer(customer)).thenReturn(Optional.empty());
         assertThrows(RuntimeException.class, () -> service.getCustomerDesignation(customer));
     }
-
 
     @Test
     void getPermanentAddress_success() {
@@ -407,8 +422,6 @@ class CustomerForm60ServiceTest {
         assertThrows(ResourceNotFoundException.class, () -> service.getPermanentAddress(customer));
     }
 
-
-
     @Test
     void getCustomerPurpose_success() {
         CustomerProfileExtra extra = new CustomerProfileExtra();
@@ -430,7 +443,6 @@ class CustomerForm60ServiceTest {
         assertThrows(RuntimeException.class, () -> service.getCustomerPurpose(customer));
     }
 
-
     @Test
     void getBranchPlaceByForm60Identity_success() {
         Branches b = new Branches();
@@ -447,11 +459,10 @@ class CustomerForm60ServiceTest {
         assertThrows(ResourceNotFoundException.class, () -> service.getBranchPlaceByForm60Identity(form60Id));
     }
 
-
     @Test
     void uploadSignedForm60_success() {
         Form60UploadDto uploadDto = new Form60UploadDto();
-        uploadDto.setPdfDocRefId("PDF-REF-1");
+        uploadDto.setDocRefId("PDF-REF-1");
         uploadDto.setFilePath("/tmp/pdf1.pdf");
 
         when(customerRepository.findByIdentityAndIsDelFalse(customerId)).thenReturn(Optional.of(customer));
@@ -476,5 +487,4 @@ class CustomerForm60ServiceTest {
         when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.empty());
         assertThrows(ResourceNotFoundException.class, () -> service.uploadSignedForm60(customerId, form60Id, new Form60UploadDto()));
     }
-
 }
