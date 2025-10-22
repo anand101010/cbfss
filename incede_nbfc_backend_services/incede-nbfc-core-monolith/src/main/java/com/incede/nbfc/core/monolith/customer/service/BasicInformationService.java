@@ -164,7 +164,10 @@ public class BasicInformationService {
         CustomerContact contact = contactRepository
                 .findByCustomerAndContactTypeAndIsPrimaryTrue(customer, mobileContactType)
                 .orElseGet(() -> customerMapper.toCustomerContact(customer, mobileNumber, mobileContactType,isVerified));
-
+        boolean exist = contactRepository.existsByContactValue(mobileNumber);
+        if(exist){
+            throw new BusinessException(CommonConstants.CONTACT_EXISTS,ErrorCodes.CONFLICT);
+        }
         customerMapper.updateCustomerContact(contact, mobileNumber,isVerified);
         contactRepository.save(contact);
 
@@ -290,7 +293,7 @@ public class BasicInformationService {
      * @param customerId
      * @return
      */
- @Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public CustomerDetailResponseDto getCustomerWithDetails(UUID customerId) {
         Customer customer = customerRepository.findByIdentityAndIsDelFalse(customerId)
                 .orElseThrow(() -> new RuntimeException(CommonConstants.CUSTOMER_NOT_FOUND));

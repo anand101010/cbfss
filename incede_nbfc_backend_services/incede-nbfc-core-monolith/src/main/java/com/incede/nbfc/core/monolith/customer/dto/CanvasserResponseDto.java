@@ -14,6 +14,7 @@ import java.util.UUID;
 public class CanvasserResponseDto {
 
     private String canvasserName;
+    private String canvasserCode;
     private UUID canvasserIdentity;
 }
  

@@ -122,11 +122,11 @@ public class Customer extends CustomerBaseEntity implements Serializable {
 
     @Column(name = "is_firm")
     @NotNull(message = "Firm status is required")
-    private Boolean isFirm;
+    private Boolean isFirm = false;
 
     @Column(name = "is_business")
     @NotNull(message = "Business status is required")
-    private Boolean isBusiness;
+    private Boolean isBusiness = false;
 
     @Column(name = "is_minor")
     @NotNull(message = "Minor status is required")

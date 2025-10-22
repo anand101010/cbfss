@@ -186,6 +186,7 @@ public class CustomerSearchService {
             CanvasserResponseDto dto = new CanvasserResponseDto();
             dto.setCanvasserName(staff.getStaffName());
             dto.setCanvasserIdentity(staff.getIdentity());
+            dto.setCanvasserCode(staff.getStaffCode());
             responseList.add(dto);
         }
 
@@ -198,6 +199,8 @@ public class CustomerSearchService {
             CanvasserResponseDto dto = new CanvasserResponseDto();
             dto.setCanvasserName(agent.getAgentName());
             dto.setCanvasserIdentity(agent.getIdentity());
+            dto.setCanvasserCode(agent.getAgentCode());
+
             responseList.add(dto);
         }
 
@@ -210,6 +213,8 @@ public class CustomerSearchService {
             CanvasserResponseDto dto = new CanvasserResponseDto();
             dto.setCanvasserName(customer.getFirstName() + " " + customer.getLastName());
             dto.setCanvasserIdentity(customer.getIdentity());
+            dto.setCanvasserCode(customer.getCustomerCode());
+
             responseList.add(dto);
         }
 
