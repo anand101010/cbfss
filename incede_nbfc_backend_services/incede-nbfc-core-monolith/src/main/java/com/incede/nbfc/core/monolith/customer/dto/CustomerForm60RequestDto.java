@@ -1,4 +1,3 @@
-
 package com.incede.nbfc.core.monolith.customer.dto;
 
 import jakarta.persistence.Column;
@@ -72,9 +71,7 @@ public class CustomerForm60RequestDto {
 
     private LocalDate submissionDate;
 
-    @NotNull(message = "Form file Id is required")
     private Integer formFileId;
-
 
     private String telephoneNumber;
 
@@ -89,5 +86,3 @@ public class CustomerForm60RequestDto {
 
     private Integer updatedBy;
 }
-
-

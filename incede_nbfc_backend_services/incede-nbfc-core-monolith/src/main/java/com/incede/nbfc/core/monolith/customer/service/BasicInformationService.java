@@ -17,7 +17,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,7 +70,7 @@ public class BasicInformationService {
         if(customerRepository.existsByTenantAndAadharVaultId(tenant,dto.getAadharVault())){
             throw new BusinessException(CommonConstants.CUSTOMER_CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
         }
-        if (customerRepository.existsByTenantAndMobileNumberAndIsDelFalse(tenant, dto.getMobileNumber())) {
+        if (customerRepository.existsByTenantAndMobileNumber(tenant, dto.getMobileNumber())) {
             throw new BusinessException(CommonConstants.MOBILE_NUMBER_CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
         }
 
@@ -97,6 +96,7 @@ public class BasicInformationService {
 
     /**
      * Update basic information of an existing customer.
+     *
      * @param identity UUID of the customer to update.
      * @param dto      BasicInformationRequestDto containing updated details.
      * @return BasicInformationResponseDto with updated customer details.
@@ -117,7 +117,7 @@ public class BasicInformationService {
             customerMapper.updateEntityFromDto(existingCustomer, dto);
             existingCustomer.setUpdatedAt(LocalDateTime.now());
 
-            Optional<Customer> duplicate = customerRepository.findByTenantAndAadharVaultIdAndIsDelFalse(tenant, dto.getAadharVault());
+            Optional<Customer> duplicate = customerRepository.findByTenantAndAadharVaultId(tenant, dto.getAadharVault());
             if (duplicate.isPresent() && !duplicate.get().getIdentity().equals(identity)) {
                 throw new BusinessException(CommonConstants.CUSTOMER_CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
             }
@@ -164,10 +164,7 @@ public class BasicInformationService {
         CustomerContact contact = contactRepository
                 .findByCustomerAndContactTypeAndIsPrimaryTrue(customer, mobileContactType)
                 .orElseGet(() -> customerMapper.toCustomerContact(customer, mobileNumber, mobileContactType,isVerified));
-        boolean exist = contactRepository.existsByContactValue(mobileNumber);
-        if(exist){
-            throw new BusinessException(CommonConstants.CONTACT_EXISTS,ErrorCodes.CONFLICT);
-        }
+
         customerMapper.updateCustomerContact(contact, mobileNumber,isVerified);
         contactRepository.save(contact);
 
@@ -293,6 +290,8 @@ public class BasicInformationService {
      * @param customerId
      * @return
      */
+
+
     @Transactional(readOnly = true)
     public CustomerDetailResponseDto getCustomerWithDetails(UUID customerId) {
         Customer customer = customerRepository.findByIdentityAndIsDelFalse(customerId)
@@ -306,17 +305,6 @@ public class BasicInformationService {
         CustomerAdditionalInfoResponseDto additionalInfo = customerAdditionalInfoService.getAdditionalInfo(customer.getIdentity());
 
         return customerMapper.toCustomerDetailResponse(customer, addresses, photos, nominees, bankAccounts, contacts, additionalInfo);
-    }
-
-    /**
-     * soft delete customer with onboarding status as draft
-     */
-    @Transactional
-    @Scheduled(fixedDelay = 604800000)
-    public void deleteDraftCustomersAfter7Days() {
-        LocalDateTime threshold = LocalDateTime.now().minusDays(7);
-        int deletedCount = customerRepository.markDraftCustomersAsDeleted(threshold);
-        log.info("Marked {} draft customers as deleted.", deletedCount);
     }
 
 }

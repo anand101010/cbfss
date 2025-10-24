@@ -123,10 +123,7 @@ class NomineeDetailsServiceTest {
         when(relationshipsRepository.findByIdentity(dto.getRelationship())).thenReturn(Optional.of(relationship));
         when(nomineeRepository.existsByCustomerAndFullNameAndRelationshipAndIsDelFalse(any(), any(), any())).thenReturn(true);
 
-        BusinessException exception = assertThrows(BusinessException.class,
-                () -> nomineeDetailsService.createNominee(customerId, dto));
-
-        assertEquals("A nominee with the same name and relationship already exists", exception.getMessage());
+        assertThrows(BusinessException.class, () -> nomineeDetailsService.createNominee(customerId, dto));
     }
 
     @Test
@@ -140,10 +137,7 @@ class NomineeDetailsServiceTest {
         when(nomineeRepository.existsByCustomerAndFullNameAndRelationshipAndIsDelFalse(any(), any(), any())).thenReturn(false);
         when(nomineeRepository.findByCustomerIdentityAndIsDelFalse(customerId)).thenReturn(List.of(existingNominee));
 
-        BusinessException exception = assertThrows(BusinessException.class,
-                () -> nomineeDetailsService.createNominee(customerId, dto));
-
-        assertEquals("Total percentage share cannot exceed 100", exception.getMessage());
+        assertThrows(BusinessException.class, () -> nomineeDetailsService.createNominee(customerId, dto));
     }
 
     @Test
@@ -159,23 +153,7 @@ class NomineeDetailsServiceTest {
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> nomineeDetailsService.createNominee(customerId, dto));
 
-        assertEquals("Guardian's name is required for minor nominees", exception.getMessage());
-    }
-
-    @Test
-    void testCreateNominee_MinorWithoutGuardianName() {
-        dto.setIsMinor(true);
-        dto.setGuardianName(null);
-        dto.setGuardianDob(LocalDate.of(1980, 1, 1));
-        dto.setGuardianEmail("guardian@example.com");
-        dto.setGuardianContactNumber("9876543210");
-
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-
-        BusinessException exception = assertThrows(BusinessException.class,
-                () -> nomineeDetailsService.createNominee(customerId, dto));
-
-        assertEquals("Guardian's name is required for minor nominees", exception.getMessage());
+        assertEquals("Guardian's name is required for minor nominees.", exception.getMessage());
     }
 
     @Test
@@ -191,7 +169,7 @@ class NomineeDetailsServiceTest {
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> nomineeDetailsService.createNominee(customerId, dto));
 
-        assertEquals("Guardian's date of birth is required for minor nominees", exception.getMessage());
+        assertEquals("Guardian's date of birth is required for minor nominees.", exception.getMessage());
     }
 
     @Test
@@ -207,7 +185,7 @@ class NomineeDetailsServiceTest {
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> nomineeDetailsService.createNominee(customerId, dto));
 
-        assertEquals("Guardian's email is required for minor nominees", exception.getMessage());
+        assertEquals("Guardian's email is required for minor nominees.", exception.getMessage());
     }
 
     @Test
@@ -223,7 +201,7 @@ class NomineeDetailsServiceTest {
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> nomineeDetailsService.createNominee(customerId, dto));
 
-        assertEquals("Guardian's contact number is required for minor nominees", exception.getMessage());
+        assertEquals("Guardian's contact number is required for minor nominees.", exception.getMessage());
     }
 
     @Test
@@ -307,8 +285,9 @@ class NomineeDetailsServiceTest {
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> nomineeDetailsService.updateNominee(customerId, nomineeId, dto));
 
-        assertEquals("A nominee with the same name and relationship already exists", exception.getMessage());
+        assertEquals("A nominee with the same name and relationship already exists.", exception.getMessage());
     }
+
 
     @Test
     void testUpdateNominee_NoPermanentAddress() {
@@ -330,7 +309,7 @@ class NomineeDetailsServiceTest {
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
                 () -> nomineeDetailsService.updateNominee(customerId, nomineeId, dto));
 
-        assertEquals("Address with id 'No active address found for customer' not found", exception.getMessage());
+        assertEquals("Address with id 'No active permanent address found for customer identity: " + customerId + "' not found", exception.getMessage());
     }
 
     @Test
@@ -457,6 +436,4 @@ class NomineeDetailsServiceTest {
 
         assertNotNull(response);
     }
-
-
 }

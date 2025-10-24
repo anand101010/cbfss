@@ -173,7 +173,6 @@ public class LeadMapper {
                         .country(addr.getCountry())
                         .state(addr.getState())
                         .district(addr.getDistrict())
-                        .addressProofType(addr.getAddressProofType() != null ? addr.getAddressProofType().getIdentity() :null)
                         .postOfficeIdentity(addr.getPostOfficeId() != null ? addr.getPostOfficeId().getIdentity() : null)
                         .city(addr.getCity())
                         .landmark(addr.getLandmark())

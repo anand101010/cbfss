@@ -1,227 +1,264 @@
 package com.incede.nbfc.core.monolith.masterdata.service;
 
-import com.incede.nbfc.core.monolith.common.CommonConstants;
-import com.incede.nbfc.core.monolith.exception.BusinessException;
 import com.incede.nbfc.core.monolith.masterdata.dto.*;
 import com.incede.nbfc.core.monolith.masterdata.repository.*;
-import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
-import com.incede.nbfc.core.monolith.tenant.repository.TenantRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class DocumentMasterDataServiceTest {
+public class DocumentMasterDataServiceTest {
 
     @Mock
-    private KycTypesRepository kycTypesRepository;
+    KycTypesRepository kycTypesRepository;
     @Mock
-    private DocumentMasterRepository documentMasterRepository;
+    DocumentMasterRepository documentMasterRepository;
     @Mock
-    private DocumentTypeRepository documentTypeRepository;
+    DocumentTypeRepository documentTypeRepository;
     @Mock
-    private CanvassedTypesRepository canvassedTypesRepository;
+    CanvassedTypesRepository canvassedTypesRepository;
     @Mock
-    private AssetTypesRepository assetTypesRepository;
-    @Mock
-    private TenantRepository tenantRepository;
+    AssetTypesRepository assetTypesRepository;
 
     @InjectMocks
-    private DocumentMasterDataService documentMasterDataService;
+    DocumentMasterDataService documentMasterDataService;
 
-    private UUID tenantIdentity;
-    private Tenant mockTenant;
-
-    @BeforeEach
-    void setUp() {
-        tenantIdentity = UUID.randomUUID();
-        mockTenant = new Tenant();
-        mockTenant.setTenantId(100);
-
-        // Using lenient() here prevents unnecessary stubbing error
-        lenient().when(tenantRepository.findByIdentity(tenantIdentity)).thenReturn(Optional.of(mockTenant));
-    }
-
-    // ---------- getTenantId() ----------
-    @Test
-    void testGetTenantId_WhenTenantExists() {
-        Integer tenantId = documentMasterDataService.getTenantId(tenantIdentity);
-        assertEquals(100, tenantId);
-        verify(tenantRepository, times(1)).findByIdentity(tenantIdentity);
-    }
-
-    @Test
-    void testGetTenantId_WhenTenantNotFound() {
-        when(tenantRepository.findByIdentity(any())).thenReturn(Optional.empty());
-        BusinessException ex = assertThrows(BusinessException.class,
-                () -> documentMasterDataService.getTenantId(UUID.randomUUID()));
-        assertEquals(CommonConstants.TENANT_NOT_FOUND, ex.getMessage());
-    }
-
-    // ---------- getAllKycTypes() ----------
     @Test
     void testGetAllKycTypes_WhenDataExists() {
         KycTypesView mockView = mock(KycTypesView.class);
         when(mockView.getCode()).thenReturn("PAN");
-        when(kycTypesRepository.findByIsDelFalseAndIsActiveTrueByTenantId(100))
+        when(mockView.getDisplayName()).thenReturn("PAN Card");
+        when(mockView.getDescription()).thenReturn("Permanent Account Number");
+
+        when(kycTypesRepository.findByIsDelFalseAndIsActiveTrue())
                 .thenReturn(List.of(mockView));
 
-        List<KycTypesView> result = documentMasterDataService.getAllKycTypes(tenantIdentity);
+        List<KycTypesView> result = documentMasterDataService.getAllKycTypes();
 
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("PAN", result.get(0).getCode());
+        assertEquals("PAN Card", result.get(0).getDisplayName());
+        assertEquals("Permanent Account Number", result.get(0).getDescription());
     }
 
     @Test
     void testGetAllKycTypes_WhenDataEmpty() {
-        when(kycTypesRepository.findByIsDelFalseAndIsActiveTrueByTenantId(100))
+        when(kycTypesRepository.findByIsDelFalseAndIsActiveTrue())
                 .thenReturn(Collections.emptyList());
-        List<KycTypesView> result = documentMasterDataService.getAllKycTypes(tenantIdentity);
+
+        List<KycTypesView> result = documentMasterDataService.getAllKycTypes();
+
+        assertNotNull(result);
         assertTrue(result.isEmpty());
     }
 
     @Test
     void testGetAllKycTypes_WhenRepositoryThrowsException() {
-        when(kycTypesRepository.findByIsDelFalseAndIsActiveTrueByTenantId(100))
+        when(kycTypesRepository.findByIsDelFalseAndIsActiveTrue())
                 .thenThrow(new RuntimeException("DB error"));
+
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> documentMasterDataService.getAllKycTypes(tenantIdentity));
+                () -> documentMasterDataService.getAllKycTypes());
+
         assertEquals("DB error", ex.getMessage());
     }
 
-    // ---------- getAllDocumentMasters() ----------
     @Test
     void testGetAllDocumentMasters_WhenDataExists() {
+        UUID id = UUID.randomUUID();
+
         DocumentMasterView mockDoc = mock(DocumentMasterView.class);
         when(mockDoc.getDocname()).thenReturn("Passport");
-        when(documentMasterRepository.findByIsDelFalseAndIsActiveTrueByTenantId(100))
+        when(mockDoc.getDocCode()).thenReturn("PP");
+        when(mockDoc.getIsIdentityProof()).thenReturn(true);
+        when(mockDoc.getIsAddressProof()).thenReturn(false);
+        when(mockDoc.getDocCategory()).thenReturn('A');
+        when(mockDoc.getIsActive()).thenReturn(true);
+        when(mockDoc.getIdentity()).thenReturn(id);
+
+        when(documentMasterRepository.findByIsDelFalseAndIsActiveTrue())
                 .thenReturn(List.of(mockDoc));
 
-        List<DocumentMasterView> result = documentMasterDataService.getAllDocumentMasters(tenantIdentity);
+        List<DocumentMasterView> result = documentMasterDataService.getAllDocumentMasters();
 
+        assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals("Passport", result.get(0).getDocname());
+
+        DocumentMasterView resultDoc = result.get(0);
+        assertEquals("Passport", resultDoc.getDocname());
+        assertEquals("PP", resultDoc.getDocCode());
+        assertTrue(resultDoc.getIsIdentityProof());
+        assertFalse(resultDoc.getIsAddressProof());
+        assertEquals('A', resultDoc.getDocCategory());
+        assertTrue(resultDoc.getIsActive());
+        assertEquals(id, resultDoc.getIdentity());
     }
 
     @Test
-    void testGetAllDocumentMasters_WhenEmpty() {
-        when(documentMasterRepository.findByIsDelFalseAndIsActiveTrueByTenantId(100))
+    void testGetAllDocumentMasters_WhenDataEmpty() {
+        lenient().when(documentMasterRepository.findByIsDelFalseAndIsActiveTrue())
                 .thenReturn(Collections.emptyList());
-        List<DocumentMasterView> result = documentMasterDataService.getAllDocumentMasters(tenantIdentity);
+
+        List<DocumentMasterView> result = documentMasterDataService.getAllDocumentMasters();
+
+        assertNotNull(result);
         assertTrue(result.isEmpty());
     }
 
     @Test
     void testGetAllDocumentMasters_WhenRepositoryThrowsException() {
-        when(documentMasterRepository.findByIsDelFalseAndIsActiveTrueByTenantId(100))
+        when(documentMasterRepository.findByIsDelFalseAndIsActiveTrue())
                 .thenThrow(new RuntimeException("DB error"));
-        assertThrows(RuntimeException.class,
-                () -> documentMasterDataService.getAllDocumentMasters(tenantIdentity));
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> documentMasterDataService.getAllDocumentMasters());
+
+        assertEquals("DB error", ex.getMessage());
     }
 
-    // ---------- getAllDocumentType() ----------
     @Test
-    void testGetAllDocumentType_WhenDataExists() {
-        DocumentTypeView mockType = mock(DocumentTypeView.class);
-        when(mockType.getCode()).thenReturn("ID");
-        when(documentTypeRepository.findByIsDelFalseAndIsActiveTrueByTenantId(100))
-                .thenReturn(List.of(mockType));
+    void testGetAllDocumentTypes_WhenDataExists() {
+        UUID id = UUID.randomUUID();
 
-        List<DocumentTypeView> result = documentMasterDataService.getAllDocumentType(tenantIdentity);
+        DocumentTypeView mockView = mock(DocumentTypeView.class);
+        when(mockView.getCode()).thenReturn("ID");
+        when(mockView.getDisplayName()).thenReturn("Identity Document");
+        when(mockView.getDescription()).thenReturn("Official identity proof document");
+        when(mockView.getIdentity()).thenReturn(id);
+
+        when(documentTypeRepository.findByIsDelFalseAndIsActiveTrue())
+                .thenReturn(List.of(mockView));
+
+        List<DocumentTypeView> result = documentMasterDataService.getAllDocumentType();
+
+        assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("ID", result.get(0).getCode());
+        assertEquals("Identity Document", result.get(0).getDisplayName());
+        assertEquals("Official identity proof document", result.get(0).getDescription());
+        assertEquals(id, result.get(0).getIdentity());
     }
 
     @Test
-    void testGetAllDocumentType_WhenEmpty() {
-        when(documentTypeRepository.findByIsDelFalseAndIsActiveTrueByTenantId(100))
+    void testGetAllDocumentTypes_WhenDataEmpty() {
+        when(documentTypeRepository.findByIsDelFalseAndIsActiveTrue())
                 .thenReturn(Collections.emptyList());
-        assertTrue(documentMasterDataService.getAllDocumentType(tenantIdentity).isEmpty());
+
+        List<DocumentTypeView> result = documentMasterDataService.getAllDocumentType();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
     }
 
-    // ---------- getAllCanvassedTypes() ----------
+    @Test
+    void testGetAllDocumentTypes_WhenRepositoryThrowsException() {
+        when(documentTypeRepository.findByIsDelFalseAndIsActiveTrue())
+                .thenThrow(new RuntimeException("DB error"));
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> documentMasterDataService.getAllDocumentType());
+
+        assertEquals("DB error", ex.getMessage());
+    }
+
+
     @Test
     void testGetAllCanvassedTypes_WhenDataExists() {
+        UUID id = UUID.randomUUID();
+
         CanvassedTypesView mockView = mock(CanvassedTypesView.class);
-        when(mockView.getCode()).thenReturn("CANV-A");
-        when(canvassedTypesRepository.findByIsDelFalseAndIsActiveTrueByTenantId(100))
+        when(mockView.getName()).thenReturn("Type A");
+        when(mockView.getCode()).thenReturn("A");
+        when(mockView.getIdentity()).thenReturn(id);
+
+        when(canvassedTypesRepository.findByIsDelFalseAndIsActiveTrue())
                 .thenReturn(List.of(mockView));
 
-        List<CanvassedTypesView> result = documentMasterDataService.getAllCanvassedTypes(tenantIdentity);
+        List<CanvassedTypesView> result = documentMasterDataService.getAllCanvassedTypes();
+
+        assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals("CANV-A", result.get(0).getCode());
+        assertEquals("Type A", result.get(0).getName());
+        assertEquals("A", result.get(0).getCode());
+        assertEquals(id, result.get(0).getIdentity());
     }
 
     @Test
-    void testGetAllCanvassedTypes_WhenEmpty() {
-        when(canvassedTypesRepository.findByIsDelFalseAndIsActiveTrueByTenantId(100))
+    void testGetAllCanvassedTypes_WhenDataEmpty() {
+        when(canvassedTypesRepository.findByIsDelFalseAndIsActiveTrue())
                 .thenReturn(Collections.emptyList());
-        assertTrue(documentMasterDataService.getAllCanvassedTypes(tenantIdentity).isEmpty());
+
+        List<CanvassedTypesView> result = documentMasterDataService.getAllCanvassedTypes();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
     }
 
-    // ---------- getAllAssetTypes() ----------
+    @Test
+    void testGetAllCanvassedTypes_WhenRepositoryThrowsException() {
+        when(canvassedTypesRepository.findByIsDelFalseAndIsActiveTrue())
+                .thenThrow(new RuntimeException("DB error"));
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> documentMasterDataService.getAllCanvassedTypes());
+
+        assertEquals("DB error", ex.getMessage());
+    }
+
     @Test
     void testGetAllAssetTypes_WhenDataExists() {
+        UUID id = UUID.randomUUID();
+
         AssetTypesView mockView = mock(AssetTypesView.class);
+        when(mockView.getName()).thenReturn("Vehicle");
         when(mockView.getCode()).thenReturn("VEH");
-        when(assetTypesRepository.findByIsDelFalseAndIsActiveTrueByTenantId(100))
+        when(mockView.getIdentity()).thenReturn(id);
+        when(mockView.getIsActive()).thenReturn(true);
+
+        when(assetTypesRepository.findByIsDelFalseAndIsActiveTrue())
                 .thenReturn(List.of(mockView));
 
-        List<AssetTypesView> result = documentMasterDataService.getAllAssetTypes(tenantIdentity);
+        List<AssetTypesView> result = documentMasterDataService.getAllAssetTypes();
+
+        assertNotNull(result);
         assertEquals(1, result.size());
+        assertEquals("Vehicle", result.get(0).getName());
         assertEquals("VEH", result.get(0).getCode());
+        assertEquals(id, result.get(0).getIdentity());
+        assertTrue(result.get(0).getIsActive());
     }
 
     @Test
-    void testGetAllAssetTypes_WhenEmpty() {
-        when(assetTypesRepository.findByIsDelFalseAndIsActiveTrueByTenantId(100))
+    void testGetAllAssetTypes_WhenDataEmpty() {
+        when(assetTypesRepository.findByIsDelFalseAndIsActiveTrue())
                 .thenReturn(Collections.emptyList());
-        assertTrue(documentMasterDataService.getAllAssetTypes(tenantIdentity).isEmpty());
-    }
 
-    // ---------- Tenant Identity = null (extra branch coverage) ----------
-    @Test
-    void testGetAllKycTypes_WhenTenantIdentityIsNull() {
-        when(kycTypesRepository.findByIsDelFalseAndIsActiveTrueByTenantId(null))
-                .thenReturn(Collections.emptyList());
-        assertTrue(documentMasterDataService.getAllKycTypes(null).isEmpty());
-        verify(tenantRepository, never()).findByIdentity(any());
+        List<AssetTypesView> result = documentMasterDataService.getAllAssetTypes();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
     }
 
     @Test
-    void testGetAllDocumentMasters_WhenTenantIdentityIsNull() {
-        when(documentMasterRepository.findByIsDelFalseAndIsActiveTrueByTenantId(null))
-                .thenReturn(Collections.emptyList());
-        assertTrue(documentMasterDataService.getAllDocumentMasters(null).isEmpty());
+    void testGetAllAssetTypes_WhenRepositoryThrowsException() {
+        when(assetTypesRepository.findByIsDelFalseAndIsActiveTrue())
+                .thenThrow(new RuntimeException("DB error"));
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> documentMasterDataService.getAllAssetTypes());
+
+        assertEquals("DB error", ex.getMessage());
     }
 
-    @Test
-    void testGetAllDocumentType_WhenTenantIdentityIsNull() {
-        when(documentTypeRepository.findByIsDelFalseAndIsActiveTrueByTenantId(null))
-                .thenReturn(Collections.emptyList());
-        assertTrue(documentMasterDataService.getAllDocumentType(null).isEmpty());
-    }
 
-    @Test
-    void testGetAllCanvassedTypes_WhenTenantIdentityIsNull() {
-        when(canvassedTypesRepository.findByIsDelFalseAndIsActiveTrueByTenantId(null))
-                .thenReturn(Collections.emptyList());
-        assertTrue(documentMasterDataService.getAllCanvassedTypes(null).isEmpty());
-    }
-
-    @Test
-    void testGetAllAssetTypes_WhenTenantIdentityIsNull() {
-        when(assetTypesRepository.findByIsDelFalseAndIsActiveTrueByTenantId(null))
-                .thenReturn(Collections.emptyList());
-        assertTrue(documentMasterDataService.getAllAssetTypes(null).isEmpty());
-    }
 }

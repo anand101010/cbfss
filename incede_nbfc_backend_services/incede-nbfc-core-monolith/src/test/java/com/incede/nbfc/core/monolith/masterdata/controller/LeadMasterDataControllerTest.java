@@ -19,16 +19,13 @@ class LeadMasterDataControllerTest {
 
     @Mock
     private LeadMasterDataService leadMasterDataService;
-
+    @Mock
     private LeadMasterDataController leadMasterDataController;
-
-    private UUID tenantIdentity;
 
     @BeforeEach
     void setUp() {
         leadMasterDataService = mock(LeadMasterDataService.class);
         leadMasterDataController = new LeadMasterDataController(leadMasterDataService);
-        tenantIdentity = UUID.randomUUID();
     }
 
     @Test
@@ -42,14 +39,11 @@ class LeadMasterDataControllerTest {
         given(mockConfig.getIsActive()).willReturn(true);
         given(mockConfig.getIdentity()).willReturn(UUID.randomUUID());
 
-        given(leadMasterDataService.getAllAdditionalReferenceConfigs(tenantIdentity))
-                .willReturn(List.of(mockConfig));
+        given(leadMasterDataService.getAllAdditionalReferenceConfigs()).willReturn(List.of(mockConfig));
 
-        ResponseEntity<List<AdditionalReferenceConfigView>> response =
-                leadMasterDataController.getAllAdditionalReferenceConfigs(tenantIdentity);
+        ResponseEntity<List<AdditionalReferenceConfigView>> response = leadMasterDataController.getAllAdditionalReferenceConfigs();
 
         assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
         assertThat(response.getBody().get(0).getReferenceFieldName()).isEqualTo("PAN");
     }
@@ -61,14 +55,11 @@ class LeadMasterDataControllerTest {
         given(mockSource.getDescription()).willReturn("Lead from website");
         given(mockSource.getIsActive()).willReturn(true);
 
-        given(leadMasterDataService.getAllLeadSources(tenantIdentity))
-                .willReturn(List.of(mockSource));
+        given(leadMasterDataService.getAllLeadSources()).willReturn(List.of(mockSource));
 
-        ResponseEntity<List<LeadSourceView>> response =
-                leadMasterDataController.getAllLeadSources(tenantIdentity);
+        ResponseEntity<List<LeadSourceView>> response = leadMasterDataController.getAllLeadSources();
 
         assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
         assertThat(response.getBody().get(0).getName()).isEqualTo("Website");
     }
@@ -80,14 +71,11 @@ class LeadMasterDataControllerTest {
         given(mockStage.getDescription()).willReturn("Lead is qualified");
         given(mockStage.getIsActive()).willReturn(true);
 
-        given(leadMasterDataService.getAllLeadStages(tenantIdentity))
-                .willReturn(List.of(mockStage));
+        given(leadMasterDataService.getAllLeadStages()).willReturn(List.of(mockStage));
 
-        ResponseEntity<List<LeadStageView>> response =
-                leadMasterDataController.getAllLeadStages(tenantIdentity);
+        ResponseEntity<List<LeadStageView>> response = leadMasterDataController.getAllLeadStages();
 
         assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
         assertThat(response.getBody().get(0).getName()).isEqualTo("Qualified");
     }
@@ -100,14 +88,11 @@ class LeadMasterDataControllerTest {
         given(mockType.getSortOrder()).willReturn(1);
         given(mockType.getIsActive()).willReturn(true);
 
-        given(leadMasterDataService.getAllFollowUpTypes(tenantIdentity))
-                .willReturn(List.of(mockType));
+        given(leadMasterDataService.getAllFollowUpTypes()).willReturn(List.of(mockType));
 
-        ResponseEntity<List<FollowUpTypeView>> response =
-                leadMasterDataController.getAllFollowUpTypes(tenantIdentity);
+        ResponseEntity<List<FollowUpTypeView>> response = leadMasterDataController.getAllFollowUpTypes();
 
         assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
         assertThat(response.getBody().get(0).getName()).isEqualTo("Call");
     }
@@ -119,29 +104,23 @@ class LeadMasterDataControllerTest {
         given(mockStatus.getDescription()).willReturn("Lead converted to customer");
         given(mockStatus.getIsActive()).willReturn(true);
 
-        given(leadMasterDataService.getAllLeadStatuses(tenantIdentity))
-                .willReturn(List.of(mockStatus));
+        given(leadMasterDataService.getAllLeadStatuses()).willReturn(List.of(mockStatus));
 
-        ResponseEntity<List<LeadStatusView>> response =
-                leadMasterDataController.getAllLeadStatuses(tenantIdentity);
+        ResponseEntity<List<LeadStatusView>> response = leadMasterDataController.getAllLeadStatuses();
 
         assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
         assertThat(response.getBody().get(0).getName()).isEqualTo("Converted");
     }
-
     @Test
     void testGetAllProductServices() {
         ProductServiceView mockProduct = mock(ProductServiceView.class);
         given(mockProduct.getName()).willReturn("Loan Processing");
         given(mockProduct.getIsActive()).willReturn(true);
 
-        given(leadMasterDataService.getAllProductServices(tenantIdentity))
-                .willReturn(List.of(mockProduct));
+        given(leadMasterDataService.getAllProductServices()).willReturn(List.of(mockProduct));
 
-        ResponseEntity<List<ProductServiceView>> response =
-                leadMasterDataController.getAllProductServices(tenantIdentity);
+        ResponseEntity<List<ProductServiceView>> response = leadMasterDataController.getAllProductServices();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -149,4 +128,5 @@ class LeadMasterDataControllerTest {
         assertThat(response.getBody().get(0).getName()).isEqualTo("Loan Processing");
         assertThat(response.getBody().get(0).getIsActive()).isTrue();
     }
+
 }

@@ -36,14 +36,12 @@ public class CustomerKycUpload extends CustomerBaseEntity implements Serializabl
 
     @NotNull(message = "Document reference must not be blank")
     @Column(name = "document_reference", nullable = false, length = 255)
-    private String documentReference;
+    private Integer documentReference;
 
-    @NotBlank(message = "File name must not be blank")
     @Size(max = 255, message = "File name must not exceed 255 characters")
     @Column(name = "file_name", length = 255)
     private String fileName;
 
-    @NotBlank(message = "File type must not be blank")
     @Size(max = 50, message = "File type must not exceed 50 characters")
     @Column(name = "file_type", length = 50)
     private String fileType;
@@ -63,10 +61,6 @@ public class CustomerKycUpload extends CustomerBaseEntity implements Serializabl
     @Lob
     @Column(name = "response_payload")
     private String responsePayload;
-
-    @Column(name = "file_path")
-    @NotNull(message = "File path is required")
-    private String filePath;
 
 
 

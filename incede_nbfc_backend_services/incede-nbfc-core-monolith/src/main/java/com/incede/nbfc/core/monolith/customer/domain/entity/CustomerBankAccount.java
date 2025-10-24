@@ -83,13 +83,7 @@ public class CustomerBankAccount extends CustomerBaseEntity implements Serializa
 
     @Column(name = "bank_proof_document_ref_id")
     @NotNull(message = "Bank Proof id must not be null")
-    private String bankProofDocumentRefId;
-
-
-    @Column(name ="bank_proof_file_path")
-    @NotNull(message = "Bank Proof file path cannot be null")
-    private String bankProofFilePath;
-
+    private Integer bankProofDocumentRefId;
 
     @NotBlank(message="pd_status cannot be blank ")
     @Column(name = "pd_status", length = 20)

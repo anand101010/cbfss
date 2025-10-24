@@ -1,13 +1,16 @@
 package com.incede.nbfc.core.monolith.customer.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerAddressResponseDto;
 import com.incede.nbfc.core.monolith.customer.service.CustomerAddressService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -19,61 +22,72 @@ public class CustomerAddressController {
     private final CustomerAddressService customerAddressService;
 
     /**
-     * Saving Customer Address
-     * @param customerIdentity
-     * @param customerAddressRequestDto
-     * @return
+     * Create a new address for a given customer identity (UUID)
+     *
+     * @param customerIdentity UUID of the customer
+     * @return ResponseEntity with created address DTO
      */
     @PreAuthorize("hasRole('STAFF')")
-    @PostMapping(value = "/{customerIdentity}/addresses")
+    @PostMapping(value = "/{customerIdentity}/addresses", consumes = {"multipart/form-data"})
     public ResponseEntity<CustomerAddressResponseDto> createAddress(
             @PathVariable UUID customerIdentity,
-            @RequestBody CustomerAddressRequestDto customerAddressRequestDto) {
+            @RequestPart("request") String requestJson,
+            @RequestPart(value = "file", required = false) MultipartFile file) throws JsonProcessingException {
 
-        CustomerAddressResponseDto createdAddress = customerAddressService.createAddress(customerIdentity, customerAddressRequestDto);
+        CustomerAddressResponseDto createdAddress = customerAddressService.createAddress(customerIdentity, requestJson, file);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(createdAddress);
     }
 
+
+
     /**
-     * Updating Existing Customer Address Service
-     * @param customerIdentity
-     * @param addressIdentity
-     * @param customerAddressRequestDto
-     * @return
+     * Update an existing address
+     *
+     * @param customerIdentity UUID of the customer
+     * @param addressIdentity  Address ID
+     * @param requestJson      Address request payload in JSON
+     * @param file             Optional document file
+     * @return ResponseEntity with updated address DTO
      */
     @PreAuthorize("hasRole('STAFF')")
-    @PutMapping(value = "/{customerIdentity}/addresses/{addressIdentity}")
+    @PutMapping(value = "/{customerIdentity}/addresses/{addressIdentity}", consumes = {"multipart/form-data"})
     public ResponseEntity<CustomerAddressResponseDto> updateAddress(
             @PathVariable UUID customerIdentity,
             @PathVariable UUID addressIdentity,
-            @RequestBody CustomerAddressRequestDto customerAddressRequestDto) {
+            @RequestPart("request") String requestJson,
+            @RequestPart(value = "file", required = false) MultipartFile file) throws JsonProcessingException {
 
-        CustomerAddressResponseDto response = customerAddressService.updateAddress(customerIdentity, addressIdentity, customerAddressRequestDto);
+        CustomerAddressResponseDto response = customerAddressService.updateAddress(customerIdentity, addressIdentity, requestJson, file);
         return ResponseEntity.ok(response);
     }
 
     /**
-     * Get Customer Addresses for the customer
-     * @param customerIdentity
-     * @return
+     * Get all active addresses for a customer
+     *
+     * @param customerIdentity UUID of the customer
+     * @return ResponseEntity with active addresses
      */
     @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/{customerIdentity}/addresses")
     public ResponseEntity<CustomerAddressResponseDto> getActiveAddresses(@PathVariable UUID customerIdentity) {
+
         CustomerAddressResponseDto response = customerAddressService.getActiveAddressesByCustomerIdentity(customerIdentity);
         return ResponseEntity.ok(response);
     }
 
     /**
-     * Soft deleting Customer Address By Identity
-     * @param customerIdentity
-     * @param addressIdentity
-     * @return
+     * Delete an address by ID for a customer
+     *
+     * @param customerIdentity UUID of the customer
+     * @param addressIdentity Address ID
+     * @return ResponseEntity with no content
      */
     @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/{customerIdentity}/addresses/{addressIdentity}")
     public ResponseEntity<Void> deleteAddress(@PathVariable UUID customerIdentity,
                                               @PathVariable UUID addressIdentity) {
+
         customerAddressService.deleteAddress(customerIdentity, addressIdentity);
         return ResponseEntity.noContent().build();
     }

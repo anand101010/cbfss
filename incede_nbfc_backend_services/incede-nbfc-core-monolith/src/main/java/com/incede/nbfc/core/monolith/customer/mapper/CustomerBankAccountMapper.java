@@ -5,6 +5,7 @@ import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerBankAccount;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerBankAccountRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerBankAccountResponseDto;
+import com.incede.nbfc.core.monolith.customer.enums.PdStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -62,7 +63,6 @@ public class CustomerBankAccountMapper {
         customerBankAccount.setAccountHolderName(dto.getAccountHolderName());
         customerBankAccount.setBranchName(dto.getBranchName());
         customerBankAccount.setBankProofDocumentRefId(dto.getBankProofDocumentRefId());
-        customerBankAccount.setBankProofFilePath(dto.getBankProofFilePath());
 
         customerBankAccount.setIsPrimary(dto.getIsPrimary() != null ? dto.getIsPrimary() : false);
         customerBankAccount.setIsActive(dto.getIsActive() != null ? dto.getIsActive() : true);
@@ -88,35 +88,16 @@ public class CustomerBankAccountMapper {
                 .pdStatus(String.valueOf(account.getPdStatus()))
                 .isActive(account.getIsActive())
                 .bankProofDocumentRefId(account.getBankProofDocumentRefId())
-                .bankProofFilePath(account.getBankProofFilePath())
                 .bankAccountIdentity(account.getIdentity())
                 .build();
     }
-
-    /**
-     * helper method to mask the account number in Response
-     * @param accountNumber
-     * @return
-     */
     private String maskAccountNumber(String accountNumber) {
         if (accountNumber == null || accountNumber.length() <= 4) {
-            return "**";
+            return "****";
         }
-        return "**" + accountNumber.substring(accountNumber.length() - 4);
+        return "******" + accountNumber.substring(accountNumber.length() - 4);
     }
 
-    /**
-     *Builds and returns a CustomerBankAccountResponseDto containing
-     * customer identity,
-     * code,
-     * status,
-     * and
-     * associated bank account details
-     * @param customer
-     * @param status
-     * @param bankAccount
-     * @return
-     */
     public CustomerBankAccountResponseDto toResponse(Customer customer, String status, List<CustomerBankAccountResponseDto.BankAccount > bankAccount ) {
         return CustomerBankAccountResponseDto.builder()
                 .identity(customer.getIdentity())

@@ -1,8 +1,6 @@
 package com.incede.nbfc.core.monolith.masterdata.domain.entity;
 
-import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,11 +19,6 @@ public class AccountTypeMaster extends BaseEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "account_type_id", nullable = false, length = 20)
     private Integer accountTypeId;
-
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "tenant_id", referencedColumnName = "tenant_id", nullable = false)
-    @NotNull(message = "Tenant is mandatory")
-    private Tenant tenant;
 
     @Column(name = "account_type", nullable = false, unique = true)
     private String accountType;

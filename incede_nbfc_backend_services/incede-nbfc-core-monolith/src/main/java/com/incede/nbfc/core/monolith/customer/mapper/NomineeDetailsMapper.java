@@ -11,19 +11,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-/**
- * Mapper for converting between Nominee entities and DTOs.
-
- */
 @Component
 public class NomineeDetailsMapper {
 
-    /**
-     * Converts a Nominee entity to a Nominee DTO.
-     *
-     * @param nominee nominee entity
-     * @return mapped Nominee DTO
-     */
     public NomineeDto toNomineeDto(Nominee nominee) {
         return NomineeDto.builder()
                 .fullName(nominee.getFullName())
@@ -55,14 +45,6 @@ public class NomineeDetailsMapper {
                 .build();
     }
 
-    /**
-     * Converts a Customer and list of Nominee DTOs to a NomineeDetailsResponse DTO.
-     *
-     * @param customer   customer entity
-     * @param status     status of the response
-     * @param nomineeDtos list of nominee DTOs
-     * @return mapped NomineeDetailsResponse DTO
-     */
     public NomineeDetailsResponseDto toResponse(Customer customer, String status, List<NomineeDto> nomineeDtos) {
         List<NomineeDetailsResponseDto.NomineeResponseDto> responseList = nomineeDtos.stream()
                 .map(n -> NomineeDetailsResponseDto.NomineeResponseDto.builder()
@@ -103,24 +85,10 @@ public class NomineeDetailsMapper {
                 .build();
     }
 
-    /**
-     * Converts a Customer and single Nominee DTO to a NomineeDetailsResponse DTO.
-     *
-     * @param customer   customer entity
-     * @param status     status of the response
-     * @param nomineeDto single nominee DTO
-     * @return mapped NomineeDetailsResponse DTO
-     */
     public NomineeDetailsResponseDto toResponse(Customer customer, String status, NomineeDto nomineeDto) {
         return toResponse(customer, status, List.of(nomineeDto));
     }
 
-    /**
-     * Converts a CustomerAddress entity to a NomineeAddress DTO.
-     *
-     * @param addr customer address entity
-     * @return mapped NomineeAddress DTO, or null if input is null
-     */
     public NomineeAddressDto toNomineeAddressDtoFromCustomerAddress(CustomerAddress addr) {
         if (addr == null) return null;
         return NomineeAddressDto.builder()
@@ -140,7 +108,6 @@ public class NomineeDetailsMapper {
                 .digipin(addr.getDigipin())
                 .build();
     }
-
 
     public Integer getCreatedBy() {
         return CommonConstants.CREATED_BY;

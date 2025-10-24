@@ -1,8 +1,6 @@
 package com.incede.nbfc.core.monolith.masterdata.domain.entity;
 
-import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,11 +21,6 @@ public class RiskCategory extends BaseEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "risk_category_id")
     private Integer riskCategoryId;
-
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "tenant_id", referencedColumnName = "tenant_id", nullable = false)
-    @NotNull(message = "Tenant is mandatory")
-    private Tenant tenant;
 
     @Column(name = "category", length = 120)
     private String category;

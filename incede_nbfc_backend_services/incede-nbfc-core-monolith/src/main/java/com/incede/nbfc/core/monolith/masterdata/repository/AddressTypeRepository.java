@@ -2,8 +2,8 @@ package com.incede.nbfc.core.monolith.masterdata.repository;
 
 import com.incede.nbfc.core.monolith.masterdata.domain.entity.AddressType;
 import com.incede.nbfc.core.monolith.masterdata.dto.AddressTypeView;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,10 +18,7 @@ public interface AddressTypeRepository extends JpaRepository<AddressType, Intege
  *
  * @return List of active address types
  */
-
-@Query(value="Select ft from AddressType ft where ft.isDel=false AND" +
-        " ft.isActive=true AND (:tenantId IS NULL OR ft.tenant.tenantId = :tenantId) ")
-    List<AddressTypeView> findByIsDelFalseAndIsActiveTrueByTenantId(Integer tenantId);
+    List<AddressTypeView> findByIsDelFalseAndIsActiveTrue();
     Optional<AddressType> findByAddressTypeNameAndIsDelFalse(String addressTypePermanent);
 
     Optional<AddressType> findByIdentity( UUID addressType);

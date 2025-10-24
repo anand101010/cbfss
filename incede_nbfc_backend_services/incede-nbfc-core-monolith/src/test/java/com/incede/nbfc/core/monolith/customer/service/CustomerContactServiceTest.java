@@ -147,7 +147,7 @@ class CustomerContactServiceTest {
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> customerContactService.saveContact(customerId, requestDto));
 
-        assertEquals(CommonConstants.CUSTOMER_NOT_FOUND, exception.getMessage());
+        assertEquals(CommonConstants.NOT_FOUND_MESSAGE, exception.getMessage());
         assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, exception.getErrorCode());
     }
 
@@ -186,7 +186,7 @@ class CustomerContactServiceTest {
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> customerContactService.saveContact(customerId, requestDto));
 
-        assertEquals(CommonConstants.CONTACT_ALREADY_EXIST, exception.getMessage());
+        assertEquals(CommonConstants.CONFLICT_MESSAGE, exception.getMessage());
         assertEquals(ErrorCodes.CONFLICT, exception.getErrorCode());
     }
 

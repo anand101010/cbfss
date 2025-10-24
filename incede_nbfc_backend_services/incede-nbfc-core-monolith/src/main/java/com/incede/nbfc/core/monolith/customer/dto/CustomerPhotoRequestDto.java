@@ -1,7 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -54,13 +53,6 @@ public class CustomerPhotoRequestDto {
     private String captureTime;
 
 
-    @NotBlank(message = "Photo reference ID is required")
-
-    private String photoRefId;
-
-
-    @NotBlank(message = "File path must not be blank")
-    private String filePath;
 
 
 

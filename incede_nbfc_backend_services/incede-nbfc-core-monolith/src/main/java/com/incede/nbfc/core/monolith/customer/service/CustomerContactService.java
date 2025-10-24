@@ -51,11 +51,11 @@ public class CustomerContactService {
 
         Customer customer = customerRepository.findByIdentity(customerId)
                 .orElseThrow(() -> new BusinessException(
-                        CommonConstants.CUSTOMER_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
+                        CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.RESOURCE_NOT_FOUND));
 
         ContactTypes contactType = contactTypesRepository.findByIdentity(dto.getContactType())
                 .orElseThrow(() -> new BusinessException(
-                        CommonConstants.CONTACT_TYPE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
+                        "Contact type not found", ErrorCodes.RESOURCE_NOT_FOUND));
 
         boolean isPrimary = Boolean.TRUE.equals(dto.getIsPrimary());
 
@@ -66,7 +66,7 @@ public class CustomerContactService {
         }
 
         if (contactRepository.existsByContactValue(dto.getContactDetails())) {
-            throw new BusinessException(CommonConstants.CONTACT_ALREADY_EXIST, ErrorCodes.CONFLICT);
+            throw new BusinessException(CommonConstants.CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
         }
 
         if (isPrimary) {
@@ -159,7 +159,6 @@ public class CustomerContactService {
 
     /**
      * Get all active contacts for a given customer.
-     * @param customerId
      */
     @Transactional(readOnly = true)
     public CustomerContactResponseDto getContacts(UUID customerId) {
@@ -178,11 +177,8 @@ public class CustomerContactService {
                 .build();
     }
 
-
     /**
      * Soft delete a contact by marking it inactive.
-     * @param customerId
-     * @param contactId
      */
     @Transactional
     public void softDeleteContact(UUID customerId, UUID contactId) {

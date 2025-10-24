@@ -16,6 +16,7 @@ public class PincodeDto {
 
 
     private String pincode;
+    private String cityName;
     private String districtName;
     private String stateName;
     List<PostOfficesResponseDto> postOffices;

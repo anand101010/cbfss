@@ -11,12 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.UUID;
-
 @RestController
 @RequestMapping("/api/v1/master")
 @RequiredArgsConstructor
@@ -33,9 +30,9 @@ public class DocumentMasterDataController
     @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/kyc-types")
     @Operation(summary = "Get all kyc types", description = "Retrieves all kyc types from the system")
-    public ResponseEntity<List<KycTypesView>> getAllKycTypes(@RequestParam(value = "tenantIdentity", required = false) UUID tenantIdentity){
-        log.info("Fetching all kyc types with the tenant Identity : {tenantIdentity}");
-        List<KycTypesView> kycTypesView =documentMasterDataService.getAllKycTypes(tenantIdentity);
+    public ResponseEntity<List<KycTypesView>> getAllKycTypes(){
+        log.info("Fetching all kyc types");
+        List<KycTypesView> kycTypesView =documentMasterDataService.getAllKycTypes();
         log.info("Found {} kyc types", kycTypesView.size());
         return ResponseEntity.ok(kycTypesView);
     }
@@ -49,9 +46,9 @@ public class DocumentMasterDataController
     @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/document-master")
     @Operation(summary = "Get all document master", description = "Retrieves all document master from the system")
-    public ResponseEntity<List<DocumentMasterView>> getAllDocumentMasters(@RequestParam(value = "tenantIdentity", required = false) UUID tenantIdentity){
-        log.info("Fetching all documents masters with the tenant Identity : {tenantIdentity}");
-        List<DocumentMasterView> documentMaster =documentMasterDataService.getAllDocumentMasters(tenantIdentity);
+    public ResponseEntity<List<DocumentMasterView>> getAllDocumentMasters(){
+        log.info("Fetching all documents masters");
+        List<DocumentMasterView> documentMaster =documentMasterDataService.getAllDocumentMasters();
         log.info("Found {} documents master", documentMaster.size());
         return ResponseEntity.ok(documentMaster);
     }
@@ -65,9 +62,9 @@ public class DocumentMasterDataController
     @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/document-types")
     @Operation(summary = "Get all document types", description = "Retrieves all document types from the system")
-    public ResponseEntity<List<DocumentTypeView>> getAllDocumentType(@RequestParam(value = "tenantIdentity", required = false) UUID tenantIdentity){
-        log.info("Fetching all document types with the tenant Identity : {tenantIdentity}");
-        List<DocumentTypeView> documentTypeView =documentMasterDataService.getAllDocumentType(tenantIdentity);
+    public ResponseEntity<List<DocumentTypeView>> getAllDocumentType(){
+        log.info("Fetching all document types");
+        List<DocumentTypeView> documentTypeView =documentMasterDataService.getAllDocumentType();
         log.info("Found {} document types", documentTypeView.size());
         return ResponseEntity.ok(documentTypeView);
     }
@@ -79,9 +76,9 @@ public class DocumentMasterDataController
     @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/canvassed-types")
     @Operation(summary = "Get all canvassed types", description = "Retrieves all canvassed types from the system")
-    public ResponseEntity<List<CanvassedTypesView>> getAllCanvassedTypes(@RequestParam(value = "tenantIdentity", required = false) UUID tenantIdentity){
-        log.info("Fetching all canvassed types with the tenant Identity : {tenantIdentity}");
-        List<CanvassedTypesView> canvassedTypesView =documentMasterDataService.getAllCanvassedTypes(tenantIdentity);
+    public ResponseEntity<List<CanvassedTypesView>> getAllCanvassedTypes(){
+        log.info("Fetching all canvassed types");
+        List<CanvassedTypesView> canvassedTypesView =documentMasterDataService.getAllCanvassedTypes();
         log.info("Found {} canvassed types", canvassedTypesView.size());
         return ResponseEntity.ok(canvassedTypesView);
     }
@@ -95,9 +92,9 @@ public class DocumentMasterDataController
     @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/asset-types")
     @Operation(summary = "Get all asset Types", description = "Retrieves all asset Types from the system")
-    public ResponseEntity<List<AssetTypesView>> getAllAssetTypes(@RequestParam(value = "tenantIdentity", required = false) UUID tenantIdentity){
-        log.info("Fetching all asset Types with the tenant Identity : {tenantIdentity}");
-        List<AssetTypesView> assetTypesView =documentMasterDataService.getAllAssetTypes(tenantIdentity);
+    public ResponseEntity<List<AssetTypesView>> getAllAssetTypes(){
+        log.info("Fetching all asset Types");
+        List<AssetTypesView> assetTypesView =documentMasterDataService.getAllAssetTypes();
         log.info("Found {} asset Types", assetTypesView.size());
         return ResponseEntity.ok(assetTypesView);
     }

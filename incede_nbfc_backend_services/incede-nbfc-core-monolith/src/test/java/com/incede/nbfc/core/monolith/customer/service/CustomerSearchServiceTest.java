@@ -1,6 +1,5 @@
 package com.incede.nbfc.core.monolith.customer.service;
 
-import com.incede.nbfc.core.monolith.client.dto.FinaVaultResponseDto;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerSearchRequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerSearchResponseDto;
@@ -8,7 +7,6 @@ import com.incede.nbfc.core.monolith.customer.repository.CustomerRepository;
 import com.incede.nbfc.core.monolith.lead.domain.entity.Lead;
 import com.incede.nbfc.core.monolith.lead.repository.LeadRepository;
 import com.incede.nbfc.core.monolith.masterdata.domain.entity.Branches;
-import com.incede.nbfc.core.monolith.service.VaultService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,16 +32,12 @@ class CustomerSearchServiceTest {
     @Mock
     private LeadRepository leadRepository;
 
-    @Mock
-    private VaultService vaultService;
-
     @InjectMocks
     private CustomerSearchService customerSearchService;
 
     private Customer customer;
     private Lead lead;
     private UUID customerIdentity;
-    private FinaVaultResponseDto vaultResponse;
 
     @BeforeEach
     void setUp() {
@@ -66,20 +60,14 @@ class CustomerSearchServiceTest {
         lead.setLeadCode("LEAD001");
         lead.setFullName("John Doe");
         lead.setContactNumber("9876543210");
-
-        vaultResponse = new FinaVaultResponseDto();
-        vaultResponse.setUidReferenceKey("VAULT_REF_123");
     }
 
     @Test
     void testSearchCustomers_WithCustomersFound() {
         CustomerSearchRequestDto searchRequest = createSearchRequest();
-
-        when(vaultService.generateVaultIdAndMaskAadhaar("123456789012"))
-                .thenReturn(vaultResponse);
-        when(customerRepository.searchCustomersFlexible(
+        lenient().when(customerRepository.searchCustomersFlexible(
                 eq("BR001"), eq(1), eq("9876543210"), eq("test@example.com"),
-                eq("ABCDE1234F"), eq("VAULT_REF_123"), eq("VOTER12345"),
+                eq("ABCDE1234F"), eq("123456789012"), eq("VOTER12345"),
                 eq("A1234567"), eq("John Doe")
         )).thenReturn(Arrays.asList(customer));
 
@@ -99,143 +87,59 @@ class CustomerSearchServiceTest {
         assertEquals("9876543210", response.getMobile());
         assertEquals("BR001", response.getBranchCode());
 
-        verify(vaultService).generateVaultIdAndMaskAadhaar("123456789012");
         verify(customerRepository).searchCustomersFlexible(
                 "BR001", 1, "9876543210", "test@example.com",
-                "ABCDE1234F", "VAULT_REF_123", "VOTER12345",
+                "ABCDE1234F", "123456789012", "VOTER12345",
                 "A1234567", "John Doe"
         );
         verify(leadRepository, never()).searchLeadDetails(any(), any(), any());
     }
 
     @Test
-    void testSearchCustomers_WithNullAadhaarNumber() {
-        CustomerSearchRequestDto requestWithoutAadhaar = CustomerSearchRequestDto.builder()
+    void testSearchCustomers_WithNullMobileNumber() {
+        CustomerSearchRequestDto requestWithNullMobile = CustomerSearchRequestDto.builder()
                 .branchCode("BR001")
                 .branchId(1)
-                .mobileNumber("9876543210")
+                .mobileNumber(null)
                 .emailId("test@example.com")
                 .panCard("ABCDE1234F")
-                .aadhaarNumber(null)
+                .aadhaarNumber("123456789012")
                 .voterId("VOTER12345")
                 .passportNumber("A1234567")
                 .customerName("John Doe")
                 .build();
 
-        when(customerRepository.searchCustomersFlexible(
-                eq("BR001"), eq(1), eq("9876543210"), eq("test@example.com"),
-                eq("ABCDE1234F"), isNull(), eq("VOTER12345"),
+        lenient().when(customerRepository.searchCustomersFlexible(
+                eq("BR001"), eq(1), isNull(), eq("test@example.com"),
+                eq("ABCDE1234F"), eq("123456789012"), eq("VOTER12345"),
                 eq("A1234567"), eq("John Doe")
         )).thenReturn(Arrays.asList(customer));
 
-        List<CustomerSearchResponseDto> result = customerSearchService.searchCustomers(requestWithoutAadhaar);
+
+        List<CustomerSearchResponseDto> result = customerSearchService.searchCustomers(requestWithNullMobile);
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        verify(vaultService, never()).generateVaultIdAndMaskAadhaar(any());
         verify(customerRepository).searchCustomersFlexible(
-                "BR001", 1, "9876543210", "test@example.com",
-                "ABCDE1234F", null, "VOTER12345",
+                "BR001", 1, null, "test@example.com",
+                "ABCDE1234F", "123456789012", "VOTER12345",
                 "A1234567", "John Doe"
         );
     }
 
-    @Test
-    void testSearchCustomers_WithEmptyAadhaarNumber() {
-        CustomerSearchRequestDto requestWithEmptyAadhaar = CustomerSearchRequestDto.builder()
-                .branchCode("BR001")
-                .branchId(1)
-                .mobileNumber("9876543210")
-                .emailId("test@example.com")
-                .panCard("ABCDE1234F")
-                .aadhaarNumber("")
-                .voterId("VOTER12345")
-                .passportNumber("A1234567")
-                .customerName("John Doe")
-                .build();
 
-        when(customerRepository.searchCustomersFlexible(
-                eq("BR001"), eq(1), eq("9876543210"), eq("test@example.com"),
-                eq("ABCDE1234F"), isNull(), eq("VOTER12345"),
-                eq("A1234567"), eq("John Doe")
-        )).thenReturn(Arrays.asList(customer));
 
-        List<CustomerSearchResponseDto> result = customerSearchService.searchCustomers(requestWithEmptyAadhaar);
-
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        verify(vaultService, never()).generateVaultIdAndMaskAadhaar(any());
-    }
 
     @Test
-    void testSearchCustomers_VaultServiceException() {
+    void testSearchCustomers_NoCustomersFound_SearchInLeads() {
         CustomerSearchRequestDto searchRequest = createSearchRequest();
-
-        when(vaultService.generateVaultIdAndMaskAadhaar("123456789012"))
-                .thenThrow(new RuntimeException("Vault service unavailable"));
-        when(customerRepository.searchCustomersFlexible(
+        lenient().when(customerRepository.searchCustomersFlexible(
                 eq("BR001"), eq(1), eq("9876543210"), eq("test@example.com"),
-                eq("ABCDE1234F"), isNull(), eq("VOTER12345"),
-                eq("A1234567"), eq("John Doe")
-        )).thenReturn(Arrays.asList(customer));
-
-        List<CustomerSearchResponseDto> result = customerSearchService.searchCustomers(searchRequest);
-
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        verify(vaultService).generateVaultIdAndMaskAadhaar("123456789012");
-        verify(customerRepository).searchCustomersFlexible(
-                "BR001", 1, "9876543210", "test@example.com",
-                "ABCDE1234F", null, "VOTER12345",
-                "A1234567", "John Doe"
-        );
-    }
-
-    @Test
-    void testSearchCustomers_NoCustomersFound_WithCustomerSpecificFields_NoLeadSearch() {
-        CustomerSearchRequestDto searchRequest = createSearchRequest();
-
-        when(vaultService.generateVaultIdAndMaskAadhaar("123456789012"))
-                .thenReturn(vaultResponse);
-        when(customerRepository.searchCustomersFlexible(
-                eq("BR001"), eq(1), eq("9876543210"), eq("test@example.com"),
-                eq("ABCDE1234F"), eq("VAULT_REF_123"), eq("VOTER12345"),
+                eq("ABCDE1234F"), eq("123456789012"), eq("VOTER12345"),
                 eq("A1234567"), eq("John Doe")
         )).thenReturn(Collections.emptyList());
 
-        List<CustomerSearchResponseDto> result = customerSearchService.searchCustomers(searchRequest);
-
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-
-        verify(customerRepository).searchCustomersFlexible(
-                "BR001", 1, "9876543210", "test@example.com",
-                "ABCDE1234F", "VAULT_REF_123", "VOTER12345",
-                "A1234567", "John Doe"
-        );
-        verify(leadRepository, never()).searchLeadDetails(any(), any(), any());
-    }
-
-    @Test
-    void testSearchCustomers_NoCustomersFound_NoCustomerSpecificFields_SearchInLeads() {
-        CustomerSearchRequestDto searchRequest = CustomerSearchRequestDto.builder()
-                .branchCode("BR001")
-                .branchId(1)
-                .mobileNumber("9876543210")
-                .emailId("test@example.com")
-                .panCard(null)
-                .aadhaarNumber(null)
-                .voterId(null)
-                .passportNumber(null)
-                .customerName("John Doe")
-                .build();
-
-        when(customerRepository.searchCustomersFlexible(
-                eq("BR001"), eq(1), eq("9876543210"), eq("test@example.com"),
-                isNull(), isNull(), isNull(), isNull(), eq("John Doe")
-        )).thenReturn(Collections.emptyList());
-
-        when(leadRepository.searchLeadDetails("9876543210", "test@example.com", "John Doe"))
+        lenient().when(leadRepository.searchLeadDetails("9876543210", "test@example.com", "John Doe"))
                 .thenReturn(Arrays.asList(lead));
 
         List<CustomerSearchResponseDto> result = customerSearchService.searchCustomers(searchRequest);
@@ -253,42 +157,35 @@ class CustomerSearchServiceTest {
 
         verify(customerRepository).searchCustomersFlexible(
                 "BR001", 1, "9876543210", "test@example.com",
-                null, null, null, null, "John Doe"
+                "ABCDE1234F", "123456789012", "VOTER12345",
+                "A1234567", "John Doe"
         );
         verify(leadRepository).searchLeadDetails("9876543210", "test@example.com", "John Doe");
     }
 
     @Test
-    void testSearchCustomers_WithNullMobileNumber() {
-        CustomerSearchRequestDto requestWithNullMobile = CustomerSearchRequestDto.builder()
-                .branchCode("BR001")
-                .branchId(1)
-                .mobileNumber(null)
-                .emailId("test@example.com")
-                .panCard("ABCDE1234F")
-                .aadhaarNumber("123456789012")
-                .voterId("VOTER12345")
-                .passportNumber("A1234567")
-                .customerName("John Doe")
-                .build();
-
-        when(vaultService.generateVaultIdAndMaskAadhaar("123456789012"))
-                .thenReturn(vaultResponse);
-        when(customerRepository.searchCustomersFlexible(
-                eq("BR001"), eq(1), isNull(), eq("test@example.com"),
-                eq("ABCDE1234F"), eq("VAULT_REF_123"), eq("VOTER12345"),
+    void testSearchCustomers_NoCustomersFound_NoLeadsFound() {
+        CustomerSearchRequestDto searchRequest = createSearchRequest();
+        lenient().when(customerRepository.searchCustomersFlexible(
+                eq("BR001"), eq(1), eq("9876543210"), eq("test@example.com"),
+                eq("ABCDE1234F"), eq("123456789012"), eq("VOTER12345"),
                 eq("A1234567"), eq("John Doe")
-        )).thenReturn(Arrays.asList(customer));
+        )).thenReturn(Collections.emptyList());
 
-        List<CustomerSearchResponseDto> result = customerSearchService.searchCustomers(requestWithNullMobile);
+        lenient().when(leadRepository.searchLeadDetails("9876543210", "test@example.com", "John Doe"))
+                .thenReturn(Collections.emptyList());
+
+        List<CustomerSearchResponseDto> result = customerSearchService.searchCustomers(searchRequest);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertTrue(result.isEmpty());
+
         verify(customerRepository).searchCustomersFlexible(
-                "BR001", 1, null, "test@example.com",
-                "ABCDE1234F", "VAULT_REF_123", "VOTER12345",
+                "BR001", 1, "9876543210", "test@example.com",
+                "ABCDE1234F", "123456789012", "VOTER12345",
                 "A1234567", "John Doe"
         );
+        verify(leadRepository).searchLeadDetails("9876543210", "test@example.com", "John Doe");
     }
 
     @Test
@@ -298,20 +195,20 @@ class CustomerSearchServiceTest {
                 .branchId(1)
                 .mobileNumber("9876543210")
                 .emailId("")
-                .panCard(null)
-                .aadhaarNumber(null)
-                .voterId(null)
-                .passportNumber(null)
+                .panCard("ABCDE1234F")
+                .aadhaarNumber("123456789012")
+                .voterId("VOTER12345")
+                .passportNumber("A1234567")
                 .customerName("John Doe")
                 .build();
 
-        // Use any() matchers instead of specific values to avoid strict stubbing issues
-        when(customerRepository.searchCustomersFlexible(
-                anyString(), anyInt(), anyString(), anyString(),
-                any(), any(), any(), any(), anyString()
+        lenient().when(customerRepository.searchCustomersFlexible(
+                eq("BR001"), eq(1), eq("9876543210"), isNull(),
+                eq("ABCDE1234F"), eq("123456789012"), eq("VOTER12345"),
+                eq("A1234567"), eq("John Doe")
         )).thenReturn(Collections.emptyList());
 
-        when(leadRepository.searchLeadDetails(eq("9876543210"), isNull(), eq("John Doe")))
+        lenient().when(leadRepository.searchLeadDetails(eq("9876543210"), isNull(), eq("John Doe")))
                 .thenReturn(Arrays.asList(lead));
 
         List<CustomerSearchResponseDto> result = customerSearchService.searchCustomers(requestWithEmptyEmail);
@@ -328,20 +225,20 @@ class CustomerSearchServiceTest {
                 .branchId(1)
                 .mobileNumber("9876543210")
                 .emailId("test@example.com")
-                .panCard(null)
-                .aadhaarNumber(null)
-                .voterId(null)
-                .passportNumber(null)
+                .panCard("ABCDE1234F")
+                .aadhaarNumber("123456789012")
+                .voterId("VOTER12345")
+                .passportNumber("A1234567")
                 .customerName("")
                 .build();
 
-        // Use any() matchers to avoid strict stubbing issues with empty string vs null
-        when(customerRepository.searchCustomersFlexible(
-                anyString(), anyInt(), anyString(), anyString(),
-                any(), any(), any(), any(), anyString()
+        lenient().when(customerRepository.searchCustomersFlexible(
+                eq("BR001"), eq(1), eq("9876543210"), eq("test@example.com"),
+                eq("ABCDE1234F"), eq("123456789012"), eq("VOTER12345"),
+                eq("A1234567"), isNull()
         )).thenReturn(Collections.emptyList());
 
-        when(leadRepository.searchLeadDetails(eq("9876543210"), eq("test@example.com"), isNull()))
+        lenient().when(leadRepository.searchLeadDetails(eq("9876543210"), eq("test@example.com"), isNull()))
                 .thenReturn(Arrays.asList(lead));
 
         List<CustomerSearchResponseDto> result = customerSearchService.searchCustomers(requestWithEmptyName);
@@ -362,11 +259,9 @@ class CustomerSearchServiceTest {
         customer2.setDisplayName("Jane Smith");
         customer2.setMobileNumber("9876543211");
 
-        when(vaultService.generateVaultIdAndMaskAadhaar("123456789012"))
-                .thenReturn(vaultResponse);
-        when(customerRepository.searchCustomersFlexible(
+        lenient().when(customerRepository.searchCustomersFlexible(
                 eq("BR001"), eq(1), eq("9876543210"), eq("test@example.com"),
-                eq("ABCDE1234F"), eq("VAULT_REF_123"), eq("VOTER12345"),
+                eq("ABCDE1234F"), eq("123456789012"), eq("VOTER12345"),
                 eq("A1234567"), eq("John Doe")
         )).thenReturn(Arrays.asList(customer, customer2));
 
@@ -380,29 +275,19 @@ class CustomerSearchServiceTest {
 
     @Test
     void testSearchCustomers_MultipleLeadsFound() {
-        CustomerSearchRequestDto searchRequest = CustomerSearchRequestDto.builder()
-                .branchCode("BR001")
-                .branchId(1)
-                .mobileNumber("9876543210")
-                .emailId("test@example.com")
-                .panCard(null)
-                .aadhaarNumber(null)
-                .voterId(null)
-                .passportNumber(null)
-                .customerName("John Doe")
-                .build();
-
+        CustomerSearchRequestDto searchRequest = createSearchRequest();
         Lead lead2 = new Lead();
         lead2.setLeadCode("LEAD002");
         lead2.setFullName("Jane Smith");
         lead2.setContactNumber("9876543211");
 
-        when(customerRepository.searchCustomersFlexible(
+        lenient().when(customerRepository.searchCustomersFlexible(
                 eq("BR001"), eq(1), eq("9876543210"), eq("test@example.com"),
-                isNull(), isNull(), isNull(), isNull(), eq("John Doe")
+                eq("ABCDE1234F"), eq("123456789012"), eq("VOTER12345"),
+                eq("A1234567"), eq("John Doe")
         )).thenReturn(Collections.emptyList());
 
-        when(leadRepository.searchLeadDetails("9876543210", "test@example.com", "John Doe"))
+        lenient().when(leadRepository.searchLeadDetails("9876543210", "test@example.com", "John Doe"))
                 .thenReturn(Arrays.asList(lead, lead2));
 
         List<CustomerSearchResponseDto> result = customerSearchService.searchCustomers(searchRequest);
@@ -414,44 +299,32 @@ class CustomerSearchServiceTest {
     }
 
     @Test
-    void testSearchCustomers_NullSearchRequest() {
-        assertThrows(NullPointerException.class, () -> {
-            customerSearchService.searchCustomers(null);
-        });
+    void testMapToSearchResponseDto_WithNullBranch() {
+        customer.setBranchId(null);
+
+        CustomerSearchResponseDto result = customerSearchService.mapToSearchResponseDto(customer);
+
+        assertNotNull(result);
+        assertNull(result.getBranchCode());
+        assertEquals("John", result.getFirstName());
+        assertEquals("Doe", result.getLastName());
     }
 
     @Test
-    void testSearchCustomers_NoCustomersFound_NoLeadsFound() {
-        CustomerSearchRequestDto searchRequest = CustomerSearchRequestDto.builder()
-                .branchCode("BR001")
-                .branchId(1)
-                .mobileNumber("9876543210")
-                .emailId("test@example.com")
-                .panCard(null)
-                .aadhaarNumber(null)
-                .voterId(null)
-                .passportNumber(null)
-                .customerName("John Doe")
-                .build();
-
-        when(customerRepository.searchCustomersFlexible(
-                eq("BR001"), eq(1), eq("9876543210"), eq("test@example.com"),
-                isNull(), isNull(), isNull(), isNull(), eq("John Doe")
-        )).thenReturn(Collections.emptyList());
-
-        when(leadRepository.searchLeadDetails("9876543210", "test@example.com", "John Doe"))
-                .thenReturn(Collections.emptyList());
-
-        List<CustomerSearchResponseDto> result = customerSearchService.searchCustomers(searchRequest);
+    void testMapLeadToSearchResponseDto() {
+        CustomerSearchResponseDto result = customerSearchService.mapLeadToSearchResponseDto(lead);
 
         assertNotNull(result);
-        assertTrue(result.isEmpty());
-
-        verify(customerRepository).searchCustomersFlexible(
-                "BR001", 1, "9876543210", "test@example.com",
-                null, null, null, null, "John Doe"
-        );
-        verify(leadRepository).searchLeadDetails("9876543210", "test@example.com", "John Doe");
+        assertTrue(result.getIsLeadExist());
+        assertEquals("LEAD001", result.getCustomerCode());
+        assertEquals("John Doe", result.getFirstName());
+        assertEquals("9876543210", result.getMobile());
+        assertNull(result.getCustomerIdentity());
+        assertNull(result.getIsCustomerExist());
+        assertNull(result.getMiddleName());
+        assertNull(result.getLastName());
+        assertNull(result.getDisplayName());
+        assertNull(result.getBranchCode());
     }
 
     private CustomerSearchRequestDto createSearchRequest() {

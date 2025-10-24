@@ -12,11 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 @RestController
@@ -33,9 +31,9 @@ public class PepMasterDataController
     @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/pep-categories")
     @Operation(summary = "Get all Pep Categories", description = "Retrieves all Pep Categories from the system")
-    public ResponseEntity<List<PepCategoriesView>> getAllPepCategories(@RequestParam(value = "tenantIdentity", required = false) UUID tenantIdentity){
-        log.info("Fetching pep categories by tenantIdentity={}\",tenantIdentity");
-        List<PepCategoriesView> pepCategoriesView =pepMasterDataService.getAllPepCategories(tenantIdentity);
+    public ResponseEntity<List<PepCategoriesView>> getAllPepCategories(){
+        log.info("Fetching pep categories");
+        List<PepCategoriesView> pepCategoriesView =pepMasterDataService.getAllPepCategories();
         log.info("Found {} pep categories", pepCategoriesView.size());
         return ResponseEntity.ok(pepCategoriesView);
     }
@@ -47,9 +45,9 @@ public class PepMasterDataController
     @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/pep-relationships")
     @Operation(summary = "Get all Pep relationships", description = "Retrieves all Pep relationships from the system")
-    public ResponseEntity<List<PepRelationshipsView>> getAllPepRelationships(@RequestParam(value = "tenantIdentity", required = false) UUID tenantIdentity){
-        log.info("Fetching pep relationships by tenantIdentity={}\",tenantIdentity");
-        List<PepRelationshipsView> pepRelationshipsView =pepMasterDataService.getAllPepRelationships(tenantIdentity);
+    public ResponseEntity<List<PepRelationshipsView>> getAllPepRelationships(){
+        log.info("Fetching pep relationships");
+        List<PepRelationshipsView> pepRelationshipsView =pepMasterDataService.getAllPepRelationships();
         log.info("Found {} pep relation", pepRelationshipsView.size());
         return ResponseEntity.ok(pepRelationshipsView);
     }
@@ -61,9 +59,9 @@ public class PepMasterDataController
     @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/pep-verification-source")
     @Operation(summary = "Get all Pep verification source", description = "Retrieves all Pep verification source from the system")
-    public ResponseEntity<List<PepVerificationSourceView>> getAllPepVerificationSource(@RequestParam(value = "tenantIdentity", required = false) UUID tenantIdentity){
-        log.info("Fetching pep verification source by tenantIdentity={}\",tenantIdentity");
-        List<PepVerificationSourceView> pepVerificationSourceView =pepMasterDataService.getAllPepVerificationSource(tenantIdentity);
+    public ResponseEntity<List<PepVerificationSourceView>> getAllPepVerificationSource(){
+        log.info("Fetching pep verification source");
+        List<PepVerificationSourceView> pepVerificationSourceView =pepMasterDataService.getAllPepVerificationSource();
         log.info("Found {} pep verification source", pepVerificationSourceView.size());
         return ResponseEntity.ok(pepVerificationSourceView);
     }

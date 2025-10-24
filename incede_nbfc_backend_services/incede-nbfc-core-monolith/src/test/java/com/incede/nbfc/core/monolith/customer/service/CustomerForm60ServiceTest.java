@@ -18,473 +18,544 @@ import com.incede.nbfc.core.monolith.report.OutputFormat;
 import com.incede.nbfc.core.monolith.report.ReportGenerator;
 import com.incede.nbfc.core.monolith.report.ReportName;
 import com.incede.nbfc.core.monolith.service.VaultService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-class CustomerForm60ServiceTest {
+public class CustomerForm60ServiceTest {
 
-    @Mock private CustomerForm60Repository customerForm60Repository;
-    @Mock private CustomerForm60Mapper form60Mapper;
-    @Mock private CustomerRepository customerRepository;
-    @Mock private DocumentMasterRepository documentRepository;
-    @Mock private ReportGenerator reportGenerator;
-    @Mock private JasperForm60Mapper jasperForm60Mapper;
-    @Mock private CustomerAddressRepository customerAddressRepository;
-    @Mock private AddressTypeRepository addressTypeRepository;
-    @Mock private CustomerAddressService customerAddressService;
-    @Mock private CustomerProfileExtraRepository customerProfileExtraRepository;
-    @Mock private CustomerEmploymentRepository customerEmploymentRepository;
-    @Mock private CustomerAddressMapper customerAddressMapper;
-    @Mock private BranchesRepository branchesRepository;
-    @Mock private VaultService vaultService;
+    private CustomerRepository customerRepository;
+    private CustomerForm60Repository customerForm60Repository;
+    private CustomerForm60Mapper form60Mapper;
+    private DocumentMasterRepository documentRepository;
+    private ReportGenerator reportGenerator;
+    private JasperForm60Mapper jasperForm60Mapper;
+    private CustomerAddressRepository customerAddressRepository;
+    private AddressTypeRepository addressTypeRepository;
+    private CustomerAddressService customerAddressService;
+    private CustomerProfileExtraRepository customerProfileExtraRepository;
+    private CustomerEmploymentRepository customerEmploymentRepository;
+    private CustomerAddressMapper customerAddressMapper;
+    private BranchesRepository branchesRepository;
+    private VaultService vaultService;
 
-    @InjectMocks private CustomerForm60Service service;
-
-    private UUID customerId;
-    private UUID form60Id;
+    private CustomerForm60Service service;
+    private UUID customerIdentity;
+    private UUID form60Identity;
     private Customer customer;
     private CustomerForm60 form60;
-    private CustomerForm60RequestDto requestDto;
-    private DocumentMaster documentMaster; // ADDED: DocumentMaster field
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
+    @Before
+    public void setUp() {
+        customerRepository = mock(CustomerRepository.class);
+        customerForm60Repository = mock(CustomerForm60Repository.class);
+        form60Mapper = mock(CustomerForm60Mapper.class);
+        documentRepository = mock(DocumentMasterRepository.class);
+        reportGenerator = mock(ReportGenerator.class);
+        jasperForm60Mapper = mock(JasperForm60Mapper.class);
+        customerAddressRepository = mock(CustomerAddressRepository.class);
+        addressTypeRepository = mock(AddressTypeRepository.class);
+        customerAddressService = mock(CustomerAddressService.class);
+        customerProfileExtraRepository = mock(CustomerProfileExtraRepository.class);
+        customerEmploymentRepository = mock(CustomerEmploymentRepository.class);
+        customerAddressMapper = mock(CustomerAddressMapper.class);
+        branchesRepository = mock(BranchesRepository.class);
+        vaultService = mock(VaultService.class);
 
-        customerId = UUID.randomUUID();
-        form60Id = UUID.randomUUID();
+        service = new CustomerForm60Service(
+                customerForm60Repository,
+                form60Mapper,
+                customerRepository,
+                documentRepository,
+                reportGenerator,
+                jasperForm60Mapper,
+                customerAddressRepository,
+                addressTypeRepository,
+                customerAddressService,
+                customerProfileExtraRepository,
+                customerEmploymentRepository,
+                customerAddressMapper,
+                branchesRepository,
+                vaultService
+        );
 
+        customerIdentity = UUID.randomUUID();
+        form60Identity = UUID.randomUUID();
         customer = new Customer();
-        customer.setIdentity(customerId);
-        customer.setCustomerCode("CUST-001");
-        customer.setMobileNumber("9999999999");
-        customer.setFirstName("John");
-        customer.setLastName("Doe");
+        customer.setCustomerId(100);
+        customer.setIdentity(customerIdentity);
 
         form60 = new CustomerForm60();
-        form60.setIdentity(form60Id);
-        form60.setFilePath("test.pdf");
-
-        documentMaster = new DocumentMaster();
-        documentMaster.setIdentity(UUID.randomUUID());
-        documentMaster.setDocname("PID ");
-
-        requestDto = new CustomerForm60RequestDto();
-        requestDto.setTransactionAmount(BigDecimal.valueOf(10000));
-        requestDto.setTransactionDate(LocalDate.now());
-        requestDto.setCreatedBy(1);
-
-        requestDto.setFormFileId(1);
-        requestDto.setBranchId(UUID.randomUUID());
+        form60.setForm60Id(1);
+        form60.setCustomerId(customer);
+        form60.setIdentity(form60Identity);
     }
 
+    // ---------------- saveForm60 ----------------
     @Test
-    void saveForm60_happyPath() {
-        Branches branch = new Branches();
-        branch.setIdentity(requestDto.getBranchId());
+    public void testSaveForm60_Success() {
+        CustomerForm60RequestDto request = new CustomerForm60RequestDto();
+        request.setTransactionAmount(BigDecimal.valueOf(1000));
+        request.setCreatedBy(1);
+        request.setTransactionDate(LocalDate.now());
 
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(branchesRepository.findByIdentity(requestDto.getBranchId())).thenReturn(Optional.of(branch));
-        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
-        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
-        when(form60Mapper.toEntity(any(), any(), any(), any(), any())).thenReturn(form60);
+        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
+        when(branchesRepository.findByIdentity(request.getBranchId())).thenReturn(Optional.of(new Branches()));
+        when(form60Mapper.toEntity(eq(request), eq(customer), any(), any(), any())).thenReturn(form60);
+        when(customerForm60Repository.save(form60)).thenReturn(form60);
+        when(form60Mapper.toResponseDto(form60)).thenReturn(new CustomerForm60ResponseDto());
+
+        CustomerForm60ResponseDto response = service.saveForm60(request, customerIdentity);
+
+        assertNotNull(response);
+        verify(customerForm60Repository).save(form60);
+    }
+
+    @Test(expected = BusinessException.class)
+    public void testSaveForm60_CustomerNotFound() {
+        CustomerForm60RequestDto request = new CustomerForm60RequestDto();
+        request.setTransactionAmount(BigDecimal.TEN);
+        request.setCreatedBy(1);
+        request.setTransactionDate(LocalDate.now());
+
+        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.empty());
+        service.saveForm60(request, customerIdentity);
+    }
+
+    @Test(expected = BusinessException.class)
+    public void testSaveForm60_AmountMissing_ShouldThrow() {
+        CustomerForm60RequestDto request = new CustomerForm60RequestDto();
+        request.setTransactionDate(LocalDate.now());
+        request.setCreatedBy(1);
+        service.saveForm60(request, customerIdentity);
+    }
+
+    @Test(expected = BusinessException.class)
+    public void testSaveForm60_DateMissing_ShouldThrow() {
+        CustomerForm60RequestDto request = new CustomerForm60RequestDto();
+        request.setTransactionAmount(BigDecimal.TEN);
+        request.setCreatedBy(1);
+        service.saveForm60(request, customerIdentity);
+    }
+
+    @Test(expected = BusinessException.class)
+    public void testSaveForm60_NegativeAmount_ShouldThrow() {
+        CustomerForm60RequestDto request = new CustomerForm60RequestDto();
+        request.setTransactionAmount(BigDecimal.valueOf(-1));
+        request.setTransactionDate(LocalDate.now());
+        request.setCreatedBy(1);
+        service.saveForm60(request, customerIdentity);
+    }
+
+    @Test(expected = BusinessException.class)
+    public void testSaveForm60_AboveMaxAmount_ShouldThrow() {
+        CustomerForm60RequestDto request = new CustomerForm60RequestDto();
+        request.setTransactionAmount(new BigDecimal("600000"));
+        request.setTransactionDate(LocalDate.now());
+        request.setCreatedBy(1);
+        service.saveForm60(request, customerIdentity);
+    }
+
+    @Test(expected = BusinessException.class)
+    public void testSaveForm60_MissingCreatedBy_ShouldThrow() {
+        CustomerForm60RequestDto request = new CustomerForm60RequestDto();
+        request.setTransactionAmount(BigDecimal.valueOf(100));
+        request.setTransactionDate(LocalDate.now());
+        request.setCreatedBy(null);
+
+        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
+        when(branchesRepository.findByIdentity(any())).thenReturn(Optional.of(new Branches()));
+
+        service.saveForm60(request, customerIdentity);
+    }
+
+    // Aadhaar vault masking
+    @Test
+    public void testSaveForm60_WithMaskedAadhaar() {
+        CustomerForm60RequestDto request = new CustomerForm60RequestDto();
+        request.setTransactionAmount(BigDecimal.valueOf(2000));
+        request.setCreatedBy(1);
+        request.setTransactionDate(LocalDate.now());
+        request.setMaskedAdhar("123412341234");
+
+        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
+        when(branchesRepository.findByIdentity(any())).thenReturn(Optional.of(new Branches()));
+        when(form60Mapper.toEntity(eq(request), eq(customer), any(), any(), any())).thenReturn(form60);
+
+        when(vaultService.generateVaultIdAndMaskAadhaar("123412341234"))
+                .thenReturn(new FinaVaultResponseDto("123", "ABC", "UID123", null, null, null, null, null));
+
         when(customerForm60Repository.save(any())).thenReturn(form60);
         when(form60Mapper.toResponseDto(form60)).thenReturn(new CustomerForm60ResponseDto());
 
-        CustomerForm60ResponseDto resp = service.saveForm60(requestDto, customerId);
-        assertNotNull(resp);
-        verify(customerForm60Repository).save(any(CustomerForm60.class));
+        CustomerForm60ResponseDto response = service.saveForm60(request, customerIdentity);
+
+        assertNotNull(response);
+        verify(vaultService).generateVaultIdAndMaskAadhaar("123412341234");
     }
 
     @Test
-    void saveForm60_customerNotFound_throws() {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
-        assertThrows(BusinessException.class, () -> service.saveForm60(requestDto, customerId));
-    }
+    public void testSaveForm60_WithAlreadyMaskedAadhaar() {
+        CustomerForm60RequestDto request = new CustomerForm60RequestDto();
+        request.setTransactionAmount(BigDecimal.valueOf(2000));
+        request.setCreatedBy(1);
+        request.setTransactionDate(LocalDate.now());
+        request.setMaskedAdhar("XXXX-XXXX-1234"); // already masked
 
-    @Test
-    void saveForm60_branchNotFound_throws() {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(branchesRepository.findByIdentity(any())).thenReturn(Optional.empty());
-        assertThrows(BusinessException.class, () -> service.saveForm60(requestDto, customerId));
-    }
-
-    @Test
-    void saveForm60_missingCreatedBy_throws() {
-        requestDto.setCreatedBy(null);
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
+        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
         when(branchesRepository.findByIdentity(any())).thenReturn(Optional.of(new Branches()));
-        assertThrows(BusinessException.class, () -> service.saveForm60(requestDto, customerId));
-    }
-
-    @Test
-    void saveForm60_vaultReturnsNull_throws() {
-        requestDto.setMaskedAdhar("123456789012");
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(branchesRepository.findByIdentity(any())).thenReturn(Optional.of(new Branches()));
-        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
-        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
-        when(vaultService.generateVaultIdAndMaskAadhaar(any())).thenReturn(null);
-        when(form60Mapper.toEntity(any(), any(), any(), any(), any())).thenReturn(form60);
-
-        assertThrows(BusinessException.class, () -> service.saveForm60(requestDto, customerId));
-    }
-
-    @Test
-    void saveForm60_vaultReturnsStatusN_throws() {
-        requestDto.setMaskedAdhar("111122223333");
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(branchesRepository.findByIdentity(any())).thenReturn(Optional.of(new Branches()));
-        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
-        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
-
-        FinaVaultResponseDto r = new FinaVaultResponseDto();
-        r.setStatus("N");
-        r.setErrorCode("ERR001");
-        when(vaultService.generateVaultIdAndMaskAadhaar(any())).thenReturn(r);
-        when(form60Mapper.toEntity(any(), any(), any(), any(), any())).thenReturn(form60);
-
-        BusinessException ex = assertThrows(BusinessException.class,
-                () -> service.saveForm60(requestDto, customerId));
-        assertNotNull(ex);
-    }
-
-    @Test
-    void saveForm60_vaultSuccess_setsMaskedAdhar() {
-        requestDto.setMaskedAdhar("111122223333");
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(branchesRepository.findByIdentity(any())).thenReturn(Optional.of(new Branches()));
-        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
-        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
-
-        FinaVaultResponseDto r = new FinaVaultResponseDto();
-        r.setStatus("Y");
-        r.setUidForDisplay("XXXX-1234");
-        when(vaultService.generateVaultIdAndMaskAadhaar(any())).thenReturn(r);
-        when(form60Mapper.toEntity(any(), any(), any(), any(), any())).thenReturn(form60);
+        when(form60Mapper.toEntity(eq(request), eq(customer), any(), any(), any())).thenReturn(form60);
         when(customerForm60Repository.save(any())).thenReturn(form60);
-        when(form60Mapper.toResponseDto(any())).thenReturn(new CustomerForm60ResponseDto());
+        when(form60Mapper.toResponseDto(form60)).thenReturn(new CustomerForm60ResponseDto());
 
-        CustomerForm60ResponseDto out = service.saveForm60(requestDto, customerId);
-        assertNotNull(out);
-        verify(vaultService, times(1)).generateVaultIdAndMaskAadhaar("111122223333");
-    }
+        CustomerForm60ResponseDto response = service.saveForm60(request, customerIdentity);
 
-    @Test
-    void saveForm60_dataIntegrityViolation_convertedToBusinessException() {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(branchesRepository.findByIdentity(any())).thenReturn(Optional.of(new Branches()));
-        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
-        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
-        when(form60Mapper.toEntity(any(), any(), any(), any(), any())).thenReturn(form60);
-        when(customerForm60Repository.save(any())).thenThrow(new org.springframework.dao.DataIntegrityViolationException("dup"));
-
-        assertThrows(BusinessException.class, () -> service.saveForm60(requestDto, customerId));
+        assertNotNull(response);
+        verify(vaultService, never()).generateVaultIdAndMaskAadhaar(anyString());
     }
 
     // ---------------- updateForm60 ----------------
-
     @Test
-    void updateForm60_happyPath() {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.of(form60));
-        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
-        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
-        // updateEntityFromDto will be called on mapper; we don't need to do anything
-        when(customerForm60Repository.save(any())).thenReturn(form60);
-        when(form60Mapper.toResponseDto(any())).thenReturn(new CustomerForm60ResponseDto());
+    public void testUpdateForm60_Success() {
+        CustomerForm60RequestDto request = new CustomerForm60RequestDto();
+        request.setTransactionAmount(BigDecimal.valueOf(5000));
+        request.setCreatedBy(1);
+        request.setTransactionDate(LocalDate.now());
 
-        CustomerForm60ResponseDto resp = service.updateForm60(customerId, form60Id, requestDto);
-        assertNotNull(resp);
-        verify(customerForm60Repository).save(form60);
-    }
-
-    @Test
-    void updateForm60_customerNotFound_throws() {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
-        assertThrows(BusinessException.class, () -> service.updateForm60(customerId, form60Id, requestDto));
-    }
-
-    @Test
-    void updateForm60_form60NotFound_throws() {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.empty());
-        assertThrows(BusinessException.class, () -> service.updateForm60(customerId, form60Id, requestDto));
-    }
-
-    @Test
-    void updateForm60_vaultReturnsNull_throws() {
-        requestDto.setMaskedAdhar("222233334444");
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.of(form60));
-        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
-        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
-        when(vaultService.generateVaultIdAndMaskAadhaar(any())).thenReturn(null);
-
-        assertThrows(BusinessException.class, () -> service.updateForm60(customerId, form60Id, requestDto));
-    }
-
-    @Test
-    void updateForm60_vaultReturnsStatusN_throws() {
-        requestDto.setMaskedAdhar("222233334444");
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.of(form60));
-        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
-        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
-
-        FinaVaultResponseDto r = new FinaVaultResponseDto();
-        r.setStatus("N");
-        r.setErrorCode("E123");
-        when(vaultService.generateVaultIdAndMaskAadhaar(any())).thenReturn(r);
-
-        assertThrows(BusinessException.class, () -> service.updateForm60(customerId, form60Id, requestDto));
-    }
-
-    @Test
-    void updateForm60_vaultSuccess_and_setsMaskedAdhar() {
-        requestDto.setMaskedAdhar("222233334444");
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.of(form60));
-        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
-        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
-
-        FinaVaultResponseDto r = new FinaVaultResponseDto();
-        r.setStatus("Y");
-        r.setUidForDisplay("MASK-1111");
-        when(vaultService.generateVaultIdAndMaskAadhaar(any())).thenReturn(r);
-        when(customerForm60Repository.save(any())).thenReturn(form60);
-        when(form60Mapper.toResponseDto(any())).thenReturn(new CustomerForm60ResponseDto());
-
-        CustomerForm60ResponseDto resp = service.updateForm60(customerId, form60Id, requestDto);
-        assertNotNull(resp);
-        verify(customerForm60Repository).save(form60);
-    }
-
-    @Test
-    void updateForm60_dataIntegrityViolation_converted() {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.of(form60));
-        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
-        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
-        when(customerForm60Repository.save(any())).thenThrow(new org.springframework.dao.DataIntegrityViolationException("err"));
-
-        assertThrows(BusinessException.class, () -> service.updateForm60(customerId, form60Id, requestDto));
-    }
-
-    @Test
-    void updateForm60_illegalArgumentConvertedToBusinessException() {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.of(form60));
-        // CHANGED: Return Optional.of(documentMaster) instead of Optional.empty()
-        when(documentRepository.findByIdentity(any())).thenReturn(Optional.of(documentMaster));
-        doThrow(new IllegalArgumentException("bad dto")).when(form60Mapper).updateEntityFromDto(eq(form60), any(), any(), any());
-
-        BusinessException be = assertThrows(BusinessException.class, () -> service.updateForm60(customerId, form60Id, requestDto));
-        assertNotNull(be);
-    }
-
-    @Test
-    void getForm60ByIdentity_success() {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.of(form60));
+        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
+        when(customerForm60Repository.findByIdentity(form60.getIdentity())).thenReturn(Optional.of(form60));
+        when(customerForm60Repository.save(form60)).thenReturn(form60);
         when(form60Mapper.toResponseDto(form60)).thenReturn(new CustomerForm60ResponseDto());
 
-        CustomerForm60ResponseDto dto = service.getForm60ByIdentity(customerId, form60Id);
-        assertNotNull(dto);
+        CustomerForm60ResponseDto response = service.updateForm60(customerIdentity, form60.getIdentity(), request);
+
+        assertNotNull(response);
+        verify(customerForm60Repository).save(form60);
+    }
+
+    @Test(expected = BusinessException.class)
+    public void testUpdateForm60_FormNotFound_ShouldThrow() {
+        CustomerForm60RequestDto request = new CustomerForm60RequestDto();
+        request.setTransactionAmount(BigDecimal.valueOf(100));
+        request.setTransactionDate(LocalDate.now());
+        request.setCreatedBy(1);
+
+        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
+        when(customerForm60Repository.findByIdentity(form60Identity)).thenReturn(Optional.empty());
+
+        service.updateForm60(customerIdentity, form60Identity, request);
+    }
+
+    // ---------------- getForm60ById ----------------
+    @Test
+    public void testGetForm60ById_Success() {
+        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
+        when(customerForm60Repository.findByIdentity(form60.getIdentity())).thenReturn(Optional.of(form60));
+        when(form60Mapper.toResponseDto(form60)).thenReturn(new CustomerForm60ResponseDto());
+
+        CustomerForm60ResponseDto result = service.getForm60ByIdentity(customerIdentity, form60.getIdentity());
+        assertNotNull(result);
+    }
+
+    @Test(expected = ResourceNotFoundException.class)
+    public void testGetForm60ById_FormNotFound_ShouldThrow() {
+        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
+        when(customerForm60Repository.findByIdentity(form60.getIdentity())).thenReturn(Optional.empty());
+
+        service.getForm60ByIdentity(customerIdentity, form60.getIdentity());
+    }
+
+    // ---------------- getDesignation ----------------
+    @Test(expected = RuntimeException.class)
+    public void testGetCustomerDesignation_NotFound_ShouldThrow() {
+        when(customerEmploymentRepository.findByCustomer(customer)).thenReturn(Optional.empty());
+        service.getCustomerDesignation(customer);
+    }
+
+    // ---------------- getPurpose ----------------
+    @Test(expected = RuntimeException.class)
+    public void testGetCustomerPurpose_NotFound_ShouldThrow() {
+        when(customerProfileExtraRepository.findByCustomer(customer)).thenReturn(Optional.empty());
+        service.getCustomerPurpose(customer);
+    }
+
+    // ---------------- getPermanentAddress ----------------
+    @Test(expected = ResourceNotFoundException.class)
+    public void testGetPermanentAddress_AddressTypeNotFound() {
+        when(addressTypeRepository.findByAddressTypeNameAndIsDelFalse(AddressTypes.PERMANENT.name()))
+                .thenReturn(Optional.empty());
+        service.getPermanentAddress(customer);
+    }
+
+    @Test(expected = ResourceNotFoundException.class)
+    public void testGetPermanentAddress_NoAddressFound() {
+        when(addressTypeRepository.findByAddressTypeNameAndIsDelFalse(AddressTypes.PERMANENT.name()))
+                .thenReturn(Optional.of(new AddressType()));
+        when(customerAddressRepository.findByCustomerAndAddressTypeAndIsActiveTrueAndIsDelFalse(any(), any()))
+                .thenReturn(Collections.emptyList());
+        service.getPermanentAddress(customer);
+    }
+
+    // ---------------- getBranchPlace ----------------
+    @Test(expected = ResourceNotFoundException.class)
+    public void testGetBranchPlaceByForm60Identity_NotFound() {
+        when(customerForm60Repository.findByIdentity(form60Identity)).thenReturn(Optional.empty());
+        service.getBranchPlaceByForm60Identity(form60Identity);
     }
 
     @Test
-    void getForm60ByIdentity_customerNotFound_throws() {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.empty());
-        assertThrows(BusinessException.class, () -> service.getForm60ByIdentity(customerId, form60Id));
-    }
-
-    @Test
-    void getForm60ByIdentity_form60NotFound_throws() {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.empty());
-        assertThrows(BusinessException.class, () -> service.getForm60ByIdentity(customerId, form60Id));
-    }
-
-    @Test
-    void generateForm60PreviewPdf_success() throws Exception {
-        CustomerForm60ResponseDto dto = new CustomerForm60ResponseDto();
-        CustomerAddressDetailDto addressDto = new CustomerAddressDetailDto();
-        CustomerPurposeResponseDto purposeDto = new CustomerPurposeResponseDto();
-        CustomerDesignationResponseDto designationDto = new CustomerDesignationResponseDto();
+    public void testGetBranchPlaceByForm60Identity_Success() {
         Branches branch = new Branches();
-        branch.setPlaceName("TestPlace");
+        branch.setBranchId(10);
         form60.setBranchId(branch);
 
-        when(customerRepository.findByIdentityAndIsDelFalse(customerId)).thenReturn(Optional.of(customer));
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.of(form60));
+        when(customerForm60Repository.findByIdentity(form60Identity)).thenReturn(Optional.of(form60));
+
+        String result = service.getBranchPlaceByForm60Identity(form60Identity);
+        assertNotNull(result);
+        assertEquals("Kakkanad", result);
+    }
+
+    // ---------------- uploadSignedForm60 ----------------
+    @Test(expected = BusinessException.class)
+    public void testUploadSignedForm60_EmptyFile_ShouldThrow() {
+        MultipartFile file = new MockMultipartFile("file", new byte[0]);
+        service.uploadSignedForm60(customerIdentity, form60Identity, file);
+    }
+
+    @Test(expected = ResourceNotFoundException.class)
+    public void testUploadSignedForm60_CustomerNotFound_ShouldThrow() {
+        MultipartFile file = new MockMultipartFile("file", "f60.pdf", "application/pdf", "data".getBytes());
+        when(customerRepository.findByIdentityAndIsDelFalse(customerIdentity)).thenReturn(Optional.empty());
+        service.uploadSignedForm60(customerIdentity, form60Identity, file);
+    }
+
+    @Test(expected = ResourceNotFoundException.class)
+    public void testUploadSignedForm60_Form60NotFound_ShouldThrow() {
+        MultipartFile file = new MockMultipartFile("file", "f60.pdf", "application/pdf", "data".getBytes());
+        when(customerRepository.findByIdentityAndIsDelFalse(customerIdentity)).thenReturn(Optional.of(customer));
+        when(customerForm60Repository.findByIdentity(form60Identity)).thenReturn(Optional.empty());
+        service.uploadSignedForm60(customerIdentity, form60Identity, file);
+    }
+
+    @Test(expected = BusinessException.class)
+    public void testUploadSignedForm60_InvalidExtension_ShouldThrow() {
+        MultipartFile file = new MockMultipartFile("file", "f60.txt", "text/plain", "bad".getBytes());
+        when(customerRepository.findByIdentityAndIsDelFalse(customerIdentity)).thenReturn(Optional.of(customer));
+        when(customerForm60Repository.findByIdentity(form60Identity)).thenReturn(Optional.of(form60));
+        service.uploadSignedForm60(customerIdentity, form60Identity, file);
+    }
+
+    @Test
+    public void testUploadSignedForm60_Success() {
+        MultipartFile file = new MockMultipartFile("file", "f60.pdf", "application/pdf", "data".getBytes());
+        when(customerRepository.findByIdentityAndIsDelFalse(customerIdentity)).thenReturn(Optional.of(customer));
+        when(customerForm60Repository.findByIdentity(form60Identity)).thenReturn(Optional.of(form60));
+
+        Form60UploadResponseDto response = service.uploadSignedForm60(customerIdentity, form60Identity, file);
+
+        assertNotNull(response);
+        assertEquals(form60Identity, response.getForm60Identity());
+    }
+
+    // ---------------- generateForm60PreviewPdf ----------------
+    @Test
+    public void testGenerateForm60PreviewPdf_Success() throws Exception {
+        CustomerForm60ResponseDto dto = new CustomerForm60ResponseDto();
+        dto.setBranchId(1);
+
+        when(customerRepository.findByIdentityAndIsDelFalse(customerIdentity)).thenReturn(Optional.of(customer));
+        when(customerForm60Repository.findByIdentity(form60Identity)).thenReturn(Optional.of(form60));
         when(form60Mapper.toResponseDto(form60)).thenReturn(dto);
 
         when(addressTypeRepository.findByAddressTypeNameAndIsDelFalse(AddressTypes.PERMANENT.name()))
                 .thenReturn(Optional.of(new AddressType()));
         when(customerAddressRepository.findByCustomerAndAddressTypeAndIsActiveTrueAndIsDelFalse(any(), any()))
                 .thenReturn(Collections.singletonList(new CustomerAddress()));
-        when(customerAddressMapper.mapToCustomerAddressDetailDto(any(), any())).thenReturn(addressDto);
+        when(customerAddressMapper.mapToCustomerAddressDetailDto(any(), any())).thenReturn(new CustomerAddressDetailDto());
 
-        CustomerProfileExtra extra = new CustomerProfileExtra();
+        CustomerProfileExtra profileExtra = new CustomerProfileExtra();
+        profileExtra.setCustomer(customer);
         Purpose purpose = new Purpose();
         purpose.setPurposeId(1);
-        purpose.setName("Loan");
-        purpose.setCode("P001");
-        extra.setPurposeId(purpose);
-        when(customerProfileExtraRepository.findByCustomer(customer)).thenReturn(Optional.of(extra));
+        purpose.setCode("CODE");
+        purpose.setName("NAME");
+        profileExtra.setPurposeId(purpose);
+
+        when(customerProfileExtraRepository.findByCustomer(customer)).thenReturn(Optional.of(profileExtra));
 
         CustomerEmployment employment = new CustomerEmployment();
-        Designations desig = new Designations();
-        desig.setDesignationId(1);
-        desig.setName("Manager");
-        desig.setCode("D1");
-        employment.setDesignationId(desig);
+        Designations designation = new Designations();
+        designation.setDesignationId(1);
+        designation.setCode("CODE");
+        designation.setName("NAME");
+        employment.setDesignationId(designation);
+
         when(customerEmploymentRepository.findByCustomer(customer)).thenReturn(Optional.of(employment));
+        when(branchesRepository.findByBranchId(1)).thenReturn(Optional.of(new Branches()));
 
-        Map<String, Object> jasperParams = new HashMap<>();
-        jasperParams.put("k", "v");
-        when(jasperForm60Mapper.form60ToJasperDto(dto, customer, addressDto, purposeDto, designationDto, "TestPlace"))
-                .thenReturn(jasperParams);
-
-        when(reportGenerator.generate(eq(ReportName.FORM60), any(), isNull(), eq(OutputFormat.PDF)))
+        when(jasperForm60Mapper.form60ToJasperDto(any(), any(), any(), any(), any(), any())).thenReturn(new HashMap<>());
+        when(reportGenerator.generate(eq(ReportName.FORM60), any(), any(), eq(OutputFormat.PDF)))
                 .thenReturn(new byte[]{1, 2, 3});
 
-        when(jasperForm60Mapper.form60ToJasperDto(any(), any(), any(), any(), any(), any()))
-                .thenReturn(jasperParams);
+        byte[] result = service.generateForm60PreviewPdf(customerIdentity, form60Identity);
 
-        byte[] out = service.generateForm60PreviewPdf(customerId, form60Id);
-        assertNotNull(out);
-        assertEquals(3, out.length);
+        assertNotNull(result);
+        assertEquals(3, result.length);
     }
 
-    @Test
-    void generateForm60PreviewPdf_customerNotFound_throws() {
-        when(customerRepository.findByIdentityAndIsDelFalse(customerId)).thenReturn(Optional.empty());
-        assertThrows(ResourceNotFoundException.class, () -> service.generateForm60PreviewPdf(customerId, form60Id));
+    @Test(expected = ResourceNotFoundException.class)
+    public void testGenerateForm60PreviewPdf_CustomerNotFound() throws Exception {
+        when(customerRepository.findByIdentityAndIsDelFalse(customerIdentity)).thenReturn(Optional.empty());
+        service.generateForm60PreviewPdf(customerIdentity, form60Identity);
     }
 
-    private Optional<CustomerEmployment> customerEmployment_repository_stub(CustomerEmploymentRepository repo, Customer c) {
-        return Optional.ofNullable(null);
+    @Test(expected = ResourceNotFoundException.class)
+    public void testGenerateForm60PreviewPdf_FormNotFound() throws Exception {
+        when(customerRepository.findByIdentityAndIsDelFalse(customerIdentity)).thenReturn(Optional.of(customer));
+        when(customerForm60Repository.findByIdentity(form60Identity)).thenReturn(Optional.empty());
+        service.generateForm60PreviewPdf(customerIdentity, form60Identity);
     }
 
-    @Test
-    void getCustomerDesignation_success() {
-        CustomerEmployment employment = new CustomerEmployment();
-        Designations desig = new Designations();
-        desig.setDesignationId(10);
-        desig.setCode("D10");
-        desig.setName("Lead");
-        employment.setDesignationId(desig);
+    // updateForm60 validation failures
+    @Test(expected = BusinessException.class)
+    public void testUpdateForm60_InvalidAmount_ShouldThrow() {
+        CustomerForm60RequestDto request = new CustomerForm60RequestDto();
+        request.setTransactionAmount(BigDecimal.valueOf(-50));
+        request.setTransactionDate(LocalDate.now());
+        request.setCreatedBy(1);
 
-        when(customerEmploymentRepository.findByCustomer(customer)).thenReturn(Optional.of(employment));
+        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
+        when(customerForm60Repository.findByIdentity(form60Identity)).thenReturn(Optional.of(form60));
 
-        CustomerDesignationResponseDto dto = service.getCustomerDesignation(customer);
-        assertNotNull(dto);
-        assertEquals("Lead", dto.getName());
+        service.updateForm60(customerIdentity, form60Identity, request);
     }
 
-    @Test
-    void getCustomerDesignation_notFound_throws() {
-        when(customerEmploymentRepository.findByCustomer(customer)).thenReturn(Optional.empty());
-        assertThrows(RuntimeException.class, () -> service.getCustomerDesignation(customer));
+    @Test(expected = BusinessException.class)
+    public void testUpdateForm60_MissingCreatedBy_ShouldThrow() {
+        CustomerForm60RequestDto request = new CustomerForm60RequestDto();
+        request.setTransactionAmount(BigDecimal.valueOf(500));
+        request.setTransactionDate(LocalDate.now());
+        request.setCreatedBy(null);
+
+        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
+        when(customerForm60Repository.findByIdentity(form60Identity)).thenReturn(Optional.of(form60));
+
+        service.updateForm60(customerIdentity, form60Identity, request);
     }
 
-    @Test
-    void getPermanentAddress_success() {
-        AddressType t = new AddressType();
-        CustomerAddress address = new CustomerAddress();
-        address.setIdentity(UUID.randomUUID());
-        address.setDoorNumber("12A");
-        when(addressTypeRepository.findByAddressTypeNameAndIsDelFalse(AddressTypes.PERMANENT.name()))
-                .thenReturn(Optional.of(t));
-        when(customerAddressRepository.findByCustomerAndAddressTypeAndIsActiveTrueAndIsDelFalse(customer, t))
-                .thenReturn(Collections.singletonList(address));
-        when(customerAddressMapper.mapToCustomerAddressDetailDto(customer, address)).thenReturn(new CustomerAddressDetailDto());
-
-        CustomerAddressDetailDto dto = service.getPermanentAddress(customer);
-        assertNotNull(dto);
+    // getForm60ByIdentity - customer not found
+    @Test(expected = ResourceNotFoundException.class)
+    public void testGetForm60ById_CustomerNotFound_ShouldThrow() {
+        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.empty());
+        service.getForm60ByIdentity(customerIdentity, form60.getIdentity());
     }
 
-    @Test
-    void getPermanentAddress_addressTypeMissing_throws() {
+    // getBranchPlaceByForm60Identity - branch is null
+    @Test(expected = ResourceNotFoundException.class)
+    public void testGetBranchPlaceByForm60Identity_BranchNull_ShouldThrow() {
+        form60.setBranchId(null);
+        when(customerForm60Repository.findByIdentity(form60Identity)).thenReturn(Optional.of(form60));
+        service.getBranchPlaceByForm60Identity(form60Identity);
+    }
+
+    // uploadSignedForm60 - wrong content type but pdf extension
+    @Test(expected = BusinessException.class)
+    public void testUploadSignedForm60_WrongMimeType_ShouldThrow() {
+        MultipartFile file = new MockMultipartFile("file", "f60.pdf", "text/plain", "data".getBytes());
+        when(customerRepository.findByIdentityAndIsDelFalse(customerIdentity)).thenReturn(Optional.of(customer));
+        when(customerForm60Repository.findByIdentity(form60Identity)).thenReturn(Optional.of(form60));
+        service.uploadSignedForm60(customerIdentity, form60Identity, file);
+    }
+
+    // generateForm60PreviewPdf - permanent address type missing
+    @Test(expected = ResourceNotFoundException.class)
+    public void testGenerateForm60PreviewPdf_AddressTypeMissing_ShouldThrow() throws Exception {
+        when(customerRepository.findByIdentityAndIsDelFalse(customerIdentity)).thenReturn(Optional.of(customer));
+        when(customerForm60Repository.findByIdentity(form60Identity)).thenReturn(Optional.of(form60));
+        when(form60Mapper.toResponseDto(form60)).thenReturn(new CustomerForm60ResponseDto());
+
         when(addressTypeRepository.findByAddressTypeNameAndIsDelFalse(AddressTypes.PERMANENT.name()))
                 .thenReturn(Optional.empty());
-        assertThrows(ResourceNotFoundException.class, () -> service.getPermanentAddress(customer));
+
+        service.generateForm60PreviewPdf(customerIdentity, form60Identity);
     }
 
-    @Test
-    void getCustomerPurpose_success() {
+    @Test(expected = BusinessException.class)
+    public void testSaveForm60_BranchNotFound_ShouldThrow() {
+        CustomerForm60RequestDto request = new CustomerForm60RequestDto();
+        request.setTransactionAmount(BigDecimal.valueOf(100));
+        request.setTransactionDate(LocalDate.now());
+        request.setCreatedBy(1);
+
+        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
+        when(branchesRepository.findByIdentity(any())).thenReturn(Optional.empty());
+
+        service.saveForm60(request, customerIdentity);
+    }
+
+    @Test(expected = BusinessException.class)
+    public void testSaveForm60_DataIntegrityViolation_ShouldThrow() {
+        CustomerForm60RequestDto request = new CustomerForm60RequestDto();
+        request.setTransactionAmount(BigDecimal.valueOf(100));
+        request.setTransactionDate(LocalDate.now());
+        request.setCreatedBy(1);
+
+        when(customerRepository.findByIdentity(customerIdentity)).thenReturn(Optional.of(customer));
+        when(branchesRepository.findByIdentity(any())).thenReturn(Optional.of(new Branches()));
+        when(form60Mapper.toEntity(eq(request), eq(customer), any(), any(), any())).thenReturn(form60);
+        when(customerForm60Repository.save(any())).thenThrow(new org.springframework.dao.DataIntegrityViolationException("duplicate"));
+
+        service.saveForm60(request, customerIdentity);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testGetCustomerDesignation_NoDesignation_ShouldThrow() {
+        CustomerEmployment employment = new CustomerEmployment();
+        employment.setDesignationId(null);
+        when(customerEmploymentRepository.findByCustomer(customer)).thenReturn(Optional.of(employment));
+        service.getCustomerDesignation(customer);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testGetCustomerPurpose_PurposeNull_ShouldThrow() {
         CustomerProfileExtra extra = new CustomerProfileExtra();
-        Purpose p = new Purpose();
-        p.setPurposeId(5);
-        p.setName("Gold Loan");
-        p.setCode("GOLD");
-        extra.setPurposeId(p);
+        extra.setPurposeId(null);
         when(customerProfileExtraRepository.findByCustomer(customer)).thenReturn(Optional.of(extra));
-
-        CustomerPurposeResponseDto dto = service.getCustomerPurpose(customer);
-        assertNotNull(dto);
-        assertEquals("Gold Loan", dto.getName());
+        service.getCustomerPurpose(customer);
     }
 
-    @Test
-    void getCustomerPurpose_notFound_throws() {
-        when(customerProfileExtraRepository.findByCustomer(customer)).thenReturn(Optional.empty());
-        assertThrows(RuntimeException.class, () -> service.getCustomerPurpose(customer));
+    @Test(expected = BusinessException.class)
+    public void testGenerateForm60PreviewPdf_ReportGeneratorFails_ShouldThrow() throws Exception {
+        CustomerForm60ResponseDto dto = new CustomerForm60ResponseDto();
+        dto.setBranchId(1);
+
+        when(customerRepository.findByIdentityAndIsDelFalse(customerIdentity)).thenReturn(Optional.of(customer));
+        when(customerForm60Repository.findByIdentity(form60Identity)).thenReturn(Optional.of(form60));
+        when(form60Mapper.toResponseDto(form60)).thenReturn(dto);
+        when(addressTypeRepository.findByAddressTypeNameAndIsDelFalse(AddressTypes.PERMANENT.name()))
+                .thenReturn(Optional.of(new AddressType()));
+        when(customerAddressRepository.findByCustomerAndAddressTypeAndIsActiveTrueAndIsDelFalse(any(), any()))
+                .thenReturn(Collections.singletonList(new CustomerAddress()));
+        when(customerAddressMapper.mapToCustomerAddressDetailDto(any(), any())).thenReturn(new CustomerAddressDetailDto());
+        when(customerProfileExtraRepository.findByCustomer(customer)).thenReturn(Optional.of(new CustomerProfileExtra()));
+        when(customerEmploymentRepository.findByCustomer(customer)).thenReturn(Optional.of(new CustomerEmployment()));
+        when(branchesRepository.findByBranchId(1)).thenReturn(Optional.of(new Branches()));
+
+        when(jasperForm60Mapper.form60ToJasperDto(any(), any(), any(), any(), any(), any())).thenReturn(new HashMap<>());
+        when(reportGenerator.generate(eq(ReportName.FORM60), any(), any(), eq(OutputFormat.PDF)))
+                .thenThrow(new RuntimeException("report fail"));
+
+        service.generateForm60PreviewPdf(customerIdentity, form60Identity);
     }
 
-    @Test
-    void getBranchPlaceByForm60Identity_success() {
-        Branches b = new Branches();
-        b.setPlaceName("Ernakulam");
-        form60.setBranchId(b);
-        when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.of(form60));
-        String place = service.getBranchPlaceByForm60Identity(form60Id);
-        assertEquals("Ernakulam", place);
-    }
 
-    @Test
-    void getBranchPlaceByForm60Identity_notFound_throws() {
-        when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.empty());
-        assertThrows(ResourceNotFoundException.class, () -> service.getBranchPlaceByForm60Identity(form60Id));
-    }
-
-    @Test
-    void uploadSignedForm60_success() {
-        Form60UploadDto uploadDto = new Form60UploadDto();
-        uploadDto.setDocRefId("PDF-REF-1");
-        uploadDto.setFilePath("/tmp/pdf1.pdf");
-
-        when(customerRepository.findByIdentityAndIsDelFalse(customerId)).thenReturn(Optional.of(customer));
-        when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.of(form60));
-        when(customerForm60Repository.save(any())).thenReturn(form60);
-
-        Form60UploadResponseDto resp = service.uploadSignedForm60(customerId, form60Id, uploadDto);
-        assertNotNull(resp);
-        assertEquals(form60Id, resp.getForm60Identity());
-        assertEquals(form60.getFilePath(), resp.getFilePath());
-    }
-
-    @Test
-    void uploadSignedForm60_customerNotFound_throws() {
-        when(customerRepository.findByIdentityAndIsDelFalse(customerId)).thenReturn(Optional.empty());
-        assertThrows(ResourceNotFoundException.class, () -> service.uploadSignedForm60(customerId, form60Id, new Form60UploadDto()));
-    }
-
-    @Test
-    void uploadSignedForm60_form60NotFound_throws() {
-        when(customerRepository.findByIdentityAndIsDelFalse(customerId)).thenReturn(Optional.of(customer));
-        when(customerForm60Repository.findByIdentity(form60Id)).thenReturn(Optional.empty());
-        assertThrows(ResourceNotFoundException.class, () -> service.uploadSignedForm60(customerId, form60Id, new Form60UploadDto()));
-    }
 }

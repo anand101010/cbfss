@@ -76,8 +76,8 @@ public class CustomerAdditionalInfoService {
                 .orElseThrow(() -> new BusinessException(CommonConstants.CUSTOMER_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
 
         try {
-            CustomerEmployment employment = employmentRepository.findByCustomer(customer)
-                    .orElseGet(CustomerEmployment::new);
+
+            CustomerEmployment employment = employmentRepository.findByCustomer(customer).orElseGet(CustomerEmployment::new);
             customerAdditionalInfoMapper.createEmployment(employment, dto.getAdditional().getEmployment(), customer);
             employment.setOccupationId(occupationRepository.findByIdentity(dto.getAdditional().getEmployment().getOccupationId())
                     .orElseThrow(() -> new BusinessException(CommonConstants.OCCUPATION_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
@@ -88,8 +88,7 @@ public class CustomerAdditionalInfoService {
             employmentRepository.save(employment);
 
 
-            CustomerReferral referral = customerReferralRepository.findByCustomer(customer)
-                    .orElseGet(CustomerReferral::new);
+            CustomerReferral referral = customerReferralRepository.findByCustomer(customer).orElseGet(CustomerReferral::new);
             customerAdditionalInfoMapper.createReferral(referral, dto.getAdditional().getReferrals(), customer);
             referral.setReferralSources(referralRepository.findByIdentity(dto.getAdditional().getReferrals().getReferralSourceId())
                     .orElseThrow(() -> new BusinessException(CommonConstants.REFERRAL_SOURCE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
@@ -97,8 +96,8 @@ public class CustomerAdditionalInfoService {
                     .orElseThrow(() -> new BusinessException(CommonConstants.CANVASSED_TYPE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
             customerReferralRepository.save(referral);
 
-            CustomerProfileExtra profileExtra = profileExtraRepository.findByCustomer(customer)
-                    .orElseGet(CustomerProfileExtra::new);
+
+            CustomerProfileExtra profileExtra = profileExtraRepository.findByCustomer(customer).orElseGet(CustomerProfileExtra::new);
             customerAdditionalInfoMapper.createProfileExtra(profileExtra, dto.getAdditional().getProfileExtra(), customer);
             profileExtra.setEducationLevelId(educationLevelsRepository.findByIdentity(dto.getAdditional().getProfileExtra().getEducationLevelId())
                     .orElseThrow(() -> new BusinessException(CommonConstants.EDUCATION_LEVEL_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
@@ -106,21 +105,15 @@ public class CustomerAdditionalInfoService {
                     .orElseThrow(() -> new BusinessException(CommonConstants.PURPOSE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
             profileExtraRepository.save(profileExtra);
 
-            CustomerAsset asset = new CustomerAsset();
-            if (Boolean.TRUE.equals(dto.getAdditional().getCustomerAsset().getOwnsAsset())) {
-                log.info("Customer owns assets — saving asset info");
 
-                asset = assetRepository.findByCustomer(customer)
-                        .orElseGet(CustomerAsset::new);
-                customerAdditionalInfoMapper.createAsset(asset, dto.getAdditional().getCustomerAsset(), customer);
-
+            CustomerAsset asset = assetRepository.findByCustomer(customer).orElseGet(CustomerAsset::new);
+            customerAdditionalInfoMapper.createAsset(asset, dto.getAdditional().getCustomerAsset(), customer);
+            if(dto.getAdditional().getCustomerAsset().getOwnsAsset().equals(Boolean.TRUE)) {
                 asset.setAssetTypeId(assetTypesRepository.findByIdentity(dto.getAdditional().getCustomerAsset().getAssetTypeId())
                         .orElseThrow(() -> new BusinessException(CommonConstants.ASSET_TYPE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
-
-                assetRepository.save(asset);
-            } else {
-                log.info("Customer does not own any assets — skipping asset save");
             }
+            assetRepository.save(asset);
+
 
 
             Customer updatedCustomer = customerAdditionalInfoMapper.updateCustomerFromAdditionalInfo(customer, dto.getAdditional().getCustomer());
@@ -137,6 +130,7 @@ public class CustomerAdditionalInfoService {
             updatedCustomer.setCategoryId(customerCategoryRepository.findByIdentity(dto.getAdditional().getCustomer().getCategoryId())
                     .orElseThrow(() -> new BusinessException(CommonConstants.CATEGORY_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND)));
             customerRepository.save(updatedCustomer);
+
 
             List<CustomerAdditionalReferenceValue> customerAdditionalReferenceValues = new ArrayList<>();
             List<AdditionalReferenceValueDto> referenceValueDtos = dto.getAdditional().getAdditionalReferenceValueDto();
@@ -162,7 +156,7 @@ public class CustomerAdditionalInfoService {
             }
 
             log.info("Successfully saved additional info for customer: {}", identity);
-            return customerAdditionalInfoMapper.buildResponseDto(customer, employment, referral, profileExtra,asset, customerAdditionalReferenceValues);
+            return customerAdditionalInfoMapper.buildResponseDto(customer, employment, referral, profileExtra, asset, customerAdditionalReferenceValues);
 
         } catch (DataIntegrityViolationException e) {
             log.error("Constraint violation while saving additional info for customer: {} DTO: {}", identity, dto, e);
@@ -172,7 +166,6 @@ public class CustomerAdditionalInfoService {
             throw new BusinessException(e.getMessage(), ErrorCodes.VALIDATION_FAILED, e);
         }
     }
-
 
     /**
      * Fetch all additional information for a given customer.

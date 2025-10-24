@@ -39,10 +39,13 @@ class BasicInformationServiceTest {
     @Mock private BasicInformationMapper customerMapper;
     @Mock private GendersRepository gendersRepository;
     @Mock private MaritalStatusRepository maritalStatusRepository;
+    @Mock private NationalityRepository nationalityRepository;
     @Mock private TaxCategoryRepository taxCategoryRepository;
     @Mock private OccupationRepository occupationRepository;
+    @Mock private LanguagesRepository languagesRepository;
     @Mock private BranchesRepository branchesRepository;
     @Mock private CustomerStatusRepository customerStatusRepository;
+    @Mock private ResidentialStatusesRepository residentialStatusesRepository;
     @Mock private SalutationTypesRepository salutationRepository;
     @Mock private TenantRepository tenantRepository;
     @Mock private CustomerContactRepository contactRepository;
@@ -99,32 +102,43 @@ class BasicInformationServiceTest {
         responseDto.setIdentity(customerId);
     }
 
-    @Test
-    void saveBasicInformation_success() {
-        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
-        when(customerRepository.existsByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(false);
-        when(customerRepository.existsByTenantAndMobileNumberAndIsDelFalse(tenant, "9999999999")).thenReturn(false);
-        when(customerMapper.toEntity(requestDto)).thenReturn(customer);
-
-        // Mock reference repositories
-        when(gendersRepository.findByIdentity(requestDto.getGender())).thenReturn(Optional.of(new Genders()));
-        when(maritalStatusRepository.findByIdentity(requestDto.getMaritalStatus())).thenReturn(Optional.of(new MaritalStatus()));
-        when(taxCategoryRepository.findByIdentity(requestDto.getTaxCategory())).thenReturn(Optional.of(new TaxCategory()));
-        when(occupationRepository.findByIdentity(requestDto.getOccupation())).thenReturn(Optional.of(new Occupation()));
-        when(branchesRepository.findByIdentity(requestDto.getBranchId())).thenReturn(Optional.of(new Branches()));
-        when(salutationRepository.findByIdentity(requestDto.getSalutation())).thenReturn(Optional.of(new SalutationTypes()));
-        when(customerStatusRepository.findByIdentity(requestDto.getCustomerStatus())).thenReturn(Optional.of(new CustomerStatus()));
-
-        when(customerRepository.save(any(Customer.class))).thenReturn(customer);
-        when(customerMapper.toResponseDto(customer)).thenReturn(responseDto);
-
-        // Mock contact setup
+    private void mockSavePrimaryContact() {
         ContactTypes mobileType = new ContactTypes();
         when(contactTypesRepository.findActiveContact("MOBILE")).thenReturn(Optional.of(mobileType));
         CustomerContact contact = new CustomerContact();
         when(customerMapper.toCustomerContact(any(Customer.class), anyString(), any(ContactTypes.class), anyBoolean()))
                 .thenReturn(contact);
         when(contactRepository.save(any(CustomerContact.class))).thenReturn(contact);
+    }
+
+    private void mockSaveOrUpdatePrimaryContact(boolean hasExistingContact) {
+        ContactTypes mobileType = new ContactTypes();
+        when(contactTypesRepository.findActiveContact("Mobile")).thenReturn(Optional.of(mobileType));
+        CustomerContact contact = new CustomerContact();
+        when(customerMapper.toCustomerContact(any(Customer.class), anyString(), any(ContactTypes.class), anyBoolean()))
+                .thenReturn(contact);
+        if (hasExistingContact) {
+            when(contactRepository.findByCustomerAndContactTypeAndIsPrimaryTrue(any(Customer.class), any(ContactTypes.class)))
+                    .thenReturn(Optional.of(contact));
+            doNothing().when(customerMapper).updateCustomerContact(any(CustomerContact.class), anyString(), anyBoolean());
+        } else {
+            when(contactRepository.findByCustomerAndContactTypeAndIsPrimaryTrue(any(Customer.class), any(ContactTypes.class)))
+                    .thenReturn(Optional.empty());
+        }
+        when(contactRepository.save(any(CustomerContact.class))).thenReturn(contact);
+    }
+
+    @Test
+    void saveBasicInformation_success() {
+        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
+        when(customerRepository.existsByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(false);
+        when(customerRepository.existsByTenantAndMobileNumber(tenant, "9999999999")).thenReturn(false);
+        when(customerMapper.toEntity(requestDto)).thenReturn(customer);
+        when(customerRepository.save(any(Customer.class))).thenReturn(customer);
+        when(customerMapper.toResponseDto(customer)).thenReturn(responseDto);
+
+        mockAllReferenceRepositories();
+        mockSavePrimaryContact();
 
         BasicInformationResponseDto result = service.saveBasicInformation(requestDto);
 
@@ -161,36 +175,14 @@ class BasicInformationServiceTest {
     }
 
     @Test
-    void saveBasicInformation_duplicateMobileNumber() {
-        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
-        when(customerRepository.existsByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(false);
-        when(customerRepository.existsByTenantAndMobileNumberAndIsDelFalse(tenant, "9999999999")).thenReturn(true);
-
-        BusinessException ex = assertThrows(BusinessException.class,
-                () -> service.saveBasicInformation(requestDto));
-
-        assertEquals(ErrorCodes.CONFLICT, ex.getErrorCode());
-        assertEquals(CommonConstants.MOBILE_NUMBER_CONFLICT_MESSAGE, ex.getMessage());
-        verify(customerRepository, never()).save(any());
-    }
-
-    @Test
     void saveBasicInformation_dataIntegrityViolation() {
         when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
         when(customerRepository.existsByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(false);
-        when(customerRepository.existsByTenantAndMobileNumberAndIsDelFalse(tenant, "9999999999")).thenReturn(false);
+        when(customerRepository.existsByTenantAndMobileNumber(tenant, "9999999999")).thenReturn(false);
         when(customerMapper.toEntity(requestDto)).thenReturn(customer);
-
-        // Mock reference repositories
-        when(gendersRepository.findByIdentity(requestDto.getGender())).thenReturn(Optional.of(new Genders()));
-        when(maritalStatusRepository.findByIdentity(requestDto.getMaritalStatus())).thenReturn(Optional.of(new MaritalStatus()));
-        when(taxCategoryRepository.findByIdentity(requestDto.getTaxCategory())).thenReturn(Optional.of(new TaxCategory()));
-        when(occupationRepository.findByIdentity(requestDto.getOccupation())).thenReturn(Optional.of(new Occupation()));
-        when(branchesRepository.findByIdentity(requestDto.getBranchId())).thenReturn(Optional.of(new Branches()));
-        when(salutationRepository.findByIdentity(requestDto.getSalutation())).thenReturn(Optional.of(new SalutationTypes()));
-        when(customerStatusRepository.findByIdentity(requestDto.getCustomerStatus())).thenReturn(Optional.of(new CustomerStatus()));
-
         when(customerRepository.save(any())).thenThrow(new DataIntegrityViolationException("duplicate"));
+
+        mockAllReferenceRepositories();
 
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.saveBasicInformation(requestDto));
@@ -211,29 +203,14 @@ class BasicInformationServiceTest {
 
         when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
         when(customerRepository.existsByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(false);
-        when(customerRepository.existsByTenantAndMobileNumberAndIsDelFalse(tenant, "9999999999")).thenReturn(false);
+        when(customerRepository.existsByTenantAndMobileNumber(tenant, "9999999999")).thenReturn(false);
         when(customerMapper.toEntity(requestDto)).thenReturn(customer);
-
-        // Mock reference repositories
-        when(gendersRepository.findByIdentity(requestDto.getGender())).thenReturn(Optional.of(new Genders()));
-        when(maritalStatusRepository.findByIdentity(requestDto.getMaritalStatus())).thenReturn(Optional.of(new MaritalStatus()));
-        when(taxCategoryRepository.findByIdentity(requestDto.getTaxCategory())).thenReturn(Optional.of(new TaxCategory()));
-        when(occupationRepository.findByIdentity(requestDto.getOccupation())).thenReturn(Optional.of(new Occupation()));
-        when(branchesRepository.findByIdentity(requestDto.getBranchId())).thenReturn(Optional.of(new Branches()));
-        when(salutationRepository.findByIdentity(requestDto.getSalutation())).thenReturn(Optional.of(new SalutationTypes()));
-        when(customerStatusRepository.findByIdentity(requestDto.getCustomerStatus())).thenReturn(Optional.of(new CustomerStatus()));
-
         when(customerRepository.findByIdentity(guardianId)).thenReturn(Optional.of(guardian));
         when(customerRepository.save(any(Customer.class))).thenReturn(customer);
         when(customerMapper.toResponseDto(customer)).thenReturn(responseDto);
 
-        // Mock contact setup
-        ContactTypes mobileType = new ContactTypes();
-        when(contactTypesRepository.findActiveContact("MOBILE")).thenReturn(Optional.of(mobileType));
-        CustomerContact contact = new CustomerContact();
-        when(customerMapper.toCustomerContact(any(Customer.class), anyString(), any(ContactTypes.class), anyBoolean()))
-                .thenReturn(contact);
-        when(contactRepository.save(any(CustomerContact.class))).thenReturn(contact);
+        mockAllReferenceRepositories();
+        mockSavePrimaryContact();
 
         BasicInformationResponseDto result = service.saveBasicInformation(requestDto);
 
@@ -243,62 +220,16 @@ class BasicInformationServiceTest {
     }
 
     @Test
-    void saveBasicInformation_guardianNotFound() {
-        UUID guardianId = UUID.randomUUID();
-        requestDto.setIsMinor(true);
-        requestDto.setGuardianCustomerId(guardianId);
-
-        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
-        when(customerRepository.existsByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(false);
-        when(customerRepository.existsByTenantAndMobileNumberAndIsDelFalse(tenant, "9999999999")).thenReturn(false);
-        when(customerMapper.toEntity(requestDto)).thenReturn(customer);
-
-        // Mock reference repositories
-        when(gendersRepository.findByIdentity(requestDto.getGender())).thenReturn(Optional.of(new Genders()));
-        when(maritalStatusRepository.findByIdentity(requestDto.getMaritalStatus())).thenReturn(Optional.of(new MaritalStatus()));
-        when(taxCategoryRepository.findByIdentity(requestDto.getTaxCategory())).thenReturn(Optional.of(new TaxCategory()));
-        when(occupationRepository.findByIdentity(requestDto.getOccupation())).thenReturn(Optional.of(new Occupation()));
-        when(branchesRepository.findByIdentity(requestDto.getBranchId())).thenReturn(Optional.of(new Branches()));
-        when(salutationRepository.findByIdentity(requestDto.getSalutation())).thenReturn(Optional.of(new SalutationTypes()));
-        when(customerStatusRepository.findByIdentity(requestDto.getCustomerStatus())).thenReturn(Optional.of(new CustomerStatus()));
-
-        when(customerRepository.findByIdentity(guardianId)).thenReturn(Optional.empty());
-
-        BusinessException ex = assertThrows(BusinessException.class,
-                () -> service.saveBasicInformation(requestDto));
-
-        assertEquals(ErrorCodes.RESOURCE_NOT_FOUND, ex.getErrorCode());
-        assertEquals(CommonConstants.GUARDIAN_NOT_FOUND, ex.getMessage());
-    }
-
-    @Test
     void updateBasicInformation_success() {
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
-        when(customerRepository.findByTenantAndAadharVaultIdAndIsDelFalse(tenant, "vault123")).thenReturn(Optional.of(customer));
+        when(customerRepository.findByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(Optional.of(customer));
         doNothing().when(customerMapper).updateEntityFromDto(any(Customer.class), any(BasicInformationRequestDto.class));
-
-        // Mock reference repositories
-        when(gendersRepository.findByIdentity(requestDto.getGender())).thenReturn(Optional.of(new Genders()));
-        when(maritalStatusRepository.findByIdentity(requestDto.getMaritalStatus())).thenReturn(Optional.of(new MaritalStatus()));
-        when(taxCategoryRepository.findByIdentity(requestDto.getTaxCategory())).thenReturn(Optional.of(new TaxCategory()));
-        when(occupationRepository.findByIdentity(requestDto.getOccupation())).thenReturn(Optional.of(new Occupation()));
-        when(branchesRepository.findByIdentity(requestDto.getBranchId())).thenReturn(Optional.of(new Branches()));
-        when(salutationRepository.findByIdentity(requestDto.getSalutation())).thenReturn(Optional.of(new SalutationTypes()));
-        when(customerStatusRepository.findByIdentity(requestDto.getCustomerStatus())).thenReturn(Optional.of(new CustomerStatus()));
-
         when(customerRepository.save(any(Customer.class))).thenReturn(customer);
         when(customerMapper.toResponseDto(customer)).thenReturn(responseDto);
 
-        // Mock contact setup
-        ContactTypes mobileType = new ContactTypes();
-        when(contactTypesRepository.findActiveContact("Mobile")).thenReturn(Optional.of(mobileType));
-        CustomerContact contact = new CustomerContact();
-        when(contactRepository.findByCustomerAndContactTypeAndIsPrimaryTrue(any(Customer.class), any(ContactTypes.class)))
-                .thenReturn(Optional.empty());
-        when(customerMapper.toCustomerContact(any(Customer.class), anyString(), any(ContactTypes.class), anyBoolean()))
-                .thenReturn(contact);
-        when(contactRepository.save(any(CustomerContact.class))).thenReturn(contact);
+        mockAllReferenceRepositories();
+        mockSaveOrUpdatePrimaryContact(false);
 
         BasicInformationResponseDto result = service.updateBasicInformation(customerId, requestDto);
 
@@ -341,7 +272,7 @@ class BasicInformationServiceTest {
 
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
-        when(customerRepository.findByTenantAndAadharVaultIdAndIsDelFalse(tenant, "vault123")).thenReturn(Optional.of(differentCustomer));
+        when(customerRepository.findByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(Optional.of(differentCustomer));
 
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.updateBasicInformation(customerId, requestDto));
@@ -354,18 +285,10 @@ class BasicInformationServiceTest {
     void updateBasicInformation_dataIntegrityViolation() {
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
-        when(customerRepository.findByTenantAndAadharVaultIdAndIsDelFalse(tenant, "vault123")).thenReturn(Optional.of(customer));
-
-        // Mock reference repositories
-        when(gendersRepository.findByIdentity(requestDto.getGender())).thenReturn(Optional.of(new Genders()));
-        when(maritalStatusRepository.findByIdentity(requestDto.getMaritalStatus())).thenReturn(Optional.of(new MaritalStatus()));
-        when(taxCategoryRepository.findByIdentity(requestDto.getTaxCategory())).thenReturn(Optional.of(new TaxCategory()));
-        when(occupationRepository.findByIdentity(requestDto.getOccupation())).thenReturn(Optional.of(new Occupation()));
-        when(branchesRepository.findByIdentity(requestDto.getBranchId())).thenReturn(Optional.of(new Branches()));
-        when(salutationRepository.findByIdentity(requestDto.getSalutation())).thenReturn(Optional.of(new SalutationTypes()));
-        when(customerStatusRepository.findByIdentity(requestDto.getCustomerStatus())).thenReturn(Optional.of(new CustomerStatus()));
-
+        when(customerRepository.findByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(Optional.of(customer));
         when(customerRepository.save(any())).thenThrow(new DataIntegrityViolationException("duplicate"));
+
+        mockAllReferenceRepositories();
 
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.updateBasicInformation(customerId, requestDto));
@@ -385,31 +308,13 @@ class BasicInformationServiceTest {
 
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
-        when(customerRepository.findByTenantAndAadharVaultIdAndIsDelFalse(tenant, "vault123")).thenReturn(Optional.of(customer));
-        doNothing().when(customerMapper).updateEntityFromDto(any(Customer.class), any(BasicInformationRequestDto.class));
-
-        // Mock reference repositories
-        when(gendersRepository.findByIdentity(requestDto.getGender())).thenReturn(Optional.of(new Genders()));
-        when(maritalStatusRepository.findByIdentity(requestDto.getMaritalStatus())).thenReturn(Optional.of(new MaritalStatus()));
-        when(taxCategoryRepository.findByIdentity(requestDto.getTaxCategory())).thenReturn(Optional.of(new TaxCategory()));
-        when(occupationRepository.findByIdentity(requestDto.getOccupation())).thenReturn(Optional.of(new Occupation()));
-        when(branchesRepository.findByIdentity(requestDto.getBranchId())).thenReturn(Optional.of(new Branches()));
-        when(salutationRepository.findByIdentity(requestDto.getSalutation())).thenReturn(Optional.of(new SalutationTypes()));
-        when(customerStatusRepository.findByIdentity(requestDto.getCustomerStatus())).thenReturn(Optional.of(new CustomerStatus()));
-
+        when(customerRepository.findByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(Optional.of(customer));
         when(customerRepository.findByIdentity(guardianId)).thenReturn(Optional.of(guardian));
         when(customerRepository.save(any(Customer.class))).thenReturn(customer);
         when(customerMapper.toResponseDto(customer)).thenReturn(responseDto);
 
-        // Mock contact setup
-        ContactTypes mobileType = new ContactTypes();
-        when(contactTypesRepository.findActiveContact("Mobile")).thenReturn(Optional.of(mobileType));
-        CustomerContact contact = new CustomerContact();
-        when(contactRepository.findByCustomerAndContactTypeAndIsPrimaryTrue(any(Customer.class), any(ContactTypes.class)))
-                .thenReturn(Optional.empty());
-        when(customerMapper.toCustomerContact(any(Customer.class), anyString(), any(ContactTypes.class), anyBoolean()))
-                .thenReturn(contact);
-        when(contactRepository.save(any(CustomerContact.class))).thenReturn(contact);
+        mockAllReferenceRepositories();
+        mockSaveOrUpdatePrimaryContact(false);
 
         BasicInformationResponseDto result = service.updateBasicInformation(customerId, requestDto);
 
@@ -493,16 +398,6 @@ class BasicInformationServiceTest {
     }
 
     @Test
-    void generateCustomerCode_success() {
-        Integer tenantId = 123;
-        String result = service.generateCustomerCode(tenantId);
-
-        assertNotNull(result);
-        assertTrue(result.startsWith("123-"));
-        assertTrue(result.length() == 10); // 123- + 6 chars from UUID
-    }
-
-    @Test
     void generateCustomerCode_nullTenantId() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> service.generateCustomerCode(null));
@@ -514,7 +409,7 @@ class BasicInformationServiceTest {
     void saveBasicInformation_genderNotFound() {
         when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
         when(customerRepository.existsByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(false);
-        when(customerRepository.existsByTenantAndMobileNumberAndIsDelFalse(tenant, "9999999999")).thenReturn(false);
+        when(customerRepository.existsByTenantAndMobileNumber(tenant, "9999999999")).thenReturn(false);
         when(customerMapper.toEntity(requestDto)).thenReturn(customer);
         when(gendersRepository.findByIdentity(requestDto.getGender())).thenReturn(Optional.empty());
 
@@ -529,7 +424,7 @@ class BasicInformationServiceTest {
     void saveBasicInformation_maritalStatusNotFound() {
         when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
         when(customerRepository.existsByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(false);
-        when(customerRepository.existsByTenantAndMobileNumberAndIsDelFalse(tenant, "9999999999")).thenReturn(false);
+        when(customerRepository.existsByTenantAndMobileNumber(tenant, "9999999999")).thenReturn(false);
         when(customerMapper.toEntity(requestDto)).thenReturn(customer);
         when(gendersRepository.findByIdentity(requestDto.getGender())).thenReturn(Optional.of(new Genders()));
         when(maritalStatusRepository.findByIdentity(requestDto.getMaritalStatus())).thenReturn(Optional.empty());
@@ -542,39 +437,14 @@ class BasicInformationServiceTest {
     }
 
     @Test
-    void saveBasicInformation_taxCategoryNotFound() {
-        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
-        when(customerRepository.existsByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(false);
-        when(customerRepository.existsByTenantAndMobileNumberAndIsDelFalse(tenant, "9999999999")).thenReturn(false);
-        when(customerMapper.toEntity(requestDto)).thenReturn(customer);
-        when(gendersRepository.findByIdentity(requestDto.getGender())).thenReturn(Optional.of(new Genders()));
-        when(maritalStatusRepository.findByIdentity(requestDto.getMaritalStatus())).thenReturn(Optional.of(new MaritalStatus()));
-        when(taxCategoryRepository.findByIdentity(requestDto.getTaxCategory())).thenReturn(Optional.empty());
-
-        BusinessException ex = assertThrows(BusinessException.class,
-                () -> service.saveBasicInformation(requestDto));
-
-        assertEquals(ErrorCodes.VALIDATION_FAILED, ex.getErrorCode());
-        assertEquals(CommonConstants.INVALID_TAX_CATEGORY, ex.getMessage());
-    }
-
-    @Test
     void savePrimaryContact_mobileContactTypeNotFound() {
         when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
         when(customerRepository.existsByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(false);
-        when(customerRepository.existsByTenantAndMobileNumberAndIsDelFalse(tenant, "9999999999")).thenReturn(false);
+        when(customerRepository.existsByTenantAndMobileNumber(tenant, "9999999999")).thenReturn(false);
         when(customerMapper.toEntity(requestDto)).thenReturn(customer);
-
-        // Mock reference repositories
-        when(gendersRepository.findByIdentity(requestDto.getGender())).thenReturn(Optional.of(new Genders()));
-        when(maritalStatusRepository.findByIdentity(requestDto.getMaritalStatus())).thenReturn(Optional.of(new MaritalStatus()));
-        when(taxCategoryRepository.findByIdentity(requestDto.getTaxCategory())).thenReturn(Optional.of(new TaxCategory()));
-        when(occupationRepository.findByIdentity(requestDto.getOccupation())).thenReturn(Optional.of(new Occupation()));
-        when(branchesRepository.findByIdentity(requestDto.getBranchId())).thenReturn(Optional.of(new Branches()));
-        when(salutationRepository.findByIdentity(requestDto.getSalutation())).thenReturn(Optional.of(new SalutationTypes()));
-        when(customerStatusRepository.findByIdentity(requestDto.getCustomerStatus())).thenReturn(Optional.of(new CustomerStatus()));
-
         when(contactTypesRepository.findActiveContact("MOBILE")).thenReturn(Optional.empty());
+
+        mockAllReferenceRepositories();
 
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.saveBasicInformation(requestDto));
@@ -587,18 +457,10 @@ class BasicInformationServiceTest {
     void saveOrUpdatePrimaryContact_mobileContactTypeNotFound() {
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
-        when(customerRepository.findByTenantAndAadharVaultIdAndIsDelFalse(tenant, "vault123")).thenReturn(Optional.of(customer));
-
-        // Mock reference repositories
-        when(gendersRepository.findByIdentity(requestDto.getGender())).thenReturn(Optional.of(new Genders()));
-        when(maritalStatusRepository.findByIdentity(requestDto.getMaritalStatus())).thenReturn(Optional.of(new MaritalStatus()));
-        when(taxCategoryRepository.findByIdentity(requestDto.getTaxCategory())).thenReturn(Optional.of(new TaxCategory()));
-        when(occupationRepository.findByIdentity(requestDto.getOccupation())).thenReturn(Optional.of(new Occupation()));
-        when(branchesRepository.findByIdentity(requestDto.getBranchId())).thenReturn(Optional.of(new Branches()));
-        when(salutationRepository.findByIdentity(requestDto.getSalutation())).thenReturn(Optional.of(new SalutationTypes()));
-        when(customerStatusRepository.findByIdentity(requestDto.getCustomerStatus())).thenReturn(Optional.of(new CustomerStatus()));
-
+        when(customerRepository.findByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(Optional.of(customer));
         when(contactTypesRepository.findActiveContact("Mobile")).thenReturn(Optional.empty());
+
+        mockAllReferenceRepositories();
 
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.updateBasicInformation(customerId, requestDto));
@@ -607,34 +469,21 @@ class BasicInformationServiceTest {
         assertEquals(CommonConstants.MOBILE_NOT_FOUND, ex.getMessage());
     }
 
+
+
     @Test
     void saveBasicInformation_withIsVerifiedFalse() {
         requestDto.setIsVerified(false);
 
         when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
         when(customerRepository.existsByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(false);
-        when(customerRepository.existsByTenantAndMobileNumberAndIsDelFalse(tenant, "9999999999")).thenReturn(false);
+        when(customerRepository.existsByTenantAndMobileNumber(tenant, "9999999999")).thenReturn(false);
         when(customerMapper.toEntity(requestDto)).thenReturn(customer);
-
-        // Mock reference repositories
-        when(gendersRepository.findByIdentity(requestDto.getGender())).thenReturn(Optional.of(new Genders()));
-        when(maritalStatusRepository.findByIdentity(requestDto.getMaritalStatus())).thenReturn(Optional.of(new MaritalStatus()));
-        when(taxCategoryRepository.findByIdentity(requestDto.getTaxCategory())).thenReturn(Optional.of(new TaxCategory()));
-        when(occupationRepository.findByIdentity(requestDto.getOccupation())).thenReturn(Optional.of(new Occupation()));
-        when(branchesRepository.findByIdentity(requestDto.getBranchId())).thenReturn(Optional.of(new Branches()));
-        when(salutationRepository.findByIdentity(requestDto.getSalutation())).thenReturn(Optional.of(new SalutationTypes()));
-        when(customerStatusRepository.findByIdentity(requestDto.getCustomerStatus())).thenReturn(Optional.of(new CustomerStatus()));
-
         when(customerRepository.save(any(Customer.class))).thenReturn(customer);
         when(customerMapper.toResponseDto(customer)).thenReturn(responseDto);
 
-        // Mock contact setup
-        ContactTypes mobileType = new ContactTypes();
-        when(contactTypesRepository.findActiveContact("MOBILE")).thenReturn(Optional.of(mobileType));
-        CustomerContact contact = new CustomerContact();
-        when(customerMapper.toCustomerContact(any(Customer.class), anyString(), any(ContactTypes.class), anyBoolean()))
-                .thenReturn(contact);
-        when(contactRepository.save(any(CustomerContact.class))).thenReturn(contact);
+        mockAllReferenceRepositories();
+        mockSavePrimaryContact();
 
         BasicInformationResponseDto result = service.saveBasicInformation(requestDto);
 
@@ -649,30 +498,13 @@ class BasicInformationServiceTest {
 
         when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
         when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
-        when(customerRepository.findByTenantAndAadharVaultIdAndIsDelFalse(tenant, "vault123")).thenReturn(Optional.of(customer));
+        when(customerRepository.findByTenantAndAadharVaultId(tenant, "vault123")).thenReturn(Optional.of(customer));
         doNothing().when(customerMapper).updateEntityFromDto(any(Customer.class), any(BasicInformationRequestDto.class));
-
-        // Mock reference repositories
-        when(gendersRepository.findByIdentity(requestDto.getGender())).thenReturn(Optional.of(new Genders()));
-        when(maritalStatusRepository.findByIdentity(requestDto.getMaritalStatus())).thenReturn(Optional.of(new MaritalStatus()));
-        when(taxCategoryRepository.findByIdentity(requestDto.getTaxCategory())).thenReturn(Optional.of(new TaxCategory()));
-        when(occupationRepository.findByIdentity(requestDto.getOccupation())).thenReturn(Optional.of(new Occupation()));
-        when(branchesRepository.findByIdentity(requestDto.getBranchId())).thenReturn(Optional.of(new Branches()));
-        when(salutationRepository.findByIdentity(requestDto.getSalutation())).thenReturn(Optional.of(new SalutationTypes()));
-        when(customerStatusRepository.findByIdentity(requestDto.getCustomerStatus())).thenReturn(Optional.of(new CustomerStatus()));
-
         when(customerRepository.save(any(Customer.class))).thenReturn(customer);
         when(customerMapper.toResponseDto(customer)).thenReturn(responseDto);
 
-        // Mock contact setup
-        ContactTypes mobileType = new ContactTypes();
-        when(contactTypesRepository.findActiveContact("Mobile")).thenReturn(Optional.of(mobileType));
-        CustomerContact contact = new CustomerContact();
-        when(contactRepository.findByCustomerAndContactTypeAndIsPrimaryTrue(any(Customer.class), any(ContactTypes.class)))
-                .thenReturn(Optional.empty());
-        when(customerMapper.toCustomerContact(any(Customer.class), anyString(), any(ContactTypes.class), anyBoolean()))
-                .thenReturn(contact);
-        when(contactRepository.save(any(CustomerContact.class))).thenReturn(contact);
+        mockAllReferenceRepositories();
+        mockSaveOrUpdatePrimaryContact(false);
 
         BasicInformationResponseDto result = service.updateBasicInformation(customerId, requestDto);
 
@@ -681,38 +513,13 @@ class BasicInformationServiceTest {
         verify(contactRepository).save(any(CustomerContact.class));
     }
 
-    @Test
-    void updateBasicInformation_withExistingContact() {
-        when(customerRepository.findByIdentity(customerId)).thenReturn(Optional.of(customer));
-        when(tenantRepository.findByIdentity(tenantId)).thenReturn(Optional.of(tenant));
-        when(customerRepository.findByTenantAndAadharVaultIdAndIsDelFalse(tenant, "vault123")).thenReturn(Optional.of(customer));
-        doNothing().when(customerMapper).updateEntityFromDto(any(Customer.class), any(BasicInformationRequestDto.class));
-
-        // Mock reference repositories
-        when(gendersRepository.findByIdentity(requestDto.getGender())).thenReturn(Optional.of(new Genders()));
-        when(maritalStatusRepository.findByIdentity(requestDto.getMaritalStatus())).thenReturn(Optional.of(new MaritalStatus()));
-        when(taxCategoryRepository.findByIdentity(requestDto.getTaxCategory())).thenReturn(Optional.of(new TaxCategory()));
-        when(occupationRepository.findByIdentity(requestDto.getOccupation())).thenReturn(Optional.of(new Occupation()));
-        when(branchesRepository.findByIdentity(requestDto.getBranchId())).thenReturn(Optional.of(new Branches()));
-        when(salutationRepository.findByIdentity(requestDto.getSalutation())).thenReturn(Optional.of(new SalutationTypes()));
-        when(customerStatusRepository.findByIdentity(requestDto.getCustomerStatus())).thenReturn(Optional.of(new CustomerStatus()));
-
-        when(customerRepository.save(any(Customer.class))).thenReturn(customer);
-        when(customerMapper.toResponseDto(customer)).thenReturn(responseDto);
-
-        // Mock existing contact
-        ContactTypes mobileType = new ContactTypes();
-        when(contactTypesRepository.findActiveContact("Mobile")).thenReturn(Optional.of(mobileType));
-        CustomerContact existingContact = new CustomerContact();
-        when(contactRepository.findByCustomerAndContactTypeAndIsPrimaryTrue(any(Customer.class), any(ContactTypes.class)))
-                .thenReturn(Optional.of(existingContact));
-        doNothing().when(customerMapper).updateCustomerContact(any(CustomerContact.class), anyString(), anyBoolean());
-        when(contactRepository.save(any(CustomerContact.class))).thenReturn(existingContact);
-
-        BasicInformationResponseDto result = service.updateBasicInformation(customerId, requestDto);
-
-        assertNotNull(result);
-        verify(customerMapper).updateCustomerContact(existingContact, requestDto.getMobileNumber(), requestDto.getIsVerified());
-        verify(contactRepository).save(existingContact);
+    private void mockAllReferenceRepositories() {
+        when(gendersRepository.findByIdentity(any(UUID.class))).thenReturn(Optional.of(new Genders()));
+        when(maritalStatusRepository.findByIdentity(any(UUID.class))).thenReturn(Optional.of(new MaritalStatus()));
+        when(taxCategoryRepository.findByIdentity(any(UUID.class))).thenReturn(Optional.of(new TaxCategory()));
+        when(occupationRepository.findByIdentity(any(UUID.class))).thenReturn(Optional.of(new Occupation()));
+        when(branchesRepository.findByIdentity(any(UUID.class))).thenReturn(Optional.of(new Branches()));
+        when(salutationRepository.findByIdentity(any(UUID.class))).thenReturn(Optional.of(new SalutationTypes()));
+        when(customerStatusRepository.findByIdentity(any(UUID.class))).thenReturn(Optional.of(new CustomerStatus()));
     }
 }

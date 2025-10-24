@@ -38,10 +38,10 @@ public class CustomerNotificationPreferenceService {
         log.info("Saving notification preference for customer [{}]", customerId);
 
         Customer customer = customerRepository.findByIdentity(customerId)
-                .orElseThrow(() -> new BusinessException(CommonConstants.CUSTOMER_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.RESOURCE_NOT_FOUND));
 
         if (notificationRepository.findByCustomer(customer).isPresent()) {
-            throw new BusinessException(CommonConstants.NOTIFICATION_PREFERENCE_ALREADY_EXIST, ErrorCodes.CONFLICT);
+            throw new BusinessException(CommonConstants.CONFLICT_MESSAGE, ErrorCodes.CONFLICT);
         }
 
         CustomerNotificationPreference entity = mapper.toEntity(dto, customer);
@@ -61,10 +61,10 @@ public class CustomerNotificationPreferenceService {
         log.info("Updating notification preference for customer [{}]", customerId);
 
         Customer customer = customerRepository.findByIdentity(customerId)
-                .orElseThrow(() -> new BusinessException(CommonConstants.CUSTOMER_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.RESOURCE_NOT_FOUND));
 
         CustomerNotificationPreference entity = notificationRepository.findByCustomer(customer)
-                .orElseThrow(() -> new BusinessException(CommonConstants.NOTIFICATION_PREFERENCE_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.RESOURCE_NOT_FOUND));
 
         mapper.updateEntityFromDto(entity, dto);
         CustomerNotificationPreference updated = notificationRepository.save(entity);
@@ -84,7 +84,7 @@ public class CustomerNotificationPreferenceService {
         log.info("Fetching notification preferences for customer [{}]", customerId);
 
         Customer customer = customerRepository.findByIdentity(customerId)
-                .orElseThrow(() -> new BusinessException(CommonConstants.CUSTOMER_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.RESOURCE_NOT_FOUND));
 
         CustomerNotificationPreference entity = notificationRepository.findByCustomer(customer)
                 .orElseThrow(() -> new BusinessException(CommonConstants.NOT_FOUND_MESSAGE, ErrorCodes.RESOURCE_NOT_FOUND));
@@ -92,11 +92,6 @@ public class CustomerNotificationPreferenceService {
         return mapper.toResponseDto(entity);
     }
 
-    /**
-     * Soft delete Customers Notification Preference
-     * @param customerId
-     * @return
-     */
     @Transactional
     public CustomerNotificationPreferenceResponseDto deleteNotificationPreference(UUID customerId) {
         Customer customer = customerRepository.findByIdentity(customerId)

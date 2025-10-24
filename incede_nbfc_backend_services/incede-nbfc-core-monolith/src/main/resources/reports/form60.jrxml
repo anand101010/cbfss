@@ -10,11 +10,11 @@
     <property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
     <property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
     <property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
-    <style name="base" fontName="Arial Narrow" fontSize="9"/>
+    <style name="base" fontName="Helvetica" fontSize="9"/>
     <style name="tiny" style="base" fontSize="7"/>
     <style name="label" style="base" fontSize="9" isBold="true"/>
     <style name="labelSmall" style="base" fontSize="8" isBold="true"/>
-    <style name="heading" style="base" fontSize="11" isBold="true" isItalic="true" pdfFontName="Arial Narrow"/>
+    <style name="heading" style="base" fontSize="11" isBold="true" isItalic="true" pdfFontName="Helvetica-BoldOblique"/>
     <style name="subtitle" style="base" fontSize="9" isBold="true"/>
     <parameter name="firstName" class="java.lang.String"/>
     <parameter name="middleName" class="java.lang.String"/>
@@ -150,7 +150,7 @@
                     <property name="com.jaspersoft.studio.unit.width" value="px"/>
                 </reportElement>
                 <textElement textAlignment="Center">
-                    <font fontName="Arial Narrow" size="8" isBold="true"/>
+                    <font fontName="Calibri" size="8" isBold="true"/>
                 </textElement>
                 <text><![CDATA[Date of Birth/ Incorporation of declarant]]></text>
             </staticText>

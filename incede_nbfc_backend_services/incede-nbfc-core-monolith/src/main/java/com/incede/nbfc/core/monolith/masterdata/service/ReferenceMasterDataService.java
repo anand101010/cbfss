@@ -7,8 +7,6 @@ import com.incede.nbfc.core.monolith.masterdata.domain.entity.*;
 import com.incede.nbfc.core.monolith.masterdata.dto.*;
 import com.incede.nbfc.core.monolith.masterdata.mapper.*;
 import com.incede.nbfc.core.monolith.masterdata.repository.*;
-import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
-import com.incede.nbfc.core.monolith.tenant.repository.TenantRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +46,6 @@ public class ReferenceMasterDataService {
     private final StatesRepository statesRepository;
     private final DistrictRepository districtRepository;
     private final CitiesRepository citiesRepository;
-    private final TenantRepository tenantRepository;
 
     private final PincodeMapper pincodeMapper;
     private final StatesMapper statesMapper;
@@ -59,34 +56,14 @@ public class ReferenceMasterDataService {
     @Autowired
     private EntityManager entityManager;
 
-
-
-
-    /**
-     * find tenant from Tenant Identity
-     *
-     */
-    public Integer getTenantId(UUID tenantIdentity){
-        Tenant tenant = tenantRepository.findByIdentity(tenantIdentity).orElseThrow(
-                ()-> new BusinessException(CommonConstants.TENANT_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
-        return tenant.getTenantId();
-
-    }
-
     /**
      * Retrieves all active address p
      *
      */
     @Transactional(readOnly = true)
-    public List<AddressTypeView> getAllAddressTypes(UUID tenantIdentity) {
+    public List<AddressTypeView> getAllAddressTypes() {
 
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all active address by tenant Id={}",tenantId);
-
-        List<AddressTypeView> addressType = addressTypeRepository.findByIsDelFalseAndIsActiveTrueByTenantId(tenantId);
+        List<AddressTypeView> addressType = addressTypeRepository.findByIsDelFalseAndIsActiveTrue();
 
         if (addressType.isEmpty()) {
             log.warn("No address types found");
@@ -101,15 +78,9 @@ public class ReferenceMasterDataService {
      *
      */
     @Transactional(readOnly = true)
-    public List<AddressProofTypeView> getAllAddressProofTypes(UUID tenantIdentity) {
+    public List<AddressProofTypeView> getAllAddressProofTypes() {
 
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all active address proof Types by tenant Id={}",tenantId);
-
-        List<AddressProofTypeView> addressProofType = addressProofTypeRepository.findByIsDelFalseAndIsActiveTrueByTenantId(tenantId);
+        List<AddressProofTypeView> addressProofType = addressProofTypeRepository.findByIsDelFalseAndIsActiveTrue();
 
         if (addressProofType.isEmpty()) {
             log.warn("No Address proof types  found");
@@ -126,14 +97,9 @@ public class ReferenceMasterDataService {
      *
      */
     @Transactional(readOnly = true)
-    public List<ResidentialStatusesView> getAllResidentialStatuses(UUID tenantIdentity) {
+    public List<ResidentialStatusesView> getAllResidentialStatuses() {
 
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all active Residential statuses by tenant Id={}",tenantId);
-        List<ResidentialStatusesView> residentialStatuses = residentialStatusesRepository.findByIsActiveTrueByTenantId(tenantId);
+        List<ResidentialStatusesView> residentialStatuses = residentialStatusesRepository.findByIsActiveTrue();
         if (residentialStatuses.isEmpty()) {
             log.warn("No residential statuses found");
             return residentialStatuses;
@@ -147,14 +113,10 @@ public class ReferenceMasterDataService {
      *
      */
     @Transactional(readOnly = true)
-    public List<ContactTypesView> getAllContactTypes(UUID tenantIdentity) {
+    public List<ContactTypesView> getAllContactTypes() {
 
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all active contact Types by tenant Id={}",tenantId);
-        List<ContactTypesView> contactTypes = contactTypesRepository.findByIsDelFalseAndIsActiveTrueByTenantId(tenantId);
+        log.info("Fetching contact types from repository");
+        List<ContactTypesView> contactTypes = contactTypesRepository.findByIsDelFalseAndIsActiveTrue();
 
         if (contactTypes.isEmpty()) {
             log.warn("No contact types found");
@@ -190,6 +152,7 @@ public class ReferenceMasterDataService {
         return entities.stream()
                 .map(pincode -> {
                     PincodeDto dto = pincodeMapper.convertToDto(pincode);
+                    dto.setCityName(pincode.getCities().getCity());
                     dto.setStateName(pincode.getStates().getState());
                     dto.setDistrictName(pincode.getDistricts().getDistrict());
                     dto.setIdentity(pincode.getIdentity());
@@ -215,9 +178,9 @@ public class ReferenceMasterDataService {
             return pincodesPage.map(pincode -> {
                 PincodeDto dto = pincodeMapper.convertToDto(pincode);
 
-//                if (pincode.getCities() != null) {
-//                    dto.setCityName(pincode.getCities().getCity());
-//                }
+                if (pincode.getCities() != null) {
+                    dto.setCityName(pincode.getCities().getCity());
+                }
                 if (pincode.getStates() != null) {
                     dto.setStateName(pincode.getStates().getState());
                 }
@@ -276,7 +239,7 @@ public class ReferenceMasterDataService {
                     .collect(Collectors.toMap(district -> district.getDistrict().toLowerCase(), Function.identity()));
 
             defaultCity = citiesRepository.findByCity("Default")
-                    .orElseGet(() -> citiesRepository.save(new Cities(null, null, "Default", true, UUID.randomUUID())));
+                    .orElseGet(() -> citiesRepository.save(new Cities(null, "Default", true, UUID.randomUUID())));
 
             pincodeCache = pincodesRepository.findAll().stream()
                     .collect(Collectors.toMap(Pincodes::getPincode, Function.identity()));
@@ -299,7 +262,7 @@ public class ReferenceMasterDataService {
                 // Process State
                 String stateKey = rowDto.getState().toLowerCase();
                 States stateEntity = stateCache.computeIfAbsent(stateKey, key -> {
-                    States newState = new States(null, null, rowDto.getState(), true, UUID.randomUUID());
+                    States newState = new States(null, rowDto.getState(), true, UUID.randomUUID());
                     newState.setCreatedBy(createdByFinal);
                     entityManager.persist(newState);
                     return newState;
@@ -308,7 +271,7 @@ public class ReferenceMasterDataService {
                 // Process District
                 String districtKey = rowDto.getDistrict().toLowerCase();
                 Districts districtEntity = districtCache.computeIfAbsent(districtKey, key -> {
-                    Districts newDistrict = new Districts(null, null, rowDto.getDistrict(), true, UUID.randomUUID());
+                    Districts newDistrict = new Districts(null, rowDto.getDistrict(), true, UUID.randomUUID());
                     newDistrict.setCreatedBy(createdByFinal);
                     entityManager.persist(newDistrict);
                     return newDistrict;
@@ -378,7 +341,7 @@ public class ReferenceMasterDataService {
         return parseWorkbook(file);
     }
 
-    List<PincodeRowDTO> parseCsv(MultipartFile file) {
+    private List<PincodeRowDTO> parseCsv(MultipartFile file) {
         List<PincodeRowDTO> pincodeRows = new ArrayList<>();
         try (Reader reader = new BufferedReader(new InputStreamReader(file.getInputStream()));
              CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader())) {

@@ -22,6 +22,5 @@ public class CustomerKycResponseDto {
     private String onboardingStatus;
     private UUID branchId;
     private List<KycDocumentResponseDto> kycDocuments;
-
 }
 

@@ -22,7 +22,7 @@ public class CustomerReferralDto {
     @NotNull(message = "Canvassed type is required")
     private UUID canvassedTypeId;
 
-    private UUID canvasserStaffId;
+    private Integer canvasserStaffId;
 
 
 }

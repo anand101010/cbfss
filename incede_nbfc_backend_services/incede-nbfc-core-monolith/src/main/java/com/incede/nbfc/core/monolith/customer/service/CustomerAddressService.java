@@ -42,6 +42,7 @@ public class CustomerAddressService {
     private final CustomerRepository customerRepository;
     private final CustomerAddressRepository addressRepository;
     private final CustomerAddressMapper addressMapper;
+    private final ObjectMapper objectMapper;
 
     private final AddressTypeRepository addressTypeRepository;
     private final PostOfficesRepository postOfficesRepository;
@@ -50,20 +51,22 @@ public class CustomerAddressService {
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     /**
-     * Creates and saves a new customer address after validating all related entities.
      *
-     * @param customerIdentity UUID of the customer for whom the address is being created
-     * @param dto              Request body containing address details
-     * @return CustomerAddressResponseDto containing created address information
+     * @param customerIdentity
+     * @param requestJson
+     * @param file
+     * @return
+     * @throws JsonProcessingException
      */
     @Transactional
-    public CustomerAddressResponseDto createAddress(UUID customerIdentity, CustomerAddressRequestDto dto){
+    public CustomerAddressResponseDto createAddress(UUID customerIdentity, String requestJson, MultipartFile file) throws JsonProcessingException {
         log.info("Creating new address for customerIdentity: {}", customerIdentity);
 
-
+        CustomerAddressRequestDto dto = objectMapper.readValue(requestJson, CustomerAddressRequestDto.class);
+        validateDto(dto);
 
         Customer customer = customerRepository.findByIdentity(customerIdentity)
-                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.CUSTOMER_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_CUSTOMER, customerIdentity.toString()));
 
         CustomerAddress address = addressMapper.toEntity(customer, dto);
 
@@ -79,6 +82,15 @@ public class CustomerAddressService {
                 .orElseThrow(() -> new BusinessException(CommonConstants.INVALID_ADDRESS_PROOF_TYPE, ErrorCodes.VALIDATION_FAILED));
         address.setAddressProofType(addressProof);
 
+        if (Boolean.FALSE.equals(dto.getIsSameAsPermanent())) {
+            if (file == null || file.isEmpty()) {
+                throw new BusinessException(CommonConstants.IS_SAME_AS_PERMANENT_CONSTRAINT);
+            }
+            Integer documentRefId = uploadDocument(file);
+            address.setDocumentRefId(documentRefId);
+        } else {
+            address.setDocumentRefId(null);
+        }
 
         CustomerAddress savedAddress = addressRepository.save(address);
         CustomerAddressResponseDto.AddressDetail detail = addressMapper.toAddressDetail(savedAddress);
@@ -86,25 +98,27 @@ public class CustomerAddressService {
     }
 
     /**
-     * Updates an existing customer address by validating the provided data and linked entities.
      *
-     * @param customerIdentity UUID of the customer
-     * @param addressIdentity  UUID of the address to be updated
-     * @param dto              Request body containing updated address details
-     * @return CustomerAddressResponseDto with updated address information
+     * @param customerIdentity
+     * @param addressIdentity
+     * @param requestJson
+     * @param file
+     * @return
+     * @throws JsonProcessingException
      */
     @Transactional
-    public CustomerAddressResponseDto updateAddress(UUID customerIdentity, UUID addressIdentity, CustomerAddressRequestDto dto){
+    public CustomerAddressResponseDto updateAddress(UUID customerIdentity, UUID addressIdentity, String requestJson, MultipartFile file) throws JsonProcessingException {
         log.info("Updating address {} for customer {}", addressIdentity, customerIdentity);
 
+        CustomerAddressRequestDto dto = objectMapper.readValue(requestJson, CustomerAddressRequestDto.class);
         validateDto(dto);
 
         Customer customer = customerRepository.findByIdentity(customerIdentity)
-                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.CUSTOMER_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_CUSTOMER, customerIdentity.toString()));
 
         CustomerAddress address = addressRepository.findByIdentity(addressIdentity)
                 .filter(a -> a.getCustomer().getCustomerId().equals(customer.getCustomerId()))
-                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ADDRESS_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_ADDRESS, addressIdentity.toString()));
 
         addressMapper.updateEntity(address, dto);
 
@@ -120,38 +134,40 @@ public class CustomerAddressService {
                 .orElseThrow(() -> new BusinessException(CommonConstants.INVALID_ADDRESS_PROOF_TYPE, ErrorCodes.VALIDATION_FAILED));
         address.setAddressProofType(addressProof);
 
+        if (file != null && !file.isEmpty()) {
+            Integer documentRefId = uploadDocument(file);
+            address.setDocumentRefId(documentRefId);
+        }
+
         CustomerAddress updatedAddress = addressRepository.save(address);
         CustomerAddressResponseDto.AddressDetail detail = addressMapper.toAddressDetail(updatedAddress);
         return addressMapper.toResponse(customer, CommonConstants.CUSTOMER_ADDRESS_STATUS_UPDATED, List.of(detail));
     }
 
     /**
-     * Soft deletes a customer address by marking it inactive and deleted.
      *
-     * @param customerIdentity UUID of the customer
-     * @param addressIdentity  UUID of the address to be deleted
+     * @param customerIdentity
+     * @param addressIdentity
      */
 
     @Transactional
     public void deleteAddress(UUID customerIdentity, UUID addressIdentity) {
         Customer customer = customerRepository.findByIdentity(customerIdentity)
-                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.CUSTOMER_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_CUSTOMER, customerIdentity.toString()));
 
         CustomerAddress address = addressRepository.findByIdentity(addressIdentity)
                 .filter(a -> a.getCustomer().getCustomerId().equals(customer.getCustomerId()))
-                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ADDRESS_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.ENTITY_ADDRESS, addressIdentity.toString()));
 
         address.setIsDel(true);
         address.setIsActive(false);
         addressRepository.save(address);
     }
 
-
     /**
-     * Retrieves all active addresses associated with a given customer.
      *
-     * @param customerIdentity UUID of the customer
-     * @return CustomerAddressResponseDto containing a list of active addresses
+     * @param customerIdentity
+     * @return
      */
     @Transactional(readOnly = true)
     public CustomerAddressResponseDto getActiveAddressesByCustomerIdentity(UUID customerIdentity) {
@@ -160,6 +176,10 @@ public class CustomerAddressService {
 
         List<CustomerAddress> addresses = addressRepository.findByCustomerAndIsDelFalse(customer);
 
+        if (addresses.isEmpty()) {
+            throw new ResourceNotFoundException(CommonConstants.ENTITY_ADDRESS,
+                    CommonConstants.NO_ACTIVE_ADDRESSES_FOUND_FOR_CUSTOMER_IDENTITY + customerIdentity);
+        }
 
         List<CustomerAddressResponseDto.AddressDetail> addressDetails = addresses.stream()
                 .map(addressMapper::toAddressDetail)
@@ -169,10 +189,8 @@ public class CustomerAddressService {
     }
 
     /**
-     * Validates the CustomerAddressRequestDto using Bean Validation.
      *
-     * @param dto DTO containing address details to validate
-     * @throws BusinessException if validation fails with constraint violations
+     * @param dto
      */
     private void validateDto(CustomerAddressRequestDto dto) {
         Set<ConstraintViolation<CustomerAddressRequestDto>> violations = validator.validate(dto);
@@ -185,4 +203,7 @@ public class CustomerAddressService {
         }
     }
 
+    private Integer uploadDocument(MultipartFile file) {
+        return Math.abs(UUID.randomUUID().hashCode());
+    }
 }

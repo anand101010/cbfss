@@ -1,8 +1,6 @@
 package com.incede.nbfc.core.monolith.masterdata.controller;
 
-import com.incede.nbfc.core.monolith.masterdata.dto.PepCategoriesView;
-import com.incede.nbfc.core.monolith.masterdata.dto.PepRelationshipsView;
-import com.incede.nbfc.core.monolith.masterdata.dto.PepVerificationSourceView;
+import com.incede.nbfc.core.monolith.masterdata.dto.*;
 import com.incede.nbfc.core.monolith.masterdata.service.PepMasterDataService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
-class PepMasterDataControllerTest {
+public class PepMasterDataControllerTest {
 
     @Mock
     private PepMasterDataService pepMasterDataService;
@@ -26,27 +24,23 @@ class PepMasterDataControllerTest {
     @InjectMocks
     private PepMasterDataController pepMasterDataController;
 
-    private UUID tenantIdentity;
-
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        tenantIdentity = UUID.randomUUID();
     }
 
     @Test
     void testGetAllPepCategories() {
         PepCategoriesView mockPep = mock(PepCategoriesView.class);
         UUID id = UUID.randomUUID();
-
         given(mockPep.getCode()).willReturn("PEP1");
         given(mockPep.getName()).willReturn("High Risk");
         given(mockPep.getIsActive()).willReturn(true);
         given(mockPep.getIdentity()).willReturn(id);
 
-        given(pepMasterDataService.getAllPepCategories(tenantIdentity)).willReturn(List.of(mockPep));
+        given(pepMasterDataService.getAllPepCategories()).willReturn(List.of(mockPep));
 
-        ResponseEntity<List<PepCategoriesView>> response = pepMasterDataController.getAllPepCategories(tenantIdentity);
+        ResponseEntity<List<PepCategoriesView>> response = pepMasterDataController.getAllPepCategories();
 
         assertThat(response).isNotNull();
         assertThat(response.getBody()).hasSize(1);
@@ -60,6 +54,7 @@ class PepMasterDataControllerTest {
 
     @Test
     void testGetAllPepRelationships() {
+
         PepRelationshipsView mockPepRel = mock(PepRelationshipsView.class);
         UUID id = UUID.randomUUID();
 
@@ -68,9 +63,9 @@ class PepMasterDataControllerTest {
         given(mockPepRel.getIsActive()).willReturn(true);
         given(mockPepRel.getIdentity()).willReturn(id);
 
-        given(pepMasterDataService.getAllPepRelationships(tenantIdentity)).willReturn(List.of(mockPepRel));
+        given(pepMasterDataService.getAllPepRelationships()).willReturn(List.of(mockPepRel));
 
-        ResponseEntity<List<PepRelationshipsView>> response = pepMasterDataController.getAllPepRelationships(tenantIdentity);
+        ResponseEntity<List<PepRelationshipsView>> response = pepMasterDataController.getAllPepRelationships();
 
         assertThat(response).isNotNull();
         assertThat(response.getBody()).hasSize(1);
@@ -84,6 +79,7 @@ class PepMasterDataControllerTest {
 
     @Test
     void testGetAllPepVerificationSource() {
+
         PepVerificationSourceView mockSource = mock(PepVerificationSourceView.class);
         UUID id = UUID.randomUUID();
 
@@ -92,9 +88,9 @@ class PepMasterDataControllerTest {
         given(mockSource.getIsActive()).willReturn(true);
         given(mockSource.getIdentity()).willReturn(id);
 
-        given(pepMasterDataService.getAllPepVerificationSource(tenantIdentity)).willReturn(List.of(mockSource));
+        given(pepMasterDataService.getAllPepVerificationSource()).willReturn(List.of(mockSource));
 
-        ResponseEntity<List<PepVerificationSourceView>> response = pepMasterDataController.getAllPepVerificationSource(tenantIdentity);
+        ResponseEntity<List<PepVerificationSourceView>> response = pepMasterDataController.getAllPepVerificationSource();
 
         assertThat(response).isNotNull();
         assertThat(response.getBody()).hasSize(1);

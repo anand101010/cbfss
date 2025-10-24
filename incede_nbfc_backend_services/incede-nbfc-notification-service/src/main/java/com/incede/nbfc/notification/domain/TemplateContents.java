@@ -46,9 +46,6 @@ public class TemplateContents
     @Column(name = "footer")
     private String footer;
 
-    @Column(name = "tenant_id")
-    private Integer tenantId;
-
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
@@ -70,6 +67,7 @@ public class TemplateContents
     @Column(name = "identity", nullable = false, unique = true)
     private UUID identity;
 
+    // Getters and setters
     public Integer  getTemplateContentId() {
         return templateContentId;
     }

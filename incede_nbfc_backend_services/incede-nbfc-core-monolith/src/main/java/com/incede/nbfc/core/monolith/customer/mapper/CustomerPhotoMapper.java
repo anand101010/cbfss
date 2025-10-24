@@ -22,7 +22,8 @@ import java.util.stream.Collectors;
 @Component
 public class CustomerPhotoMapper {
 
-
+    @Value("${photo.filepath}")
+    private String photoFilePath;
 
 
     /**
@@ -38,10 +39,9 @@ public class CustomerPhotoMapper {
         photo.setLatitude(dto.getLatitude());
         photo.setAccuracy(dto.getAccuracy());
         photo.setCaptureDevice(dto.getCaptureDevice());
-        photo.setCaptureTime(LocalDateTime.now());
-        photo.setPhotoRefId(dto.getPhotoRefId());
+        photo.setCaptureTime(LocalDateTime.parse(dto.getCaptureTime()));
 
-        photo.setFilePath(dto.getFilePath());
+        photo.setFilePath(photoFilePath);
         photo.setLocationDescription(dto.getLocationDescription());
         photo.setLongitude(dto.getLongitude());
         if (!"SUCCESS".equalsIgnoreCase(dto.getPhotoLivenessStatus())) {
@@ -66,7 +66,7 @@ public class CustomerPhotoMapper {
         Objects.requireNonNull(entity, "CustomerPhoto entity must not be null");
         Objects.requireNonNull(customer, "Customer must not be null");
         return CustomerPhotoResponseDto.PhotoDetail.builder()
-                .photoId(entity.getIdentity())
+                .photoId(entity.getPhotoId())
                 .firstname(customer.getFirstName())
                 .photoRefId(entity.getPhotoRefId())
                 .status(entity.getStatus())

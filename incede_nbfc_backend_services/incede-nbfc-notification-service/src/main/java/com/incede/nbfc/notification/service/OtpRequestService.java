@@ -86,16 +86,10 @@ public class OtpRequestService {
     {
         log.info("Otp service request received ");
         OffsetDateTime offsetDateTime = OffsetDateTime.now(ZoneOffset.UTC);
-
-           TemplateContents templateContents = templateContentsRepository.findByIdentityAndTenantIdAndIsActiveTrueAndIsDeleteFalse(requestOtpDto.templateContentIdentity(),requestOtpDto.tenantId())
-                .orElseThrow(() -> new ResourceNotFoundException("Template content not found for ID: " + requestOtpDto.templateContentIdentity()));
-
-        TemplateCatalog templateCatalog = templateCatalogRepository.findByIdentityAndTenantIdAndIsActiveTrueAndIsDeleteFalse(requestOtpDto.templateCatalogIdentity(),requestOtpDto.tenantId())
-                .orElseThrow(() -> new ResourceNotFoundException("template Catalog  not found for ID: " + requestOtpDto.templateContentIdentity()));
-
-
+        TemplateContents templateContents = templateContentsRepository.findById(requestOtpDto.templateContentId())
+                .orElseThrow(() -> new ResourceNotFoundException("Template content not found for ID: " + requestOtpDto.templateContentId()));
         String normalizedTarget = crypto.normalizeTarget(templateContents.getChannel().getName(), requestOtpDto.target());
-        String slotKey = crypto.slotKey(requestOtpDto.tenantId(), requestOtpDto.branchCode(), templateContents.getTemplateContentId().toString(), normalizedTarget);
+        String slotKey = crypto.slotKey(requestOtpDto.tenantId(), requestOtpDto.branchCode(), requestOtpDto.templateCatalogId().toString(), normalizedTarget);
         if (idempotencyKey != null && !idempotencyKey.isBlank())
         {
             Optional<OtpRequest> dataExisting = repository.findFirstByTenantIdAndBranchCodeAndIdempotencyKey(requestOtpDto.tenantId(), requestOtpDto.branchCode(), idempotencyKey);
@@ -116,8 +110,8 @@ public class OtpRequestService {
         otpRequest.setTenantId(requestOtpDto.tenantId());
         otpRequest.setBranchCode(requestOtpDto.branchCode());
         otpRequest.setCustomerIdentity(requestOtpDto.customerIdentity());
-        otpRequest.setTemplateCatalogId(templateCatalog.getTemplateCatalogId());
-        otpRequest.setTemplateContentId(templateContents.getTemplateContentId());
+        otpRequest.setTemplateCatalogId(requestOtpDto.templateCatalogId());
+        otpRequest.setTemplateContentId(requestOtpDto.templateContentId());
         otpRequest.setMsisdn(normalizedTarget);
         otpRequest.setActiveSlotKey(slotKey);
         otpRequest.setIdempotencyKey(idempotencyKey);
@@ -148,7 +142,7 @@ public class OtpRequestService {
             throw ex;
         }
 
-        String messagebody = getTemplateBody(requestOtpDto.tenantId(),templateCatalog.getTemplateCatalogId(), templateContents.getPurpose().getPurposeId(), templateContents.getChannel().getChannelId());
+        String messagebody = getTemplateBody(requestOtpDto.tenantId(), requestOtpDto.templateCatalogId(), templateContents.getPurpose().getPurposeId(), templateContents.getChannel().getChannelId());
         String providerResponseId = otpNotificationFeignService.generateOtpNotification(enterpriseid, subEnterpriseid, pushid, pushepwd, normalizedTarget, sender, crypto.appendOtpMessage(messagebody, code));
         if (providerResponseId == null || providerResponseId.isEmpty())
         {

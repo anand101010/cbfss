@@ -43,9 +43,10 @@ public class CustomerBankAccountResponseDto {
         private Boolean upiVerified;
         private Boolean isActive;
         @ToString.Exclude
-        private String bankProofDocumentRefId;
-        private String bankProofFilePath;
+        private Integer bankProofDocumentRefId;
         private UUID bankAccountIdentity;
     }
 
 }
+
+

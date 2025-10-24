@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.customer.service;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.incede.nbfc.core.monolith.common.CommonConstants;
 import com.incede.nbfc.core.monolith.customer.domain.entity.Customer;
 import com.incede.nbfc.core.monolith.customer.domain.entity.CustomerPhoto;
@@ -20,10 +21,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Service class for managing customer photos.
@@ -38,24 +40,29 @@ public class CustomerPhotoService {
     private final CustomerRepository customerRepository;
     private final CustomerPhotoRepository photoRepository;
     private final CustomerPhotoMapper customerPhotoMapper;
+    private final ObjectMapper objectMapper;
     private final UserRepository userRepository;
 
-    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+    Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     /**
      * Create and store a new customer photo.
      *
-     * @param identity UUID of the customer
-     * @param customerPhotoRequestDto DTO containing photo details
+     * @param identity   UUID of the customer
+     * @param requestJson DTO containing photo details
      * @return Response DTO with customer photo details
      */
     @Transactional
-    public CustomerPhotoResponseDto createPhoto(UUID identity, CustomerPhotoRequestDto customerPhotoRequestDto) {
-        try {
-            Customer customer = customerRepository.findByIdentity(identity)
-                    .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.CUSTOMER_NOT_FOUND));
+    public CustomerPhotoResponseDto createPhoto(UUID identity, String requestJson, MultipartFile file) {
+        Customer customer = customerRepository.findByIdentity(identity)
+                .orElseThrow(() -> new ResourceNotFoundException(CommonConstants.CUSTOMER_NOT_FOUND));
 
-            var violations = validator.validate(customerPhotoRequestDto);
+
+        try {
+            CustomerPhotoRequestDto requestDTO = objectMapper.readValue(requestJson, CustomerPhotoRequestDto.class);
+
+
+            var violations = validator.validate(requestDTO);
             if (!violations.isEmpty()) {
                 String errorMsg = violations.stream()
                         .map(v -> v.getPropertyPath() + " " + v.getMessage())
@@ -64,22 +71,36 @@ public class CustomerPhotoService {
                 throw new BusinessException(errorMsg, ErrorCodes.VALIDATION_FAILED);
             }
 
-            User capturedBy = userRepository.findByIdentity(customerPhotoRequestDto.getCapturedBy())
+            User capturedBy = userRepository.findByIdentity(requestDTO.getCapturedBy())
                     .orElseThrow(() -> new BusinessException(CommonConstants.CAPTURED_BY_NOT_FOUND, ErrorCodes.NOT_FOUND));
 
-            CustomerPhoto photo = customerPhotoMapper.toEntity(customerPhotoRequestDto);
+
+            CustomerPhoto photo = customerPhotoMapper.toEntity(requestDTO);
             photo.setCustomer(customer);
             photo.setCapturedBy(capturedBy);
 
+            Integer photoRefId = uploadPhoto(file);
+            photo.setPhotoRefId(photoRefId);
             CustomerPhoto savedPhoto = photoRepository.save(photo);
 
             return customerPhotoMapper.toResponseDto(customer, List.of(savedPhoto));
 
+        } catch (JsonProcessingException e) {
+            log.warn("Invalid JSON for photo request: {} - {}", requestJson, e.getMessage());
+            throw new BusinessException(CommonConstants.INVALID_JSON, ErrorCodes.VALIDATION_FAILED, e);
+
         } catch (DataIntegrityViolationException e) {
-            log.error("Constraint violation while saving photo for customer {}. DTO: {}", identity, customerPhotoRequestDto, e);
-            throw new BusinessException(CommonConstants.CONSTRAIN_VIOLATION, ErrorCodes.CONSTRAINT_VIOLATION, e);
+            log.error("Constraint violation while saving photo for customer {}. JSON: {}", identity, requestJson, e);
+            throw new BusinessException(CommonConstants.CONSTRAIN_VIOLATION,
+                    ErrorCodes.CONSTRAINT_VIOLATION, e);
+
+        } catch (IOException e) {
+            log.error("File processing failed for customer {}. File: {}", identity, file.getOriginalFilename(), e);
+            throw new BusinessException(CommonConstants.FILE_PROCESSING_FAILED, ErrorCodes.INTERNAL_SERVER_ERROR, e);
         }
     }
+
+
 
     /**
      * Fetch all photos for a given customer.
@@ -94,6 +115,23 @@ public class CustomerPhotoService {
 
         List<CustomerPhoto> photos = photoRepository
                 .findByCustomerIdentityAndIsDelFalseOrderByCaptureTimeDesc(identity);
+
+        if (photos.isEmpty()) {
+            log.warn("No photos found for customer {}", identity);
+            throw new ResourceNotFoundException(CommonConstants.PHOTOS_NOT_FOUND);
+        }
+
         return customerPhotoMapper.toResponseDto(customer, photos);
     }
+
+    /**
+     * Generate a unique photo reference ID.
+     *
+     * @return Generated reference ID
+     */
+    public Integer uploadPhoto(MultipartFile file) {
+        return Math.abs(UUID.randomUUID().hashCode());
+    }
+
 }
+

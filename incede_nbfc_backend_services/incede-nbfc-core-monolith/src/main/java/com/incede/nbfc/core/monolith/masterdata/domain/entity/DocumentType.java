@@ -1,8 +1,6 @@
 package com.incede.nbfc.core.monolith.masterdata.domain.entity;
 
-import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -26,11 +24,6 @@ public class DocumentType extends BaseEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "document_type_id")
     private Integer documentTypeId;
-
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "tenant_id", referencedColumnName = "tenant_id", nullable = false)
-    @NotNull(message = "Tenant is mandatory")
-    private Tenant tenant;
 
     @Column(name = "code", nullable = false, unique = true, length = 10)
     private String code;

@@ -1,5 +1,6 @@
 package com.incede.nbfc.core.monolith.masterdata.controller;
 
+
 import com.incede.nbfc.core.monolith.masterdata.dto.*;
 import com.incede.nbfc.core.monolith.masterdata.service.ProfileMasterDataService;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -16,8 +16,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
-
-class ProfileMasterDataControllerTest {
+public class ProfileMasterDataControllerTest {
 
     @Mock
     private ProfileMasterDataService profileMasterDataService;
@@ -25,45 +24,38 @@ class ProfileMasterDataControllerTest {
     @InjectMocks
     private ProfileMasterDataController profileMasterDataController;
 
-    private UUID tenantIdentity;
-
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        tenantIdentity = UUID.randomUUID();
     }
+
 
     @Test
     void testGetAllSalutationTypes() {
-        SalutationTypesView mockView = mock(SalutationTypesView.class);
-        given(mockView.getSalutation()).willReturn("Mr.");
-        given(profileMasterDataService.getAllSalutationTypes(tenantIdentity))
-                .willReturn(List.of(mockView));
+        SalutationTypesView mockSalutation = mock(SalutationTypesView.class);
+        given(mockSalutation.getSalutation()).willReturn("Mr.");
+        given(profileMasterDataService.getAllSalutationTypes()).willReturn(List.of(mockSalutation));
 
-        ResponseEntity<List<SalutationTypesView>> response =
-                profileMasterDataController.getAllSalutationTypes(tenantIdentity);
+        ResponseEntity<List<SalutationTypesView>> response = profileMasterDataController.getAllSalutationTypes();
 
         assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
         assertThat(response.getBody().get(0).getSalutation()).isEqualTo("Mr.");
     }
 
     @Test
     void testGetAllNationalities() {
-        NationalityView mockView = mock(NationalityView.class);
+        NationalityView mockNationality = mock(NationalityView.class);
         UUID id = UUID.randomUUID();
-        given(mockView.getNationality()).willReturn("Indian");
-        given(mockView.getIsActive()).willReturn(true);
-        given(mockView.getIdentity()).willReturn(id);
-        given(profileMasterDataService.getAllNationalities(tenantIdentity))
-                .willReturn(List.of(mockView));
+        given(mockNationality.getNationality()).willReturn("Indian");
+        given(mockNationality.getIsActive()).willReturn(true);
+        given(mockNationality.getIdentity()).willReturn(id);
 
-        ResponseEntity<List<NationalityView>> response =
-                profileMasterDataController.getAllNationalities(tenantIdentity);
+        given(profileMasterDataService.getAllNationalities()).willReturn(List.of(mockNationality));
+
+        ResponseEntity<List<NationalityView>> response = profileMasterDataController.getAllNationalities();
 
         assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
 
         NationalityView result = response.getBody().get(0);
@@ -74,19 +66,17 @@ class ProfileMasterDataControllerTest {
 
     @Test
     void testGetAllOccupations() {
-        OccupationView mockView = mock(OccupationView.class);
+        OccupationView mockOccupation = mock(OccupationView.class);
         UUID id = UUID.randomUUID();
-        given(mockView.getOccupationName()).willReturn("Engineer");
-        given(mockView.getIsActive()).willReturn(true);
-        given(mockView.getIdentity()).willReturn(id);
-        given(profileMasterDataService.getAllOccupations(tenantIdentity))
-                .willReturn(List.of(mockView));
+        given(mockOccupation.getOccupationName()).willReturn("Engineer");
+        given(mockOccupation.getIsActive()).willReturn(true);
+        given(mockOccupation.getIdentity()).willReturn(id);
 
-        ResponseEntity<List<OccupationView>> response =
-                profileMasterDataController.getAllOccupations(tenantIdentity);
+        given(profileMasterDataService.getAllOccupations()).willReturn(List.of(mockOccupation));
+
+        ResponseEntity<List<OccupationView>> response = profileMasterDataController.getAllOccupations();
 
         assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
 
         OccupationView result = response.getBody().get(0);
@@ -97,51 +87,45 @@ class ProfileMasterDataControllerTest {
 
     @Test
     void testGetAllRelationships() {
-        RelationshipsView mockView = mock(RelationshipsView.class);
-        given(mockView.getRelationship()).willReturn("Father");
-        given(profileMasterDataService.getAllRelationships(tenantIdentity))
-                .willReturn(List.of(mockView));
+        RelationshipsView mockRelationship = mock(RelationshipsView.class);
+        given(mockRelationship.getRelationship()).willReturn("Father");
+        given(profileMasterDataService.getAllRelationships()).willReturn(List.of(mockRelationship));
 
-        ResponseEntity<List<RelationshipsView>> response =
-                profileMasterDataController.getAllRelationships(tenantIdentity);
+        ResponseEntity<List<RelationshipsView>> response = profileMasterDataController.getAllRelationships();
 
         assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
         assertThat(response.getBody().get(0).getRelationship()).isEqualTo("Father");
     }
 
+
     @Test
     void testGetAllLanguages() {
-        LanguagesView mockView = mock(LanguagesView.class);
-        given(mockView.getLanguageName()).willReturn("English");
-        given(profileMasterDataService.getAllLanguages(tenantIdentity))
-                .willReturn(List.of(mockView));
+        LanguagesView mockLanguage = mock(LanguagesView.class);
+        given(mockLanguage.getLanguageName()).willReturn("English");
+        given(profileMasterDataService.getAllLanguages()).willReturn(List.of(mockLanguage));
 
-        ResponseEntity<List<LanguagesView>> response =
-                profileMasterDataController.getAllLanguages(tenantIdentity);
+        ResponseEntity<List<LanguagesView>> response = profileMasterDataController.getAllLanguages();
 
         assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
         assertThat(response.getBody().get(0).getLanguageName()).isEqualTo("English");
     }
 
     @Test
     void testGetAllGenders() {
-        GendersView mockView = mock(GendersView.class);
+        // Mock the GendersView interface
+        GendersView mockGender = mock(GendersView.class);
         UUID id = UUID.randomUUID();
-        given(mockView.getGender()).willReturn("Male");
-        given(mockView.getIsActive()).willReturn(true);
-        given(mockView.getIdentity()).willReturn(id);
-        given(profileMasterDataService.getAllGenders(tenantIdentity))
-                .willReturn(List.of(mockView));
+        given(mockGender.getGender()).willReturn("Male");
+        given(mockGender.getIsActive()).willReturn(true);
+        given(mockGender.getIdentity()).willReturn(id);
 
-        ResponseEntity<List<GendersView>> response =
-                profileMasterDataController.getAllGenders(tenantIdentity);
+        given(profileMasterDataService.getAllGenders()).willReturn(List.of(mockGender));
+
+        ResponseEntity<List<GendersView>> response = profileMasterDataController.getAllGenders();
 
         assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
 
         GendersView result = response.getBody().get(0);
@@ -152,19 +136,18 @@ class ProfileMasterDataControllerTest {
 
     @Test
     void testGetAllMaritalStatus() {
-        MaritalStatusView mockView = mock(MaritalStatusView.class);
-        UUID id = UUID.randomUUID();
-        given(mockView.getStatusName()).willReturn("Single");
-        given(mockView.getIsActive()).willReturn(true);
-        given(mockView.getIdentity()).willReturn(id);
-        given(profileMasterDataService.getAllMaritalStatus(tenantIdentity))
-                .willReturn(List.of(mockView));
 
-        ResponseEntity<List<MaritalStatusView>> response =
-                profileMasterDataController.getAllMaritalStatus(tenantIdentity);
+        MaritalStatusView mockStatus = mock(MaritalStatusView.class);
+        UUID id = UUID.randomUUID();
+        given(mockStatus.getStatusName()).willReturn("Single");
+        given(mockStatus.getIsActive()).willReturn(true);
+        given(mockStatus.getIdentity()).willReturn(id);
+
+        given(profileMasterDataService.getAllMaritalStatus()).willReturn(List.of(mockStatus));
+
+        ResponseEntity<List<MaritalStatusView>> response = profileMasterDataController.getAllMaritalStatus();
 
         assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
 
         MaritalStatusView result = response.getBody().get(0);
@@ -175,21 +158,19 @@ class ProfileMasterDataControllerTest {
 
     @Test
     void testGetAllDesignations() {
-        DesignationsView mockView = mock(DesignationsView.class);
+        DesignationsView mockDesignation = mock(DesignationsView.class);
         UUID id = UUID.randomUUID();
-        given(mockView.getName()).willReturn("Manager");
-        given(mockView.getCode()).willReturn("MGR");
-        given(mockView.getDescription()).willReturn("Branch Manager");
-        given(mockView.getLevel()).willReturn((short) 2);
-        given(mockView.getIdentity()).willReturn(id);
-        given(profileMasterDataService.getAllDesignations(tenantIdentity))
-                .willReturn(List.of(mockView));
+        given(mockDesignation.getName()).willReturn("Manager");
+        given(mockDesignation.getCode()).willReturn("MGR");
+        given(mockDesignation.getDescription()).willReturn("Branch Manager");
+        given(mockDesignation.getLevel()).willReturn((short) 2);
+        given(mockDesignation.getIdentity()).willReturn(id);
 
-        ResponseEntity<List<DesignationsView>> response =
-                profileMasterDataController.getAllDesignations(tenantIdentity);
+        given(profileMasterDataService.getAllDesignations()).willReturn(List.of(mockDesignation));
+
+        ResponseEntity<List<DesignationsView>> response = profileMasterDataController.getAllDesignations();
 
         assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
 
         DesignationsView result = response.getBody().get(0);
@@ -202,19 +183,18 @@ class ProfileMasterDataControllerTest {
 
     @Test
     void testGetAllTaxCategories() {
-        TaxCategoryView mockView = mock(TaxCategoryView.class);
-        UUID id = UUID.randomUUID();
-        given(mockView.getTaxCatName()).willReturn("GST");
-        given(mockView.getIsActive()).willReturn(true);
-        given(mockView.getIdentity()).willReturn(id);
-        given(profileMasterDataService.getAllTaxCategories(tenantIdentity))
-                .willReturn(List.of(mockView));
 
-        ResponseEntity<List<TaxCategoryView>> response =
-                profileMasterDataController.getAllTaxCategories(tenantIdentity);
+        TaxCategoryView mockTaxCategory = mock(TaxCategoryView.class);
+        UUID id = UUID.randomUUID();
+        given(mockTaxCategory.getTaxCatName()).willReturn("GST");
+        given(mockTaxCategory.getIsActive()).willReturn(true);
+        given(mockTaxCategory.getIdentity()).willReturn(id);
+
+        given(profileMasterDataService.getAllTaxCategories()).willReturn(List.of(mockTaxCategory));
+
+        ResponseEntity<List<TaxCategoryView>> response = profileMasterDataController.getAllTaxCategories();
 
         assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
 
         TaxCategoryView result = response.getBody().get(0);
@@ -225,19 +205,18 @@ class ProfileMasterDataControllerTest {
 
     @Test
     void testGetAllPurpose() {
-        PurposeView mockView = mock(PurposeView.class);
+        PurposeView mockPurpose = mock(PurposeView.class);
         UUID id = UUID.randomUUID();
-        given(mockView.getName()).willReturn("Loan");
-        given(mockView.getCode()).willReturn("LN");
-        given(mockView.getIdentity()).willReturn(id);
-        given(profileMasterDataService.getAllPurpose(tenantIdentity))
-                .willReturn(List.of(mockView));
 
-        ResponseEntity<List<PurposeView>> response =
-                profileMasterDataController.getAllPurpose(tenantIdentity);
+        given(mockPurpose.getName()).willReturn("Loan");
+        given(mockPurpose.getCode()).willReturn("LN");
+        given(mockPurpose.getIdentity()).willReturn(id);
+
+        given(profileMasterDataService.getAllPurpose()).willReturn(List.of(mockPurpose));
+
+        ResponseEntity<List<PurposeView>> response = profileMasterDataController.getAllPurpose();
 
         assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
 
         PurposeView result = response.getBody().get(0);
@@ -248,19 +227,18 @@ class ProfileMasterDataControllerTest {
 
     @Test
     void testGetAllSourceOfIncomeType() {
-        SourceOfIncomeTypeView mockView = mock(SourceOfIncomeTypeView.class);
-        UUID id = UUID.randomUUID();
-        given(mockView.getName()).willReturn("Salary");
-        given(mockView.getCode()).willReturn("SAL");
-        given(mockView.getIdentity()).willReturn(id);
-        given(profileMasterDataService.getAllSourceOfIncomeType(tenantIdentity))
-                .willReturn(List.of(mockView));
 
-        ResponseEntity<List<SourceOfIncomeTypeView>> response =
-                profileMasterDataController.getAllSourceOfIncomeType(tenantIdentity);
+        SourceOfIncomeTypeView mockIncomeType = mock(SourceOfIncomeTypeView.class);
+        UUID id = UUID.randomUUID();
+
+        given(mockIncomeType.getName()).willReturn("Salary");
+        given(mockIncomeType.getCode()).willReturn("SAL");
+        given(mockIncomeType.getIdentity()).willReturn(id);
+
+        given(profileMasterDataService.getAllSourceOfIncomeType()).willReturn(List.of(mockIncomeType));
+        ResponseEntity<List<SourceOfIncomeTypeView>> response = profileMasterDataController.getAllSourceOfIncomeType();
 
         assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
 
         SourceOfIncomeTypeView result = response.getBody().get(0);
@@ -270,34 +248,56 @@ class ProfileMasterDataControllerTest {
     }
 
     @Test
-    void testGetAllReferralSources() {
+    void testGetAllReferralSource() {
         ReferralSourcesView mockView = mock(ReferralSourcesView.class);
-        given(mockView.getName()).willReturn("Referral A");
-        given(profileMasterDataService.getAllReferralSources(tenantIdentity))
-                .willReturn(List.of(mockView));
+        UUID id = UUID.randomUUID();
 
-        ResponseEntity<List<ReferralSourcesView>> response =
-                profileMasterDataController.getAllReferralSource(tenantIdentity);
+        given(mockView.getName()).willReturn("Referral A");
+
+        given(profileMasterDataService.getAllReferralSources()).willReturn(List.of(mockView));
+
+        ResponseEntity<List<ReferralSourcesView>> response = profileMasterDataController.getAllReferralSource();
 
         assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
-        assertThat(response.getBody().get(0).getName()).isEqualTo("Referral A");
+
+        ReferralSourcesView result = response.getBody().get(0);
+        assertThat(result.getName()).isEqualTo("Referral A");
+    }
+
+    @Test
+    void testGetAllReferralSource_WhenEmpty() {
+        given(profileMasterDataService.getAllReferralSources()).willReturn(List.of());
+
+        ResponseEntity<List<ReferralSourcesView>> response = profileMasterDataController.getAllReferralSource();
+
+        assertThat(response).isNotNull();
+        assertThat(response.getBody()).isEmpty();
     }
 
     @Test
     void testGetAllEducationLevels() {
         EducationLevelsView mockView = mock(EducationLevelsView.class);
         given(mockView.getName()).willReturn("Bachelor's");
-        given(profileMasterDataService.getAllEducationLevels(tenantIdentity))
-                .willReturn(List.of(mockView));
 
-        ResponseEntity<List<EducationLevelsView>> response =
-                profileMasterDataController.getAllEducationLevels(tenantIdentity);
+        given(profileMasterDataService.getAllEducationLevels()).willReturn(List.of(mockView));
+
+        ResponseEntity<List<EducationLevelsView>> response = profileMasterDataController.getAllEducationLevels();
 
         assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
-        assertThat(response.getBody().get(0).getName()).isEqualTo("Bachelor's");
+
+        EducationLevelsView result = response.getBody().get(0);
+        assertThat(result.getName()).isEqualTo("Bachelor's");
+    }
+
+    @Test
+    void testGetAllEducationLevels_WhenEmpty() {
+        given(profileMasterDataService.getAllEducationLevels()).willReturn(List.of());
+
+        ResponseEntity<List<EducationLevelsView>> response = profileMasterDataController.getAllEducationLevels();
+
+        assertThat(response).isNotNull();
+        assertThat(response.getBody()).isEmpty();
     }
 }

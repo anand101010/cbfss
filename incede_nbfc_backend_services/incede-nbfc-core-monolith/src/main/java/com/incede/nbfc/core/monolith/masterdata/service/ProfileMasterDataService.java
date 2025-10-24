@@ -1,12 +1,7 @@
 package com.incede.nbfc.core.monolith.masterdata.service;
 
-import com.incede.nbfc.core.monolith.common.CommonConstants;
-import com.incede.nbfc.core.monolith.exception.BusinessException;
-import com.incede.nbfc.core.monolith.exception.ErrorCodes;
 import com.incede.nbfc.core.monolith.masterdata.dto.*;
 import com.incede.nbfc.core.monolith.masterdata.repository.*;
-import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
-import com.incede.nbfc.core.monolith.tenant.repository.TenantRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -35,28 +29,13 @@ public class ProfileMasterDataService {
     private final SalutationTypesRepository salutationTypesRepository;
     private final ReferralSourceRepository referralSourceRepository;
     private  final EducationLevelsRepository educationLevelsRepository;
-    private final TenantRepository tenantRepository;
-
-    public Integer getTenantId(UUID tenantIdentity){
-        Tenant tenant = tenantRepository.findByIdentity(tenantIdentity).orElseThrow(
-                ()-> new BusinessException(CommonConstants.TENANT_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
-        return tenant.getTenantId();
-
-    }
-
-
     /**
-     * Retrieves all nationalities
+     * Retrieves all active nationalities
      *
      */
     @Transactional(readOnly = true)
-    public List<NationalityView> getAllNationalities(UUID tenantIdentity) {
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all nationalities by tenant Id={}",tenantId);
-        List<NationalityView> nationalities = nationalityRepository.findAllByTenantIdOrAll(tenantId);
+    public List<NationalityView> getAllNationalities() {
+        List<NationalityView> nationalities = nationalityRepository.findByIsDelFalseAndIsActiveTrue();
 
         if (nationalities.isEmpty()) {
             log.warn("No nationalities found");
@@ -68,18 +47,13 @@ public class ProfileMasterDataService {
     }
 
     /**
-     * Retrieves all occupations
+     * Retrieves all active occupations
      *
      */
     @Transactional(readOnly = true)
-    public List<OccupationView> getAllOccupations(UUID tenantIdentity) {
+    public List<OccupationView> getAllOccupations() {
 
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all occupations by tenant Id={}",tenantId);
-        List<OccupationView> occupation = occupationRepository.findAllByTenantIdOrAll(tenantId);
+        List<OccupationView> occupation = occupationRepository.findByIsDelFalseAndIsActiveTrue();
         if (occupation.isEmpty()) {
             log.warn("No occupations found");
             return occupation;
@@ -90,18 +64,14 @@ public class ProfileMasterDataService {
     }
 
     /**
-     * Retrieves all relationships
+     * Retrieves all active relationships
      *
      */
     @Transactional(readOnly = true)
-    public List<RelationshipsView> getAllRelationships(UUID tenantIdentity) {
+    public List<RelationshipsView> getAllRelationships() {
 
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all relationships by tenant Id={}",tenantId);
-        List<RelationshipsView> relationships = relationshipsRepository.findAllByTenantIdOrAll(tenantId);
+        log.info("Fetching relationships from repository");
+        List<RelationshipsView> relationships = relationshipsRepository.findByIsDelFalseAndIsActiveTrue();
 
         if (relationships.isEmpty()) {
             log.warn("No relationships found");
@@ -112,18 +82,14 @@ public class ProfileMasterDataService {
         return Collections.unmodifiableList(relationships);
     }
     /**
-     * Retrieves all Languages
+     * Retrieves all active Languages
      *
      */
     @Transactional(readOnly = true)
-    public List<LanguagesView> getAllLanguages(UUID tenantIdentity) {
+    public List<LanguagesView> getAllLanguages() {
 
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all languages by tenant Id={}",tenantId);
-        List<LanguagesView> languages = languagesRepository.findAllByTenantIdOrAll(tenantId);
+        log.info("Fetching Languages from repository");
+        List<LanguagesView> languages = languagesRepository.findByIsDelFalseAndIsActiveTrue();
 
         if (languages.isEmpty()) {
             log.warn("No Languages found");
@@ -136,18 +102,12 @@ public class ProfileMasterDataService {
 
 
     /**
-     * Retrieves all genders
+     * Retrieves all active genders
      *
      */
     @Transactional(readOnly = true)
-    public List<GendersView> getAllGenders(UUID tenantIdentity) {
-
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all genders by tenant Id={}",tenantId);
-        List<GendersView> genders = gendersRepository.findAllByTenantIdOrAll(tenantId);
+    public List<GendersView> getAllGenders() {
+        List<GendersView> genders = gendersRepository.findByIsDelFalseAndIsActiveTrue();
 
         if (genders.isEmpty()) {
             log.warn("No genders found");
@@ -159,17 +119,12 @@ public class ProfileMasterDataService {
     }
 
     /**
-     * Retrieves all marital statuses
+     * Retrieves all active marital statuses
      *
      */
     @Transactional(readOnly = true)
-    public List<MaritalStatusView> getAllMaritalStatus(UUID tenantIdentity) {
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all marital statuses by tenant Id={}",tenantId);
-        List<MaritalStatusView> maritalStatus = maritalStatusRepository.findAllByTenantIdOrAll(tenantId);
+    public List<MaritalStatusView> getAllMaritalStatus() {
+        List<MaritalStatusView> maritalStatus = maritalStatusRepository.findByIsDelFalseAndIsActiveTrue();
 
 
         if (maritalStatus.isEmpty()) {
@@ -182,18 +137,12 @@ public class ProfileMasterDataService {
     }
 
     /**
-     * Retrieves all designations
+     * Retrieves all active  designation
      *
      */
     @Transactional(readOnly = true)
-    public List<DesignationsView> getAllDesignations(UUID tenantIdentity) {
-
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all designations by tenant Id={}",tenantId);
-        List<DesignationsView> designations = designationsRepository.findAllByTenantIdOrAll(tenantId);
+    public List<DesignationsView> getAllDesignations() {
+        List<DesignationsView> designations = designationsRepository.findByIsActiveTrue();
         if (designations.isEmpty()) {
             log.warn("No designations found");
             return designations;
@@ -203,18 +152,12 @@ public class ProfileMasterDataService {
     }
 
     /**
-     * Retrieves all purposes
+     * Retrieves all active purpose
      *
      */
     @Transactional(readOnly = true)
-    public List<PurposeView> getAllPurpose(UUID tenantIdentity) {
-
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all purpose by tenant Id={}",tenantId);
-        List<PurposeView> purpose = purposeRepository.findAllByTenantIdOrAll(tenantId);
+    public List<PurposeView> getAllPurpose() {
+        List<PurposeView> purpose = purposeRepository.findByIsDelFalseAndIsActiveTrue();
         if (purpose.isEmpty()) {
             log.warn("No purpose found");
             return purpose;
@@ -223,18 +166,12 @@ public class ProfileMasterDataService {
         return Collections.unmodifiableList(purpose);
     }
     /**
-     * Retrieves all source of income
+     * Retrieves all active source of income
      *
      */
     @Transactional(readOnly = true)
-    public List<SourceOfIncomeTypeView> getAllSourceOfIncomeType(UUID tenantIdentity) {
-
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all source of income by tenant Id={}",tenantId);
-        List<SourceOfIncomeTypeView> sourceOfIncomeType = sourceOfIncomeTypeRepository.findAllByTenantIdOrAll(tenantId);
+    public List<SourceOfIncomeTypeView> getAllSourceOfIncomeType() {
+        List<SourceOfIncomeTypeView> sourceOfIncomeType = sourceOfIncomeTypeRepository.findByIsDelFalseAndIsActiveTrue();
         if (sourceOfIncomeType.isEmpty()) {
             log.warn("No source of income types found");
             return sourceOfIncomeType;
@@ -243,18 +180,12 @@ public class ProfileMasterDataService {
         return Collections.unmodifiableList(sourceOfIncomeType);
     }
     /**
-     * Retrieves all tax categories
+     * Retrieves all active tax categories
      *
      */
     @Transactional(readOnly = true)
-    public List<TaxCategoryView> getAllTaxCategories(UUID tenantIdentity) {
-
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all tax categories by tenant Id={}",tenantId);
-        List<TaxCategoryView> taxCategory = taxCategoryRepository.findAllByTenantIdOrAll(tenantId);
+    public List<TaxCategoryView> getAllTaxCategories() {
+        List<TaxCategoryView> taxCategory = taxCategoryRepository.findByIsDelFalseAndIsActiveTrue();
 
         if (taxCategory.isEmpty()) {
             log.warn("No active tax found");
@@ -265,18 +196,13 @@ public class ProfileMasterDataService {
         return Collections.unmodifiableList(taxCategory);
     }
     /**
-     * Retrieves all salutation types
+     * Retrieves all active salutation types
      *
      */
     @Transactional(readOnly = true)
-    public List<SalutationTypesView> getAllSalutationTypes(UUID tenantIdentity) {
+    public List<SalutationTypesView> getAllSalutationTypes() {
+        List<SalutationTypesView> salutationTypes = salutationTypesRepository.findByIsDelFalseAndIsActiveTrue();
 
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all salutation types by tenant Id={}",tenantId);
-        List<SalutationTypesView> salutationTypes = salutationTypesRepository.findAllByTenantIdOrAll(tenantId);
 
         if (salutationTypes.isEmpty()) {
             log.warn("No salutation types found");
@@ -286,20 +212,9 @@ public class ProfileMasterDataService {
         log.info("Fetched {} salutation types", salutationTypes.size());
         return Collections.unmodifiableList(salutationTypes);
     }
-
-    /**
-     * Retrieves all referral sources
-     *
-     */
     @Transactional(readOnly = true)
-    public List<ReferralSourcesView> getAllReferralSources(UUID tenantIdentity) {
-
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all referral sources by tenant Id={}",tenantId);
-        List<ReferralSourcesView> referralSource = referralSourceRepository.findAllByTenantIdOrAll(tenantId);
+    public List<ReferralSourcesView> getAllReferralSources() {
+        List<ReferralSourcesView> referralSource = referralSourceRepository.findByIsDelFalseAndIsActiveTrue();
 
         if (referralSource.isEmpty()) {
             log.warn("No referral source found");
@@ -310,19 +225,9 @@ public class ProfileMasterDataService {
         return Collections.unmodifiableList(referralSource);
     }
 
-    /**
-     * Retrieves all education levels
-     *
-     */
     @Transactional(readOnly = true)
-    public List<EducationLevelsView> getAllEducationLevels(UUID tenantIdentity) {
-
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all education levels by tenant Id={}",tenantId);
-        List<EducationLevelsView> educationLevel = educationLevelsRepository.findAllByTenantIdOrAll(tenantId);
+    public List<EducationLevelsView> getAllEducationLevels() {
+        List<EducationLevelsView> educationLevel = educationLevelsRepository.findByIsDelFalseAndIsActiveTrue();
 
         if (educationLevel.isEmpty()) {
             log.warn("No education level found");

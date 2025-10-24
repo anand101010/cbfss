@@ -3,9 +3,7 @@ package com.incede.nbfc.core.monolith.masterdata.repository;
 import com.incede.nbfc.core.monolith.masterdata.domain.entity.Occupation;
 import com.incede.nbfc.core.monolith.masterdata.dto.OccupationView;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -23,8 +21,4 @@ public interface OccupationRepository extends CrudRepository<Occupation, Integer
     List<OccupationView> findByIsDelFalseAndIsActiveTrue();
 
     Optional<Occupation> findByIdentity(@NotNull(message = "Occupation is required") UUID occupation);
-
-    @Query(value="SELECT a FROM Occupation a WHERE a.isDel = false AND " +
-            "(:tenantId IS NULL OR a.tenant.tenantId = :tenantId)")
-    List<OccupationView> findAllByTenantIdOrAll(@Param("tenantId") Integer tenantId);
 }

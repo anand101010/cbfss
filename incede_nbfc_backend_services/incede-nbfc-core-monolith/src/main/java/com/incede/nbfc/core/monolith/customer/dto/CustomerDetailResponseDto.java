@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
 
 @Data
 @Builder
@@ -17,12 +16,10 @@ import java.util.UUID;
 @AllArgsConstructor
 public class CustomerDetailResponseDto {
 
-    private UUID customerIdentity;
+    private Integer customerId;
     private String customerCode;
     private String firstName;
     private String middleName;
-    private String fatherName;
-
     private String lastName;
     private String displayName;
     private LocalDate dob;
@@ -34,7 +31,6 @@ public class CustomerDetailResponseDto {
     private String employer;
     private BigDecimal annualIncome;
     private String branchName;
-    private String branchCode;
     private String crmReferenceId;
     private String preferredLanguage;
     private String mobileNumber;

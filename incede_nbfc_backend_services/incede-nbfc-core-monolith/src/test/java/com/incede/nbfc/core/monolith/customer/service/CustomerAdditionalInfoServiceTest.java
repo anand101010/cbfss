@@ -97,7 +97,7 @@ class CustomerAdditionalInfoServiceTest {
         CustomerReferralDto referralDto = CustomerReferralDto.builder()
                 .referralSourceId(UUID.randomUUID())
                 .canvassedTypeId(UUID.randomUUID())
-                .canvasserStaffId(UUID.randomUUID())
+                .canvasserStaffId(123)
                 .build();
 
         CustomerProfileExtraDto profileExtraDto = CustomerProfileExtraDto.builder()
@@ -260,7 +260,7 @@ class CustomerAdditionalInfoServiceTest {
         CustomerReferralDto referralDto = CustomerReferralDto.builder()
                 .referralSourceId(UUID.randomUUID())
                 .canvassedTypeId(UUID.randomUUID())
-                .canvasserStaffId(UUID.randomUUID())
+                .canvasserStaffId(123)
                 .build();
 
         CustomerProfileExtraDto profileExtraDto = CustomerProfileExtraDto.builder()
@@ -338,7 +338,7 @@ class CustomerAdditionalInfoServiceTest {
         CustomerReferralDto referralDto = CustomerReferralDto.builder()
                 .referralSourceId(UUID.randomUUID())
                 .canvassedTypeId(UUID.randomUUID())
-                .canvasserStaffId(UUID.randomUUID())
+                .canvasserStaffId(123)
                 .build();
 
         CustomerProfileExtraDto profileExtraDto = CustomerProfileExtraDto.builder()

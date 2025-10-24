@@ -30,9 +30,9 @@ public class CustomerPhoto  extends CustomerBaseEntity implements Serializable {
     private Customer customer;
 
     @Column(name = "photo_ref_id", nullable = false)
-    @NotBlank(message = "Photo reference ID is required")
-
-    private String photoRefId;
+    @NotNull(message = "Photo reference ID is required")
+    @Min(value = 1, message = "Photo reference id must be a positive integer")
+    private Integer photoRefId;
 
     @JoinColumn(name = "captured_by", referencedColumnName = "user_id")
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
@@ -78,6 +78,4 @@ public class CustomerPhoto  extends CustomerBaseEntity implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 10)
     private PhotoStatus status;
-
 }
-

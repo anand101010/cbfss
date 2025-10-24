@@ -11,8 +11,8 @@ import java.util.UUID;
 public record RequestOtpDto(
     @NotNull Integer tenantId,
     @NotBlank String branchCode,
-    @NotNull UUID templateCatalogIdentity,
-    @NotNull UUID templateContentIdentity,
+    @NotNull Integer templateCatalogId,
+    @NotNull Integer templateContentId,
     @NotNull String target,
     Integer customerIdentity,
     @Min(4) @Max(8) Integer length,

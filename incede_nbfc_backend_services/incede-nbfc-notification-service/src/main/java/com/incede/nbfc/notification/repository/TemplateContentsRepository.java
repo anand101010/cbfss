@@ -68,10 +68,4 @@ public interface TemplateContentsRepository   extends JpaRepository<TemplateCont
             @Param("identity") UUID identity
     );
 
-    Optional<TemplateContents> findByIdentityAndTenantIdAndIsActiveTrueAndIsDeleteFalse(
-            UUID identity,
-            Integer tenantId
-    );
-
-
 }

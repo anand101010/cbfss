@@ -1,6 +1,8 @@
 package com.incede.nbfc.core.monolith.customer.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -8,13 +10,9 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Form60UploadResponseDto {
     private UUID form60Identity;
-    @ToString.Exclude
-    private String pdfDocRefId;
-    @ToString.Exclude
-    private String filePath;
-    @ToString.Exclude
+    private UUID pdfDocRefId;
     private String fileName;
+    private OffsetDateTime uploadedAt;
 }

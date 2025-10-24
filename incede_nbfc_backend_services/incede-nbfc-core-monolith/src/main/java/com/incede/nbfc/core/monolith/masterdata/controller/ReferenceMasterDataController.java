@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/master")
@@ -32,9 +31,9 @@ public class ReferenceMasterDataController {
     @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/address-types")
     @Operation(summary = "Get all address types", description = "Retrieves all address types from the system")
-    public ResponseEntity<List<AddressTypeView>> getAllAddressTypes(@RequestParam(value = "tenantIdentity", required = false) UUID tenantIdentity) {
-        log.info("Fetching all address types by tenantIdentity={}",tenantIdentity);
-        List<AddressTypeView> addressTypes = referenceMasterDataService.getAllAddressTypes(tenantIdentity);
+    public ResponseEntity<List<AddressTypeView>> getAllAddressTypes() {
+        log.info("Fetching all address types");
+        List<AddressTypeView> addressTypes = referenceMasterDataService.getAllAddressTypes();
         log.info("Found {} address types", addressTypes.size());
         return ResponseEntity.ok(addressTypes);
     }
@@ -47,9 +46,9 @@ public class ReferenceMasterDataController {
     @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/address-proof-type")
     @Operation(summary = "Get all Address Proof Types", description = "Retrieves all Address Proof Types from the system")
-    public ResponseEntity<List<AddressProofTypeView>> getAllAddressProofTypes(@RequestParam(value = "tenantIdentity", required = false) UUID tenantIdentity) {
-        log.info("Fetching all Address Proof Types by tenantIdentity={}",tenantIdentity);
-        List<AddressProofTypeView> addressProofTypeView = referenceMasterDataService.getAllAddressProofTypes(tenantIdentity);
+    public ResponseEntity<List<AddressProofTypeView>> getAllAddressProofTypes() {
+        log.info("Fetching all Address Proof Types");
+        List<AddressProofTypeView> addressProofTypeView = referenceMasterDataService.getAllAddressProofTypes();
         log.info("Found {} Address Proof Types", addressProofTypeView.size());
         return ResponseEntity.ok(addressProofTypeView);
     }
@@ -62,9 +61,9 @@ public class ReferenceMasterDataController {
     @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/residential-statuses")
     @Operation(summary = "Get all Residential Statuses", description = "Retrieves all Residential Statuses from the system")
-    public ResponseEntity<List<ResidentialStatusesView>> getAllResidentialStatuses(@RequestParam(value = "tenantIdentity", required = false) UUID tenantIdentity) {
-        log.info("Fetching all Residential Statuses by tenantIdentity={}",tenantIdentity);
-        List<ResidentialStatusesView> residentialStatusesView = referenceMasterDataService.getAllResidentialStatuses(tenantIdentity);
+    public ResponseEntity<List<ResidentialStatusesView>> getAllResidentialStatuses() {
+        log.info("Fetching all Residential Statuses");
+        List<ResidentialStatusesView> residentialStatusesView = referenceMasterDataService.getAllResidentialStatuses();
         log.info("Found {} Residential Statuses", residentialStatusesView.size());
         return ResponseEntity.ok(residentialStatusesView);
     }
@@ -78,9 +77,9 @@ public class ReferenceMasterDataController {
     @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/contact-types")
     @Operation(summary = "Get all contact types", description = "Retrieves all contact types from the system")
-    public ResponseEntity<List<ContactTypesView>> getAllContactTypes(@RequestParam(value = "tenantIdentity", required = false) UUID tenantIdentity) {
-        log.info("Fetching all contact types by tenantIdentity={}",tenantIdentity);
-        List<ContactTypesView> contactTypes = referenceMasterDataService.getAllContactTypes(tenantIdentity);
+    public ResponseEntity<List<ContactTypesView>> getAllContactTypes() {
+        log.info("Fetching all contact types");
+        List<ContactTypesView> contactTypes = referenceMasterDataService.getAllContactTypes();
         log.info("Found {} contact types", contactTypes.size());
 
         return ResponseEntity.ok(contactTypes);

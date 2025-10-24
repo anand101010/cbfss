@@ -1,12 +1,7 @@
 package com.incede.nbfc.core.monolith.masterdata.service;
 
-import com.incede.nbfc.core.monolith.common.CommonConstants;
-import com.incede.nbfc.core.monolith.exception.BusinessException;
-import com.incede.nbfc.core.monolith.exception.ErrorCodes;
 import com.incede.nbfc.core.monolith.masterdata.dto.*;
 import com.incede.nbfc.core.monolith.masterdata.repository.*;
-import com.incede.nbfc.core.monolith.tenant.domain.entity.Tenant;
-import com.incede.nbfc.core.monolith.tenant.repository.TenantRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -26,34 +20,15 @@ public class DocumentMasterDataService {
     private final DocumentTypeRepository documentTypeRepository;
     private final CanvassedTypesRepository canvassedTypesRepository;
     private final AssetTypesRepository assetTypesRepository;
-    private final TenantRepository tenantRepository;
 
-
-    /**
-     * find tenant from Tenant Identity
-     *
-     */
-    public Integer getTenantId(UUID tenantIdentity){
-        Tenant tenant = tenantRepository.findByIdentity(tenantIdentity).orElseThrow(
-                ()-> new BusinessException(CommonConstants.TENANT_NOT_FOUND, ErrorCodes.RESOURCE_NOT_FOUND));
-        return tenant.getTenantId();
-
-    }
 
     /**
      * Retrieves all active Kyc types .
      *
      */
     @Transactional(readOnly = true)
-    public List<KycTypesView> getAllKycTypes(UUID tenantIdentity) {
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all active Kyc types by tenant Id={}",tenantId);
-
-
-        List<KycTypesView> kycTypes = kycTypesRepository.findByIsDelFalseAndIsActiveTrueByTenantId(tenantId);
+    public List<KycTypesView> getAllKycTypes() {
+        List<KycTypesView> kycTypes = kycTypesRepository.findByIsDelFalseAndIsActiveTrue();
         if (kycTypes.isEmpty()) {
             log.warn("No kyc types found");
             return kycTypes;
@@ -67,15 +42,8 @@ public class DocumentMasterDataService {
      *
      */
     @Transactional(readOnly = true)
-    public List<DocumentMasterView> getAllDocumentMasters(UUID tenantIdentity) {
-
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all active document master by tenant Id={}",tenantId);
-
-        List<DocumentMasterView> documentMaster = documentMasterRepository.findByIsDelFalseAndIsActiveTrueByTenantId(tenantId);
+    public List<DocumentMasterView> getAllDocumentMasters() {
+        List<DocumentMasterView> documentMaster = documentMasterRepository.findByIsDelFalseAndIsActiveTrue();
 
         if (documentMaster.isEmpty()) {
             log.warn("No document found");
@@ -91,13 +59,8 @@ public class DocumentMasterDataService {
      *
      */
     @Transactional(readOnly = true)
-    public List<DocumentTypeView> getAllDocumentType(UUID tenantIdentity) {
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all active document types  by tenant Id={}",tenantId);
-        List<DocumentTypeView> documentType = documentTypeRepository.findByIsDelFalseAndIsActiveTrueByTenantId(tenantId);
+    public List<DocumentTypeView> getAllDocumentType() {
+        List<DocumentTypeView> documentType = documentTypeRepository.findByIsDelFalseAndIsActiveTrue();
         if (documentType.isEmpty()) {
             log.warn("No document types found");
             return documentType;
@@ -111,14 +74,8 @@ public class DocumentMasterDataService {
      *
      */
     @Transactional(readOnly = true)
-    public List<CanvassedTypesView> getAllCanvassedTypes(UUID tenantIdentity) {
-
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all active canvassed types  by tenant Id={}",tenantId);
-        List<CanvassedTypesView> canvassedTypes = canvassedTypesRepository.findByIsDelFalseAndIsActiveTrueByTenantId(tenantId);
+    public List<CanvassedTypesView> getAllCanvassedTypes() {
+        List<CanvassedTypesView> canvassedTypes = canvassedTypesRepository.findByIsDelFalseAndIsActiveTrue();
         if (canvassedTypes.isEmpty()) {
             log.warn("No canvassed types found");
             return canvassedTypes;
@@ -132,15 +89,9 @@ public class DocumentMasterDataService {
      *
      */
     @Transactional(readOnly = true)
-    public List<AssetTypesView> getAllAssetTypes(UUID tenantIdentity) {
+    public List<AssetTypesView> getAllAssetTypes() {
 
-        Integer tenantId = null;
-        if(tenantIdentity!=null){
-            tenantId = getTenantId(tenantIdentity);
-        }
-        log.info("Fetching all active asset types by tenant Id={}",tenantId);
-
-        List<AssetTypesView> assetTypes = assetTypesRepository.findByIsDelFalseAndIsActiveTrueByTenantId(tenantId);
+        List<AssetTypesView> assetTypes = assetTypesRepository.findByIsDelFalseAndIsActiveTrue();
 
         if (assetTypes.isEmpty()) {
             log.warn("No asset type types  found");

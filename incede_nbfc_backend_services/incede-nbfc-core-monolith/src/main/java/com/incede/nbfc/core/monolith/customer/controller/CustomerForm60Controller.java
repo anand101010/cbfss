@@ -1,10 +1,8 @@
-
 package com.incede.nbfc.core.monolith.customer.controller;
 
 
 import com.incede.nbfc.core.monolith.customer.dto.CustomerForm60RequestDto;
 import com.incede.nbfc.core.monolith.customer.dto.CustomerForm60ResponseDto;
-import com.incede.nbfc.core.monolith.customer.dto.Form60UploadDto;
 import com.incede.nbfc.core.monolith.customer.dto.Form60UploadResponseDto;
 import com.incede.nbfc.core.monolith.customer.service.CustomerForm60Service;
 import io.swagger.v3.oas.annotations.Operation;
@@ -149,20 +147,18 @@ public class CustomerForm60Controller {
 
     @PreAuthorize("hasRole('STAFF')")
     @PostMapping(
-            value = "/{customerIdentity}/form60/{form60Identity}/upload"
-
+            value = "/{customerIdentity}/form60/{form60Identity}/upload",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     @Operation(summary = "Upload Signed Form 60 PDF",
             description = "Upload the signed PDF of Form 60 for a given customer and Form 60 ID")
     public ResponseEntity<Form60UploadResponseDto> uploadSignedForm60(
             @PathVariable UUID customerIdentity,
             @PathVariable UUID form60Identity,
-            @Valid @RequestBody Form60UploadDto request) {
+            @RequestParam("signedForm60") MultipartFile signedForm60) {
 
-        Form60UploadResponseDto response = form60Service.uploadSignedForm60(customerIdentity, form60Identity,request);
+        Form60UploadResponseDto response = form60Service.uploadSignedForm60(customerIdentity, form60Identity, signedForm60);
         return ResponseEntity.ok(response);
     }
 
 }
-
-

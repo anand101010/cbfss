@@ -1,12 +1,5 @@
 package com.incede.nbfc.core.monolith.report.form60;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Form60ReportData {
 	private String fullName;
 	private String panOrForm60Reason;
